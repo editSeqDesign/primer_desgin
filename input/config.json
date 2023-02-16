@@ -1,0 +1,67 @@
+{
+
+        "chopchop_input": "./input/info_input.csv",
+        "sgRNA_result_path": "./input/all_result.csv",
+        "edit_sequence_design_workdir":"./output/edit_sequence_design/",
+
+        "one_plasmid_file_path": "./input/pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
+        "no_ccdb_plasmid":"./input/no-ccdb-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
+        "no_sgRNA_plasmid":"./input/no-sgRNA-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
+        
+        "plasmid_label":{
+            "ccdb_label":"ccdB",
+            "promoter_terminator_label":"gRNA",
+            "n_20_label":"N20"
+        },
+        
+        "sgRNA_primer_json":{
+            "primer3":"AACTATTTATCCAGTTGGTACAAAC",
+            "primer5":"GAAGATAACGAACAAAAACAATTGT"
+        },
+        "ccdb_primer_json":{
+            "primer3":"AACTGATTCAGTCTGATTTCGCGGT",
+            "primer5":"CCCTCTAATCGAAACTAATGGGGA"
+        },
+    
+        "sgRNA_region_json":{
+            "region1":"371,570",
+            "region2":"3572,3770"
+        },
+        
+        "ccdb_region_json":{
+            "region1":"8364,8563",
+            "region2":"376,575"
+        },
+        
+        "S_GLOBAL_ARGS":{
+            "PRIMER_OPT_SIZE": 20,   
+            "PRIMER_MIN_SIZE": 18,
+            "PRIMER_MAX_SIZE": 25,
+            "PRIMER_OPT_TM": 65.0,
+            "PRIMER_MIN_TM": 55.0,
+            "PRIMER_MAX_TM": 75.0,
+            "PRIMER_MIN_GC": 20.0,
+            "PRIMER_MAX_GC": 80.0
+        },
+        
+        "Q_ARGS":{
+            "PRIMER_OPT_SIZE": 20,
+            "PRIMER_MIN_SIZE": 18,   
+            "PRIMER_MAX_SIZE": 25,
+            "PRIMER_OPT_TM": 65.0,
+            "PRIMER_MIN_TM": 55.0,
+            "PRIMER_MAX_TM": 75.0,    
+            "PRIMER_MIN_GC": 20.0,
+            "PRIMER_MAX_GC": 80.0
+        },
+    
+        "enzyme":{
+            "name":"BsaI",
+            "protective_base":"CCA",
+            "recognition_seq":"GGTCTC",
+            "cut_seq_len":4,
+            "gap_len":1    
+        }
+
+    }
+    
