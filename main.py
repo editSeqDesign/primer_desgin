@@ -177,7 +177,13 @@ def region_2_distance(sgRNA_plasmid_seq_len, sgRNA_region_json, first_primer_sta
 
     return last_distance_dict
 
-def two_plasmid_system_design_by_user_region(distance_dict,
+def two_plasmid_system_design_by_user_region(
+                                            no_sgRNA_plasmid,
+                                            no_ccdb_plasmid,
+                                            uha_dha_sgRNA_df, 
+                                            enzyme_df,
+                                            enzyme_name,
+                                            distance_dict,
                                              sgRNA_plasmid_seq,
                                              sgRNA_plasmid_region_seq,
                                              ccdb_plasmid_seq,
@@ -248,7 +254,7 @@ def two_plasmid_system_design_by_user_region(distance_dict,
 
     return  sgRNA_plasmid_primer_df, ccdb_plasmid_primer_df
 
-def two_plasmid_system_design_by_no_user(no_ccdb_uha_dha_sgRNA_df,ccdB_plasmid_backbone):
+def two_plasmid_system_design_by_no_user(no_ccdb_uha_dha_sgRNA_df,ccdB_plasmid_backbone,enzyme_df,enzyme_name):
     #设计sgRNA质粒引物
     no_ccdb_primer_template_df = no_ccdb_uha_dha_sgRNA_df[['Name','Region','sgRNA_template','Rev Target sequence']]
     no_ccdb_primer_template_df['Region'] = no_ccdb_primer_template_df['Name'] + ';' + no_ccdb_primer_template_df['Region']
@@ -257,14 +263,14 @@ def two_plasmid_system_design_by_no_user(no_ccdb_uha_dha_sgRNA_df,ccdB_plasmid_b
     
     #sgRNA质粒引物加接头
     sgRNA_plasmid_primer_df = pd.merge(no_ccdb_uha_dha_sgRNA_df[['Region','Target sequence','Rev Target sequence']],sgRNA_plasmid_primer_df,on=['Region'],how='inner')
-    sgRNA_plasmid_primer_df = p_d_seq.add_joint_sgRNA_primer(sgRNA_plasmid_primer_df,enzyme_df,enzyme_name='BsaI',stype='sgRNA_plasmid_primer_joint')
+    sgRNA_plasmid_primer_df = p_d_seq.add_joint_sgRNA_primer(sgRNA_plasmid_primer_df,enzyme_df,enzyme_name,stype='sgRNA_plasmid_primer_joint')
     
     #设计ccdB质粒引物
     no_sgRNA_primer_template_df = pd.DataFrame(columns=['plasmid_backbone_primer','plasmid_backbone'],data=[[f'ccdb_plasmid;primer',ccdB_plasmid_backbone]])
     ccdb_plasmid_primer_df = p_d_seq.design_primer(no_sgRNA_primer_template_df,'plasmid_backbone_primer','plasmid_backbone','plasmid')
     
     #ccdb质粒引物加接头
-    ccdb_plasmid_primer_df = p_d_seq.add_joint_sgRNA_primer(ccdb_plasmid_primer_df,enzyme_df,enzyme_name='BsaI',stype='ccdb_plasmid_primer_joint')
+    ccdb_plasmid_primer_df = p_d_seq.add_joint_sgRNA_primer(ccdb_plasmid_primer_df,enzyme_df,enzyme_name,stype='ccdb_plasmid_primer_joint')
     
     #提取引物的必要部分
     sgRNA_plasmid_p_df = sgRNA_plasmid_primer_df[['Region',r"primer_f_seq_(5'-3')_joint",r"primer_r_seq_(5'-3')_joint","product_value_joint","product_size_joint"]]
@@ -272,7 +278,7 @@ def two_plasmid_system_design_by_no_user(no_ccdb_uha_dha_sgRNA_df,ccdB_plasmid_b
 
     return sgRNA_plasmid_p_df, ccdb_plasmid_p_df, sgRNA_plasmid_primer_df, ccdb_plasmid_primer_df
 
-def two_plasmid_system_design_by_user_primer_sgRNA(uha_dha_sgRNA_df, sgRNA_plasmid_backbone, sgRNA_promoter_terminator, sgRNA_primer_json,enzyme_df,enzyme_name,n_20_label,ccdb_label,promoter_terminator_label):
+def two_plasmid_system_design_by_user_primer_sgRNA(no_ccdb_plasmid, uha_dha_sgRNA_df, sgRNA_plasmid_backbone, sgRNA_promoter_terminator, sgRNA_primer_json,enzyme_df,enzyme_name,n_20_label,ccdb_label,promoter_terminator_label):
     #定位和检查引物
     primer_position_json, failture_primer = p_d_seq.check_locate_primer(sgRNA_plasmid_backbone, sgRNA_primer_json)
 
@@ -385,7 +391,7 @@ def genome_sequencing_design_primer(info_input_df, uha_dha_df):
     return genome_sequencing_primer_df
 
 # 
-def execute_one_plasmid_system(gb_path, info_df, uha_dha_sgRNA_df, uha_dha_info_primer_df, uha_dha_primer_df,enzyme_df,enzyme_name,output):
+def execute_one_plasmid_system(gb_path, info_df, info_input_df, uha_dha_df, uha_dha_sgRNA_df, uha_dha_info_primer_df, uha_dha_primer_df,enzyme_df,enzyme_name,output):
     gb = SeqIO.read(gb_path, "genbank")
     gb_name = gb.name
 
@@ -419,7 +425,12 @@ def execute_one_plasmid_system(gb_path, info_df, uha_dha_sgRNA_df, uha_dha_info_
             plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P',index_label='No.')
             genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')                                                                                                                                                    
 
-def execute_two_plasmid_system(info_df,no_ccdb_plasmid,
+def execute_two_plasmid_system(
+                                 info_df,
+                                 uha_dha_info_primer_df,  
+                                 uha_dha_df,
+                                 info_input_df,
+                                 no_ccdb_plasmid,
                                  no_sgRNA_plasmid,
                                  uha_dha_sgRNA_df,
                                  plasmid_primer_desgin_type,
@@ -434,7 +445,6 @@ def execute_two_plasmid_system(info_df,no_ccdb_plasmid,
                                  n_20_label,
                                  output
                                  ):
-
     no_ccdb_uha_dha_sgRNA_df, sgRNA_plasmid_backbone, promoter_seq, terminator_seq, sgRNA_promoter_terminator, sgRNA_type_kind  = p_d_seq.create_new_plasmid(no_ccdb_plasmid,uha_dha_sgRNA_df.copy(),ccdb_label, promoter_terminator_label, n_20_label)
     no_sgRNA_uha_dha_ccdb_df, ccdB_plasmid_backbone, ccdB_promoter_terminator_up_seq, ccdB_type_kind  = p_d_seq.create_new_plasmid(no_sgRNA_plasmid,uha_dha_sgRNA_df.copy(),ccdb_label, promoter_terminator_label, n_20_label)
     #酶切退火方式
@@ -444,8 +454,8 @@ def execute_two_plasmid_system(info_df,no_ccdb_plasmid,
     if  plasmid_primer_desgin_type == 1:
         #对质粒进行分割
         #初步分割
-        sgRNA_plasmid_seq, sgRNA_plasmid_region_seq = p_d_seq.plasmid_region_division_by_labels(no_ccdb_plasmid,ccdb_label, promoter_terminator_label, n_20_label)
-        ccdb_plasmid_seq, ccdb_plasmid_region_seq = p_d_seq.plasmid_region_division_by_labels(no_sgRNA_plasmid,ccdb_label, promoter_terminator_label, n_20_label)
+        sgRNA_plasmid_seq, sgRNA_plasmid_region_seq = p_d_seq.plasmid_region_division_by_labels(no_ccdb_plasmid, ccdb_label, promoter_terminator_label, n_20_label)
+        ccdb_plasmid_seq, ccdb_plasmid_region_seq = p_d_seq.plasmid_region_division_by_labels(no_sgRNA_plasmid, ccdb_label, promoter_terminator_label, n_20_label)
 
         #第一段距离：sgRNA终止子距离第一段区域的最小、最大距离
         #第二段距离：是第一段区域距离第二段区域的最小、最大距离
@@ -460,6 +470,11 @@ def execute_two_plasmid_system(info_df,no_ccdb_plasmid,
         }
         #根据区域设计引物
         sgRNA_plasmid_primer_df, ccdb_plasmid_primer_df = two_plasmid_system_design_by_user_region(
+                                                                                    no_sgRNA_plasmid,
+                                                                                    no_ccdb_plasmid,
+                                                                                    uha_dha_sgRNA_df,
+                                                                                    enzyme_df,
+                                                                                    enzyme_name,
                                                                                     distance_dict, 
                                                                                     sgRNA_plasmid_seq,
                                                                                     sgRNA_plasmid_region_seq,
@@ -599,12 +614,17 @@ def main(data):
     uha_dha_info_primer_df, uha_dha_df, uha_dha_sgRNA_df, info_df = extract_uha_dha(info_input_df,uha_dha_primer_df,sgRNA)
 
     # 6.执行单质粒系统
-    execute_one_plasmid_system(one_plasmid_file_path, info_df, uha_dha_sgRNA_df, uha_dha_info_primer_df, uha_dha_primer_df,enzyme_df,enzyme_name,output)
+    execute_one_plasmid_system(one_plasmid_file_path, info_df, info_input_df, uha_dha_df, uha_dha_sgRNA_df, uha_dha_info_primer_df, uha_dha_primer_df,enzyme_df,enzyme_name,output)
 
     # 7.执行双质粒系统
     #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物
     plasmid_primer_desgin_type = 1
-    execute_two_plasmid_system(info_input_df,no_ccdb_plasmid,
+    execute_two_plasmid_system(
+                                info_df,
+                                uha_dha_info_primer_df,
+                                uha_dha_df,
+                                info_input_df,
+                                 no_ccdb_plasmid,
                                  no_sgRNA_plasmid,
                                  uha_dha_sgRNA_df,
                                  plasmid_primer_desgin_type,
@@ -619,7 +639,7 @@ def main(data):
                                  n_20_label,
                                  output
                                  )
-
+     
 if __name__ == '__main__':
 
     #read json
