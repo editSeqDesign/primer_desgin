@@ -48,9 +48,7 @@ def deal_coordinate(obt,start,end,opt=0):
 def get_data_from_genebank(infile='icd-28a-new.gb',marker='KanR',target_gene='alsD-target gene'):
   
     genebank_db = SeqIO.read(infile, "genbank")    
-   
-       
-    
+
     #取目标坐标
     start = genebank_db.features[0].location.start.position
     end = genebank_db.features[0].location.end.position

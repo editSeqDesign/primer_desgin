@@ -279,9 +279,9 @@ def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_
         promoter_terminator_up_seq = after_processed_seq_dict['target_gene_up_seq']
         promoter_terminator_down_seq = after_processed_seq_dict['target_gene_down_seq']
 
-        print("启动子上游序列：",promoter_terminator_up_seq)
+        print("启动子-n20-终止子上游序列：",promoter_terminator_up_seq)
 
-        print("启动子——n20-终止子下游序列：",promoter_terminator_down_seq)
+        print("启动子—n20-终止子下游序列：",promoter_terminator_down_seq)
 
         n20_coordinate_seq = gb_seq[n20_coordinate[0]:n20_coordinate[1]]
         start = promoter_terminator.find(n20_coordinate_seq)
@@ -332,7 +332,7 @@ def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_
         terminator_seq = promoter_terminator[start+len(n20_coordinate_seq):]
         promoter_seq = promoter_terminator[:start]
 
-        type_kind = 3
+        
         joint_need_seq = promoter_terminator
         plasmid_backbone = promoter_terminator_up_seq + promoter_terminator + promoter_terminator_down_seq
 
@@ -344,7 +344,7 @@ def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_
             return plasmid, sgRNA_template, new_promoter_terminator, promoter_terminator_up_seq, promoter_terminator_down_seq
 
         sgRNA_df = su.lambda2cols(df=sgRNA_df, lambdaf=work, in_coln=['Target sequence','UHA','DHA','seq_altered','type'], to_colns=['plasmid','sgRNA_template','promoter_N20_terminator','promoter_N20_terminator_up','promoter_N20_terminator_down'])        
-        return sgRNA_df, plasmid_backbone, promoter_seq, terminator_seq, joint_need_seq, type_kind
+        return sgRNA_df, plasmid_backbone, promoter_seq, terminator_seq, joint_need_seq
 
     elif ccdb_coordinate[0] != -1 and promoter_terminator_coordinate[0]  == -1:
         #双质粒系统：无sgRNA
@@ -353,7 +353,7 @@ def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_
         ccdb_up_seq = before_processed_seq_dict['target_gene_up_seq']
         ccdb_down_seq = before_processed_seq_dict['target_gene_down_seq']
 
-        type_kind =4
+       
         plasmid_backbone = ccdb_down_seq + ccdb_up_seq
         joint_need_seq = ''
         def work(target_seq, uha,dha, seq_altered, type):
@@ -366,7 +366,7 @@ def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_
             return plasmid, '', ccdb, ccdb_up_seq, ccdb_down_seq
 
         sgRNA_df = su.lambda2cols(df=sgRNA_df, lambdaf=work, in_coln=['Target sequence','UHA','DHA','seq_altered','type'], to_colns=['plasmid','sgRNA_template','ccdb','ccdb_up','ccdb_down'])
-        return sgRNA_df, plasmid_backbone, joint_need_seq, type_kind
+        return sgRNA_df, plasmid_backbone, joint_need_seq
     
 def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_terminator_down_terminator_seq='',promoter_terminator_up_promoter_seq='',stype='sgRNA_joint'):
     
@@ -395,8 +395,8 @@ def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_termin
                 product_value_joint = left_temp_seq + product_value + su.revComp(rev_target_seq)[::-1] + right_temp_seq[::-1]
                 product_value_size_joint = len(product_value_joint)
 
-                print(f'sgRNA_left_{Name}:', protective_base , recognition_seq , gap_seq[:gap_len], left_primer)
-                print(f'sgRNA_right_{Name}:', su.revComp(right_temp_seq)[::-1] , rev_target_seq , right_primer ,';',  protective_base , recognition_seq , gap_seq[:gap_len])
+                print(stype,f'n20up_left_{Name}:', protective_base , recognition_seq , gap_seq[:gap_len], left_primer)
+                print(stype,f'n20up_right_{Name}:', su.revComp(right_temp_seq)[::-1] , rev_target_seq , right_primer ,';',  protective_base , recognition_seq , gap_seq[:gap_len])
 
         elif stype == 'n20down_primer_joint':
             left_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len]  + su.revComp(rev_target_seq)[-cut_seq_len:]
@@ -407,6 +407,9 @@ def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_termin
 
             product_value_joint = left_temp_seq + product_value + right_temp_seq[::-1]   
             product_value_size_joint = len(product_value_joint)
+            
+            print(stype,f'n20down_left_{Name}:', protective_base , recognition_seq , gap_seq[:gap_len], su.revComp(rev_target_seq)[-cut_seq_len:], left_primer)
+            print(stype,f'n20down_right_{Name}:', su.revComp(right_temp_seq)[::-1] , right_primer ,';',  protective_base , recognition_seq , gap_seq[:gap_len])
 
         elif stype == 'plasmid_backbone_primer_joint':
         # elif stype == 'n20down_primer_joint':
@@ -425,8 +428,10 @@ def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_termin
         elif stype == 'seq_altered_primer_joint'or stype == 'ccdb_plasmid_primer_joint':
             left_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len]  
             right_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len]   
+
             left_primer = left_temp_seq + left_primer
             right_primer = su.revComp(right_temp_seq)[::-1] + right_primer
+            
             product_value_joint = left_temp_seq + product_value + right_temp_seq[::-1]
             product_value_size_joint = len(product_value_joint)
 
@@ -434,15 +439,14 @@ def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_termin
             print(f'seq_altered_right_{Name}:', su.revComp(right_temp_seq)[::-1] , right_primer ,';', protective_base , recognition_seq , gap_seq[:gap_len])  
 
         return left_primer, right_primer, product_value_joint, product_value_size_joint
-      
+
+    #设计uha，dha的上下游引物接头 
     def u_d_primer_joint(x): 
         x = x.reset_index(drop=True)  
         mute_type = x.loc[0,'type']
         seq_altered	 = x.loc[0,'seq_altered']
         seq_altered_len = len(seq_altered)  
         add_len = math.floor( seq_altered_len/2 ) 
-
-        print(type(mute_type))  
 
         df = pd.DataFrame(columns=['Name',
                                 'Region',
@@ -471,28 +475,28 @@ def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_termin
         if uha_type == 'uha':
             #uha的左引物
             uha_left_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len] + promoter_terminator_down_terminator_seq[-cut_seq_len:]
-
             uha_left_primer = uha_left_temp_seq + uha_left_primer  
 
-             #uha的右引物
+            #uha的右引物
             if mute_type == 'deletion':
                 uha_right_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len]
                 uha_right_primer =  su.revComp(uha_right_temp_seq)[::-1]  + uha_right_primer
+
             elif mute_type == 'substitution' or mute_type == 'insertion':
                 if seq_altered_len <= cut_seq_len :
                         uha_right_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len] + seq_altered
                         uha_right_primer = su.revComp(uha_right_temp_seq[:-seq_altered_len])[::-1] + su.revComp(seq_altered)  + uha_right_primer
-                        print(f'uha_right_{Name}{Region}:',su.revComp(uha_right_temp_seq[:-seq_altered_len])[::-1], su.revComp(seq_altered), uha_right_primer, ';' , protective_base, recognition_seq, gap_seq[:gap_len])
+                        print(stype,f'uha_right_{Name}{Region}:',su.revComp(uha_right_temp_seq[:-seq_altered_len])[::-1], su.revComp(seq_altered), uha_right_primer, ';' , protective_base, recognition_seq, gap_seq[:gap_len])
 
                 elif seq_altered_len > cut_seq_len and  seq_altered_len <= 120:
                         uha_right_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len] + seq_altered[:add_len]
                         uha_right_primer = su.revComp(uha_right_temp_seq[:-add_len])[::-1] + su.revComp(seq_altered[:add_len]) + uha_right_primer
-                        print(f'uha_right_{Name}{Region}:', su.revComp(uha_right_temp_seq[:-add_len])[::-1], su.revComp(seq_altered[:add_len]), uha_right_primer, ';' , protective_base, recognition_seq, gap_seq[:gap_len])
+                        print(stype,f'uha_right_{Name}{Region}:', su.revComp(uha_right_temp_seq[:-add_len])[::-1], su.revComp(seq_altered[:add_len]), uha_right_primer, ';' , protective_base, recognition_seq, gap_seq[:gap_len])
 
                 elif seq_altered_len > 120:
                     uha_right_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len] + seq_altered[:cut_seq_len]
                     uha_right_primer = su.revComp(uha_right_temp_seq[:-cut_seq_len])[::-1] + su.revComp(seq_altered[:cut_seq_len]) + uha_right_primer
-                    print(f'uha_right_{Name}{Region}:',  su.revComp(uha_right_temp_seq[:-cut_seq_len])[::-1], su.revComp(seq_altered[:cut_seq_len]), uha_right_primer, ';' , protective_base, recognition_seq, gap_seq[:gap_len])
+                    print(stype,f'uha_right_{Name}{Region}:',  su.revComp(uha_right_temp_seq[:-cut_seq_len])[::-1], su.revComp(seq_altered[:cut_seq_len]), uha_right_primer, ';' , protective_base, recognition_seq, gap_seq[:gap_len])
 
             uha_product_value_joint = uha_left_temp_seq + uha_product_value + uha_right_temp_seq[::-1] 
             uha_product_value_size_joint = len(uha_product_value_joint)
@@ -504,7 +508,7 @@ def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_termin
             u_d_primer_joint_dict["product_value_joint"] = uha_product_value_joint
             u_d_primer_joint_dict["product_size_joint"] = uha_product_value_size_joint
             u_d_primer_joint_dict['Type'] = uha_type
-            print(f'uha_left_{Name}{Region}:',protective_base, recognition_seq, gap_seq[:gap_len], promoter_terminator_down_terminator_seq[-cut_seq_len:],uha_left_primer)
+            print(stype,f'uha_left_{Name}{Region}:',protective_base, recognition_seq, gap_seq[:gap_len], promoter_terminator_down_terminator_seq[-cut_seq_len:],uha_left_primer)
            
             df = df.append(pd.DataFrame([u_d_primer_joint_dict]))        
 
@@ -525,29 +529,29 @@ def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_termin
                     temp_len = cut_seq_len - seq_altered_len
                     temp_seq=su.revComp(uha_right_primer[uha_right_temp_seq_len : uha_right_temp_seq_len + temp_len])[::-1]
                     dha_left_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len]  + temp_seq + seq_altered           #对    
-                    print(f'dha_left_{Name}{Region}:',protective_base, recognition_seq, gap_seq[:gap_len],temp_seq, seq_altered,dha_left_primer)   
+                    print(stype,f'dha_left_{Name}{Region}:',protective_base, recognition_seq, gap_seq[:gap_len],temp_seq, seq_altered,dha_left_primer)   
                 elif seq_altered_len > cut_seq_len and  seq_altered_len <= 120: 
                     
                     if add_len >= cut_seq_len:
                         if seq_altered_len % 2 == 0:
                             dha_left_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len] + seq_altered[add_len - cut_seq_len:]
-                            print(f'dha_left_{Name}{Region}:',protective_base, recognition_seq, gap_seq[:gap_len], seq_altered[add_len - cut_seq_len:],dha_left_primer) 
+                            print(stype,f'dha_left_{Name}{Region}:',protective_base, recognition_seq, gap_seq[:gap_len], seq_altered[add_len - cut_seq_len:],dha_left_primer) 
                         else:
                             dha_left_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len] + seq_altered[add_len - cut_seq_len:]
-                            print(f'dha_left_{Name}{Region}:',protective_base, recognition_seq, gap_seq[:gap_len], seq_altered[add_len - cut_seq_len:],dha_left_primer) 
+                            print(stype,f'dha_left_{Name}{Region}:',protective_base, recognition_seq, gap_seq[:gap_len], seq_altered[add_len - cut_seq_len:],dha_left_primer) 
                     else:
                         temp_len = cut_seq_len - add_len
                         if seq_altered_len % 2 == 0:
                             #保护碱基 + 识别序列 +（向uha右引物借的序列+重叠序列）+ seq_altered[add_len:]
-                            dha_left_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len]+ (su.revComp(uha_right_primer[:temp_len][::-1]) + seq_altered[add_len:]) + seq_altered[add_len:]
-                            print(f'dha_left_{Name}{Region}:',protective_base, recognition_seq, gap_seq[:gap_len], (su.revComp(uha_right_primer[:temp_len][::-1]) + seq_altered[add_len:]), seq_altered[add_len:]) 
+                            dha_left_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len]+ (su.revComp(uha_right_primer[uha_right_temp_seq_len:temp_len][::-1]) ) + seq_altered
+                            print(stype,f'dha_left_{Name}{Region}:',protective_base, recognition_seq, gap_seq[:gap_len], (su.revComp(uha_right_primer[uha_right_temp_seq_len:temp_len][::-1]) ), seq_altered) 
                         else:
-                            dha_left_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len]+ (su.revComp(uha_right_primer[:temp_len][::-1]) + seq_altered[add_len:]) + seq_altered[add_len+1:]
-                            print(f'dha_left_{Name}{Region}:',protective_base, recognition_seq, gap_seq[:gap_len], (su.revComp(uha_right_primer[:temp_len][::-1]) + seq_altered[add_len:]), seq_altered[add_len+1:])
+                            dha_left_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len]+ (su.revComp(uha_right_primer[uha_right_temp_seq_len:temp_len][::-1]) ) + seq_altered
+                            print(stype,f'dha_left_{Name}{Region}:',protective_base, recognition_seq, gap_seq[:gap_len], (su.revComp(uha_right_primer[uha_right_temp_seq_len:temp_len][::-1]) ), seq_altered)
                 elif seq_altered_len > 120:
                     dha_left_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len] + seq_altered[-cut_seq_len:]    
 
-            dha_left_primer = dha_left_temp_seq + dha_left_primer  
+            dha_left_primer = dha_left_temp_seq + dha_left_primer   
             #产物   
             dha_product_value_joint = dha_left_temp_seq + dha_product_value + dha_right_temp_seq[::-1]   
             dha_product_value_size_joint = len(dha_product_value_joint)  
@@ -558,7 +562,7 @@ def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_termin
             u_d_primer_joint_dict["product_value_joint"] = dha_product_value_joint
             u_d_primer_joint_dict["product_size_joint"] = dha_product_value_size_joint 
             u_d_primer_joint_dict['Type'] = dha_type 
-            print(f'dha_right_{Name}{Region}:',su.revComp(dha_right_temp_seq)[::-1], su.revComp(promoter_terminator_up_promoter_seq[:cut_seq_len]), dha_right_primer, ';' ,protective_base ,recognition_seq ,gap_seq[:gap_len])
+            print(stype,f'dha_right_{Name}{Region}:',su.revComp(dha_right_temp_seq)[::-1], su.revComp(promoter_terminator_up_promoter_seq[:cut_seq_len]), dha_right_primer, ';' ,protective_base ,recognition_seq ,gap_seq[:gap_len])
             df = df.append(pd.DataFrame([u_d_primer_joint_dict]))  
         return df
     
@@ -717,7 +721,8 @@ def add_joint_plasmid_primer(enzyme_df,enzyme_name,sgRNA_plasmid_primer_joint_df
     primer_columns_2 = [primer_columns[i] for i in range(len(primer_columns)) if i%2!=0]
     
     #添加接头
-    enzyme_name = 'BsaI'
+    # enzyme_name = 'BsaI'
+
     sgRNA_enzyme_df = enzyme_df[enzyme_df['name']==enzyme_name]
     protective_base = sgRNA_enzyme_df.loc[0,'protective_base']
     recognition_seq = sgRNA_enzyme_df.loc[0,'recognition_seq']
