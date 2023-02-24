@@ -635,20 +635,21 @@ def main(data):
     
     print('---------------------------------------------------------',plasmid_system_type) 
 
-    if plasmid_system_type == 1 or plasmid_system_type == 0:
+    if plasmid_system_type == 1:
         # 6.执行单质粒系统
         one_plasmid_output_path = execute_one_plasmid_system(one_plasmid_file_path, info_df, info_input_df, uha_dha_df, uha_dha_sgRNA_df, uha_dha_info_primer_df, uha_dha_primer_df,enzyme_df,enzyme_name,output)
-    if plasmid_system_type == 0 or plasmid_system_type == 2:
+        return one_plasmid_output_path  
+    elif plasmid_system_type == 2:
         # 7.执行双质粒系统
         #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物
+       
         plasmid_primer_desgin_type = 2
         if sgRNA_primer_json !={} and ccdb_primer_json !={} and sgRNA_region_json =={} and ccdb_region_json =={}:
             plasmid_primer_desgin_type = 3
         elif sgRNA_region_json !={} and ccdb_region_json !={} and sgRNA_primer_json =={} and ccdb_primer_json =={}:
             plasmid_primer_desgin_type = 1
         else:
-            plasmid_primer_desgin_type = 2  
-        
+            plasmid_primer_desgin_type = 2 
         print('-----------------------------------------',plasmid_primer_desgin_type)    
 
         two_plasmid_output_path = execute_two_plasmid_system(
@@ -671,10 +672,41 @@ def main(data):
                                     n_20_label,
                                     output
                                     )
-    
-    print(one_plasmid_output_path, two_plasmid_output_path)
+        return two_plasmid_output_path
+    elif plasmid_system_type ==0:
 
+        one_plasmid_output_path = execute_one_plasmid_system(one_plasmid_file_path, info_df, info_input_df, uha_dha_df, uha_dha_sgRNA_df, uha_dha_info_primer_df, uha_dha_primer_df,enzyme_df,enzyme_name,output)
 
+        plasmid_primer_desgin_type = 2
+        if sgRNA_primer_json !={} and ccdb_primer_json !={} and sgRNA_region_json =={} and ccdb_region_json =={}:
+            plasmid_primer_desgin_type = 3
+        elif sgRNA_region_json !={} and ccdb_region_json !={} and sgRNA_primer_json =={} and ccdb_primer_json =={}:
+            plasmid_primer_desgin_type = 1
+        else:
+            plasmid_primer_desgin_type = 2 
+        print('-----------------------------------------',plasmid_primer_desgin_type)    
+
+        two_plasmid_output_path = execute_two_plasmid_system(
+                                    info_df,
+                                    uha_dha_info_primer_df,
+                                    uha_dha_df,
+                                    info_input_df,
+                                    no_ccdb_plasmid,
+                                    no_sgRNA_plasmid,
+                                    uha_dha_sgRNA_df,
+                                    plasmid_primer_desgin_type,
+                                    enzyme_df,
+                                    enzyme_name,
+                                    sgRNA_primer_json,
+                                    ccdb_primer_json,
+                                    sgRNA_region_json,
+                                    ccdb_region_json,
+                                    ccdb_label,
+                                    promoter_terminator_label,
+                                    n_20_label,
+                                    output
+                                    )
+    return one_plasmid_output_path,two_plasmid_output_path
      
 if __name__ == '__main__':
 
