@@ -15,7 +15,7 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 import json
 from sgRNA_utils.sgRNA_primer_config import config 
-from loguru import logger
+# from loguru import logger
 
 #uha_dha_primer
 def extract_uha_dha_primer(info_input_df, sgRNA):
