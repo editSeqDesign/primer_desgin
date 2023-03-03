@@ -412,3 +412,23 @@ def rename_common_primer_df(*df_list):
                     })
         df_list_renamed.append(df)
     return df_list_renamed
+
+
+   
+def extract_seq_from_genome(genome,gene_id,start=0,end=0):
+    # 读取基因组文件
+    records = SeqIO.parse(genome,'fasta')
+        
+    # 遍历基因组文件中的所有记录
+    for record in records:
+        # 如果当前记录的ID与所需的ID匹配
+        if record.id == gene_id:   
+            # 提取坐标范围内的序列
+            if start ==0 and end ==0:
+                return str(record.seq)
+            else:
+                sequence = str(record.seq[start:end])
+                if sequence != '':
+                    return  sequence.upper()
+                else:
+                    return sequence

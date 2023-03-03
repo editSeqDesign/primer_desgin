@@ -569,9 +569,57 @@ def execute_two_plasmid_system(
     return output + 'two_plasmid_design_result.xlsx'
 
 
+
+
+def read_chopchopInput_add_uha_dha(genome_path,chopchop_input,uha_dha_params):
+
+    max_left_arm_seq_length = uha_dha_params['max_left_arm_seq_length']
+    max_right_arm_seq_length = uha_dha_params['max_right_arm_seq_length']
+
+    info_input_df = su.del_Unnamed(pd.read_csv(chopchop_input))
+
+    def work(mun_id,geneid, mutation_pos_index):
+        if mutation_pos_index - max_left_arm_seq_length < 0:
+            error_message = "The length of upstream sequence of manipulation site of " + mun_id + " must be larger than sum of 'Max Length of UHA' and 'Max Length of UIS'."
+            return error_message,error_message,error_message,error_message
+
+        record = su.extract_seq_from_genome(genome_path,geneid)
+
+        seq_uha_max_whole = str(record[
+                        mutation_pos_index - max_left_arm_seq_length : mutation_pos_index
+                        ])
+        seq_dha_max_whole = str(record[
+                                mutation_pos_index : mutation_pos_index + max_right_arm_seq_length
+                                ])
+
+
+        uha_upstream = str(  
+                        record[
+                            mutation_pos_index - max_left_arm_seq_length - 100 : mutation_pos_index - max_left_arm_seq_length
+                        ]
+                    )
+        dha_downstream=str(
+                        record[
+                            mutation_pos_index + max_right_arm_seq_length  : mutation_pos_index + max_right_arm_seq_length  + 100
+                        ]
+                    )
+        return  uha_upstream, dha_downstream, seq_uha_max_whole, seq_dha_max_whole
+
+    info_df = su.lambda2cols(info_input_df,lambdaf=work,in_coln=['id','geneid','mutation_pos_index'],to_colns=['uha_upstream','dha_downstream','seq_uha_max_whole','seq_dha_max_whole'])
+
+    return info_df
+
+
+
 def main(data):
 
+    
     chopchop_input = data['chopchop_input']
+
+    #uha_dha参数
+    uha_dha_params = data['uha_dha_config']
+    
+
     # enzyme_path = parent_base_path +'/'+ data['enzyme_path']
     sgRNA_result_path = data['sgRNA_result_path']
     one_plasmid_file_path = data['one_plasmid_file_path']
@@ -590,6 +638,9 @@ def main(data):
     sgRNA_region_json = data['sgRNA_region_json']
     ccdb_region_json = data['ccdb_region_json']
 
+    #genome
+    genome_path = data['ref_genome']
+
     #配置引物参数
     config.S_GLOBAL_ARGS = data['S_GLOBAL_ARGS']
     config.Q_ARGS = data['Q_ARGS']
@@ -599,8 +650,10 @@ def main(data):
     output = data['edit_sequence_design_workdir']
     if not os.path.exists(output):
         os.makedirs(output)
-    # 1.read 编辑序列信息
-    info_input_df = pd.read_csv(chopchop_input)    
+
+    
+    # 1.read 编辑序列信息,给chopchop输入加uha、dha信息
+    info_input_df = read_chopchopInput_add_uha_dha(genome_path,chopchop_input, uha_dha_params)
     # 2.#读取用户填的酶
     # enzyme={
     #     "enzyme_name":"BsaI",  
