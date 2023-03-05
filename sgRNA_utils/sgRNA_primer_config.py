@@ -18,6 +18,41 @@ class config:
             'PRIMER_MIN_GC': 20.0,
             'PRIMER_MAX_GC': 80.0,
     }
+    UHA_ARGS = {
+        'PRIMER_OPT_TM': 65.0,
+        'PRIMER_MIN_TM': 55.0,
+        'PRIMER_MAX_TM': 75.0,
+        'PRIMER_MIN_GC': 20.0,
+        'PRIMER_MAX_GC': 80.0,
+    }
+    SEQ_ALTERED_ARGS = {
+        'PRIMER_OPT_TM': 65.0,
+        'PRIMER_MIN_TM': 55.0,
+        'PRIMER_MAX_TM': 75.0,
+        'PRIMER_MIN_GC': 20.0,
+        'PRIMER_MAX_GC': 80.0,
+    }
+    DHA_ARGS = {
+        'PRIMER_OPT_TM': 65.0,
+        'PRIMER_MIN_TM': 55.0,
+        'PRIMER_MAX_TM': 75.0,
+        'PRIMER_MIN_GC': 20.0,
+        'PRIMER_MAX_GC': 80.0,
+    }
+    UP_SGRNA_ARGS = {
+        'PRIMER_OPT_TM': 65.0,
+        'PRIMER_MIN_TM': 55.0,
+        'PRIMER_MAX_TM': 75.0,
+        'PRIMER_MIN_GC': 20.0,
+        'PRIMER_MAX_GC': 80.0,
+    }
+    DOWN_SGRNA_ARGS = {
+        'PRIMER_OPT_TM': 65.0,
+        'PRIMER_MIN_TM': 55.0,
+        'PRIMER_MAX_TM': 75.0,
+        'PRIMER_MIN_GC': 20.0,
+        'PRIMER_MAX_GC': 80.0,
+    }
 
     #测序引物设计的全局参数
     Q_ARGS = {
@@ -25,11 +60,60 @@ class config:
                 'PRIMER_MIN_SIZE': 18,   
                 'PRIMER_MAX_SIZE': 25,
                 'PRIMER_OPT_TM': 65.0,
-                'PRIMER_MIN_TM': 55.0,
+                'PRIMER_MIN_TM': 55.0,  
                 'PRIMER_MAX_TM': 75.0,    
                 'PRIMER_MIN_GC': 20.0,
                 'PRIMER_MAX_GC': 80.0,
     }
+
+    PLASMID_Q_ARGS = {
+        'PRIMER_OPT_TM': 65.0,
+        'PRIMER_MIN_TM': 55.0,  
+        'PRIMER_MAX_TM': 75.0,    
+        'PRIMER_MIN_GC': 20.0,
+        'PRIMER_MAX_GC': 80.0,
+    }
+    GENOME_Q_ARGS = {
+        'PRIMER_OPT_TM': 65.0,
+        'PRIMER_MIN_TM': 55.0,  
+        'PRIMER_MAX_TM': 75.0,    
+        'PRIMER_MIN_GC': 20.0,
+        'PRIMER_MAX_GC': 80.0,
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
     Q_GLOBAL_ARGS = {   
                 'PRIMER_PICK_ANYWAY':1,    

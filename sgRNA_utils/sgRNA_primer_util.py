@@ -170,9 +170,6 @@ def primer_design(seqId,
     if mute_type == 'single':
         config.GLOBAL_ARGS.update(config.S_GLOBAL_ARGS)
         global_args = config.GLOBAL_ARGS 
-    elif mute_type =='double':
-        config.GLOBAL_ARGS.update(config.D_GLOBAL_ARGS)
-        global_args = config.GLOBAL_ARGS
     elif mute_type == 'sequencing': 
         config.Q_GLOBAL_ARGS.update(config.Q_ARGS)
         global_args =config.Q_GLOBAL_ARGS 
@@ -185,7 +182,6 @@ def primer_design(seqId,
                 'SEQUENCE_TEMPLATE': seqTemplate,
                 'SEQUENCE_FORCE_LEFT_START':0,
                 'SEQUENCE_FORCE_RIGHT_START': seqlength-1
-                # 'SEQUENCE_PRIMER_PAIR_OK_REGION_LIST': [[0,0,0,0]]  
         }  
     #选择类型，设定序列参数
     if mute_type == 'single': #单点突变
@@ -197,20 +193,15 @@ def primer_design(seqId,
             seq_args['SEQUENCE_FORCE_RIGHT_START'] = -1  
             seq_args['SEQUENCE_PRIMER_PAIR_OK_REGION_LIST'] = [[-1,-1, seqlength-50,50]]
             size_range = [seqlength-50, seqlength]                  
-   
+
         elif stype == "left_right":   #target下游引物设计  
             seq_args['SEQUENCE_PRIMER_PAIR_OK_REGION_LIST'] = [[-1,-1,-1,-1]]  
             seq_args['SEQUENCE_FORCE_LEFT_START'] = 0  
             seq_args['SEQUENCE_FORCE_RIGHT_START'] = seqlength-1       
-            size_range = [seqlength,seqlength]   
+            size_range = [seqlength,seqlength] 
+
         primer_num = 1   
-    elif mute_type == 'double':  #双点突变                                   
-        if stype == "target":   #target引物设计
-            seq_args['SEQUENCE_PRIMER_PAIR_OK_REGION_LIST'] = [[0,35,-1,-1]]
-        elif stype == "plasmid":   #plasmid引物设计
-            seq_args['SEQUENCE_PRIMER_PAIR_OK_REGION_LIST'] = [[-1,-1,seqlength-36,36]]     
-        size_range = [seqlength,seqlength]
-        primer_num = 2
+
     elif mute_type == 'sequencing':  #测序引物
         seq_args['SEQUENCE_ID'] = seqId
         seq_args['SEQUENCE_TEMPLATE'] = seqTemplate  
@@ -432,3 +423,69 @@ def extract_seq_from_genome(genome,gene_id,start=0,end=0):
                     return  sequence.upper()
                 else:
                     return sequence
+
+
+#只要不存在off-target，可义将一切序列转化成坐标
+def convert_seq_cor(gb_path,region_seq_json,strand='+'):
+    gb = SeqIO.read(gb_path, "genbank")
+    gb_seq = str(gb.seq).upper()
+    
+    if strand == '-':
+        gb_seq = revComp(gb_seq)
+    
+    region_cor_json = {}
+    for k,v in region_seq_json.items():
+        v = v.upper()
+        start = gb_seq.find(v)
+        end = start + len(v)
+        if start == -1:
+            i = 1
+            start_seq = ''
+            end_seq = ''
+            while True:
+                new_start = gb_seq.find(v[:i])
+                if new_start == -1:
+                    break
+                else:
+                    if gb_seq.find(v[i:]) == 0:
+                        start_seq = v[:i]
+                        end_seq = v[i:]
+                        break
+                    else:        
+                        i = i + 1
+                        if i == len(v):
+                            break
+            if start_seq == '' and end_seq == '':
+                start = -1
+                end = -1
+            else:
+                start = gb_seq.find(start_seq)
+                end = gb_seq.find(end_seq)  
+                end = end + len(v)
+                
+        region_cor_json.update({k:f'{start},{end}'})
+        
+    return region_cor_json  
+
+
+
+
+def check_seq_in_gb(gb_path,seq_json):
+    
+    cor_json_plus = convert_seq_cor(gb_path,seq_json,strand='+')
+    cor_json_min = convert_seq_cor(gb_path,seq_json,strand='-')
+    
+    for plus,minus in zip(cor_json_plus,cor_json_min):
+        if cor_json_plus[plus] =='-1,-1' and  cor_json_min[minus] == '-1,-1':
+            #序列不存在GB文件
+             region_json[plus] = 'The sequence you provided is not on the plasmid file'
+        elif cor_json_plus[plus]!='-1,-1' and cor_json_min[minus] == '-1,-1':
+            #序列在正义链
+            pass
+        elif cor_json_plus[plus]!='-1,-1' and cor_json_min[minus] == '-1,-1':
+            #序列在负义链
+            region_json[plus] = su.revComp(region_json[plus])
+        else:
+            pass
+    return seq_json
+

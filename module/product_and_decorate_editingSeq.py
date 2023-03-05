@@ -817,6 +817,7 @@ def first_left_last_right_primer_design(gb_path, ccdb_label, promoter_terminator
     #2.优先排列引物所在位置的起始坐标 》sgRNA_promoter_terminator_start的位置坐标
     #3.其次排列引物所在位置的起始坐标 《 sgRNA_promoter_terminator_start的位置坐标
     #4.最终确定用户的引物排列顺序
+    
 def sort_compose_primer(sgRNA_promoter_terminator_start,
                         primer_json,
                         primer_position_json,
