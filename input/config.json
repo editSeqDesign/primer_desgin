@@ -37,6 +37,7 @@
         "ccdb_region_json":{
             "region1":"ATTGTGAGCGGATAACAATTTCACACAGGAAACAGAATTAATTAAGCTTAAAGGAGTTGAGAATGGATAAGAAATACTCAATAGGCTTAGATATCGGCACAAATAGCGTCGGATGGGCGGTGATC"
         },
+        
         "enzyme_name":"BsaI",
         "UHA_ARGS":{
             "PRIMER_OPT_TM": 65,
