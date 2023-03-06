@@ -787,9 +787,12 @@ def main(data):
     #     "cut_seq_len":4,
     #     "gap_len":1    
     # }
+    
     enzyme_path = data['enzyme_path']
-    enzyme_name = data['enzyme_name']
     enzyme_df = su.del_Unnamed(pd.read_csv(enzyme_path))
+    enzyme = data['enzyme']
+    enzyme_name = enzyme['enzyme_name']
+    
    
       
 

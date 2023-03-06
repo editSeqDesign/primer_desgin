@@ -38,7 +38,12 @@
             "region1":"ATTGTGAGCGGATAACAATTTCACACAGGAAACAGAATTAATTAAGCTTAAAGGAGTTGAGAATGGATAAGAAATACTCAATAGGCTTAGATATCGGCACAAATAGCGTCGGATGGGCGGTGATC"
         },
         
-        "enzyme_name":"BsaI",
+        "enzyme":{
+            "enzyme_name":"BsaI",
+            "gap_sequence":"A",
+            "protection_sequence":"CCA"
+        },
+        
         "UHA_ARGS":{
             "PRIMER_OPT_TM": 65,
             "PRIMER_MIN_TM": 55,
