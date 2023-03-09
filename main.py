@@ -498,7 +498,7 @@ def execute_two_plasmid_system(
                                  enzyme_df,
                                  enzyme_name,
                                  sgRNA_primer_json,
-                                 ccdb_primer_json,
+                                 ccdb_primer_json,  
                                  sgRNA_region_seq_json,
                                  ccdb_region_seq_json,
                                  ccdb_label,
@@ -788,7 +788,7 @@ def main(data):
     #     "gap_len":1    
     # }
     
-    enzyme_path = data['enzyme_path']
+    enzyme_path = './input/enzyme.csv'  
     enzyme_df = su.del_Unnamed(pd.read_csv(enzyme_path))
     enzyme = data['enzyme']
     enzyme_name = enzyme['enzyme_name']
@@ -800,6 +800,7 @@ def main(data):
     sgRNA = p_d_seq.extract_sgRNA_from_chopchop(sgRNA_result_path)
 
     # 4.设计源生同源臂引物
+    print(info_input_df.columns, sgRNA.columns)   
     uha_dha_primer_df = extract_uha_dha_primer(info_input_df, sgRNA)
 
     # 5.提取同源臂
@@ -841,7 +842,7 @@ def main(data):
                                     no_ccdb_plasmid,
                                     no_sgRNA_plasmid,
                                     uha_dha_sgRNA_df,
-                                    plasmid_primer_desgin_type,
+                                    plasmid_primer_desgin_type, 
                                     enzyme_df,
                                     enzyme_name,
                                     sgRNA_primer_json,
@@ -893,16 +894,116 @@ def main(data):
 if __name__ == '__main__':
 
     #read json
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--input', '-i', help='input params file', required=True) 
-    args = parser.parse_args()
-    input_path =  args.input
-    with open(input_path, "r") as f:
-        data = json.load(f)
+    # import argparse
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('--input', '-i', help='input params file', required=True) 
+    # args = parser.parse_args()
+    # input_path =  args.input
+    # with open(input_path, "r") as f:
+    #     data = json.load(f)
 
+    # main(data)
+
+
+    data = {
+
+        "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
+        "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
+        "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
+        "ref_genome":"/home/yanghe/program/data_preprocessing/input/GCA_000011325.1_ASM1132v1_genomic.fna",
+
+        "one_plasmid_file_path": "/home/yanghe/program/edit_sequence_design/input/pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
+        "no_ccdb_plasmid":"/home/yanghe/program/edit_sequence_design/input/no-ccdb-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
+        "no_sgRNA_plasmid":"/home/yanghe/program/edit_sequence_design/input/no-sgRNA-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
+
+        "uha_dha_config": {
+            "max_right_arm_seq_length": 1050,
+            "max_left_arm_seq_length": 1050,
+            "min_left_arm_seq_length": 1000,   
+            "min_right_arm_seq_length": 1000
+        },
+
+        
+        "plasmid_label":{
+            "ccdb_label":"ccdB",
+            "promoter_terminator_label":"gRNA",
+            "n_20_label":"N20"
+        },
+        
+        "sgRNA_primer_json":{
+            "primer3":"AACTATTTATCCAGTTGGTACAAAC"
+        },
+        "ccdb_primer_json":{
+            "primer3":"AACTGATTCAGTCTGATTTCGCGGT"
+        },
+    
+        "sgRNA_region_json":{
+            "region1":"tgtgtggaattgtgagcggataacaatttcacacaggaaacagaatt"
+        },
+        
+        "ccdb_region_json":{
+            "region1":"ATTGTGAGCGGATAACAATTTCACACAGGAAACAGAATTAATTAAGCTTAAAGGAGTTGAGAATGGATAAGAAATACTCAATAGGCTTAGATATCGGCACAAATAGCGTCGGATGGGCGGTGATC"
+        },
+        
+        "enzyme":{
+            "enzyme_name":"BsaI",
+            "gap_sequence":"A",
+            "protection_sequence":"CCA"
+        },
+        
+        "UHA_ARGS":{
+            "PRIMER_OPT_TM": 65,
+            "PRIMER_MIN_TM": 55,
+            "PRIMER_MAX_TM": 75,
+            "PRIMER_MIN_GC": 20,
+            "PRIMER_MAX_GC": 80
+        },
+        "SEQ_ALTERED_ARGS":{
+            "PRIMER_OPT_TM": 65,
+            "PRIMER_MIN_TM": 55,
+            "PRIMER_MAX_TM": 75,  
+            "PRIMER_MIN_GC": 20,
+            "PRIMER_MAX_GC": 80
+        },
+        "DHA_ARGS":{
+            "PRIMER_OPT_TM": 65,
+            "PRIMER_MIN_TM": 55,
+            "PRIMER_MAX_TM": 75,
+            "PRIMER_MIN_GC": 20,
+            "PRIMER_MAX_GC": 80
+        },
+        "UP_SGRNA_ARGS":{
+            "PRIMER_OPT_TM": 65,
+            "PRIMER_MIN_TM": 55,
+            "PRIMER_MAX_TM": 75,
+            "PRIMER_MIN_GC": 20,
+            "PRIMER_MAX_GC": 80
+        },
+        "DOWN_SGRNA_ARGS": {
+            "PRIMER_OPT_TM": 65,
+            "PRIMER_MIN_TM": 55,
+            "PRIMER_MAX_TM": 75,
+            "PRIMER_MIN_GC": 20,
+            "PRIMER_MAX_GC": 80
+        },
+
+        "PLASMID_Q_ARGS":{
+            "PRIMER_OPT_TM": 65,
+            "PRIMER_MIN_TM": 55,  
+            "PRIMER_MAX_TM": 75,    
+            "PRIMER_MIN_GC": 20,
+            "PRIMER_MAX_GC": 80
+        },
+        "GENOME_Q_ARGS":{
+            "PRIMER_OPT_TM": 65,
+            "PRIMER_MIN_TM": 55,  
+            "PRIMER_MAX_TM": 75,    
+            "PRIMER_MIN_GC": 20,
+            "PRIMER_MAX_GC": 80
+        }
+       
+    }
     main(data)
-
 
 
 
