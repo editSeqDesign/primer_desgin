@@ -42,9 +42,71 @@ def extract_uha_dha(info_input_df,uha_dha_primer_df,sgRNA):
 
     return uha_dha_info_primer_df, uha_dha_df, uha_dha_sgRNA_df,info_df
 
+
+def one_plasmid_system_design_by_user_primer(primer_json,primer_position_json,gb_path,plasmid_backbone,enzyme_df,enzyme_name):
+
+    sgRNA_promoter_terminator_start = 0
+    #对引物进行排序,确定所有引物
+    primer_dict_df, primers_sum = p_d_seq.sort_compose_primer(sgRNA_promoter_terminator_start,
+                                                         primer_json,
+                                                         primer_position_json,
+                                                         gb_path,
+                                                         plasmid_backbone,
+                                                         plasmid_type='one')   
+    #给引物加接头
+    plasmid_primer_joint_df = p_d_seq.add_joint_plasmid_primer(enzyme_df,enzyme_name,
+                                                                 primer_dict_df,
+                                                                 int(primers_sum/2),
+                                                                 primer_type='ccdb')
+    #修改df格式
+    plasmid_primer_df = p_d_seq.plasmid_primer(plasmid_primer_joint_df)
+    #添加索引
+    plasmid_primer_df.insert(0,'index',plasmid_primer_df.index)
+    plasmid_primer_df.reset_index(drop=True, inplace=True)
+        
+    #给引物加产物
+    plasmid_primer_df = p_d_seq.add_product_and_size(gb_path, plasmid_primer_df, enzyme_df,enzyme_name,seq=plasmid_backbone)
+
+    return  plasmid_primer_df
+
+def one_plasmid_system_design_by_user_region(uha_dha_sgRNA_df,sgRNA_region_seq_json,one_plasmid_file_path,sgRNA_plasmid_backbone,enzyme_df,enzyme_name):
+    
+    #序列转换成坐标
+    region_json = su.convert_seq_cor(one_plasmid_file_path, sgRNA_region_seq_json,seq=sgRNA_plasmid_backbone)
+    #坐标转转换成距离
+    distance_dict = region_2_distance(len(sgRNA_plasmid_backbone), region_json, 0)
+
+    #根据区域设计引物
+    primer_result_list = p_d_seq.design_primer_by_region_in_plasmid(0,sgRNA_plasmid_backbone,distance_dict)
+    plasmid_primer_df = su.result_primer_list_to_df(primer_result_list)
+
+    #加接头
+    plasmid_primer_joint_df = p_d_seq.sgRNA_sgRNAprimer_merge(uha_dha_sgRNA_df,plasmid_primer_df,sgRNA_columns=['Name','Region'])
+    primers_sum = len(plasmid_primer_df)
+    plasmid_primer_joint_df = p_d_seq.add_joint_plasmid_primer(enzyme_df, enzyme_name, plasmid_primer_joint_df, primers_sum, primer_type='ccdb')
+    plasmid_primer_joint_df = plasmid_primer_joint_df.drop(columns='Region').drop_duplicates()
+    #修改df格式
+    plasmid_primer_df = p_d_seq.plasmid_primer(plasmid_primer_joint_df)
+    #添加索引
+    plasmid_primer_df.insert(0,'index',plasmid_primer_df.index)
+    plasmid_primer_df.reset_index(drop=True, inplace=True)
+
+    plasmid_primer_df = p_d_seq.add_product_and_size(one_plasmid_file_path, plasmid_primer_df, enzyme_df, enzyme_name=enzyme_name,seq=sgRNA_plasmid_backbone)
+
+    return  plasmid_primer_df
+
 #one plasmid pcr primer  
-def one_plasmid_system_pcr_design_primer(gb_path,info_df,uha_dha_sgRNA_df,uha_dha_info_primer_df,uha_dha_primer_df,enzyme_df,enzyme_name):
-     #创建新的质粒
+def one_plasmid_system_pcr_design_primer(gb_path,
+                                         info_df,
+                                         uha_dha_sgRNA_df,
+                                         uha_dha_info_primer_df,
+                                         uha_dha_primer_df,
+                                         enzyme_df,
+                                         enzyme_name,
+                                         plasmid_primer_desgin_type,
+                                         seq_json):
+    
+    #创建新的质粒
     uha_dha_sgRNA_df, promoter_terminator_up_promoter_seq, promoter_terminator_down_terminator_seq, type_kind  = p_d_seq.create_new_plasmid(gb_path, uha_dha_sgRNA_df.copy(), ccdb_label='ccdB', promoter_terminator_label='gRNA', n_20_label='N20')
 
     #设计sgRNA、ccdb质粒引物
@@ -53,16 +115,26 @@ def one_plasmid_system_pcr_design_primer(gb_path,info_df,uha_dha_sgRNA_df,uha_dh
     n20up_primer_df = p_d_seq.design_primer(n20up_primer_template,'Region','n20_up_template','sgRNA')
     n20up_primer_df = pd.merge(n20up_primer_template[['Region','Target sequence','Rev Target sequence']],n20up_primer_df,on=['Region'],how='inner')
 
+    #ccdb、sgrna质粒引物加接头
+    n20up_primer_df = p_d_seq.add_joint_sgRNA_primer(n20up_primer_df,enzyme_df,enzyme_name,'',stype='n20up_primer_joint')
 
 
-    n20down_primer_template = uha_dha_sgRNA_df[['Name','Region','n20_down_template','Target sequence','Rev Target sequence']]
-    n20down_primer_template['Region'] = n20down_primer_template['Name'] +';'+ n20down_primer_template['Region']
-    n20down_primer_df = p_d_seq.design_primer(n20down_primer_template,'Region','n20_down_template','sgRNA')
-    n20down_primer_df = pd.merge(n20down_primer_template[['Region','Target sequence','Rev Target sequence']],n20down_primer_df,on=['Region'],how='inner')
+     #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物  
+    if plasmid_primer_desgin_type == 2: 
+        n20down_primer_template = uha_dha_sgRNA_df[['Name','Region','n20_down_template','Target sequence','Rev Target sequence']]
+        n20down_primer_template['Region'] = n20down_primer_template['Name'] +';'+ n20down_primer_template['Region']
+        n20down_primer_df = p_d_seq.design_primer(n20down_primer_template,'Region','n20_down_template','sgRNA')
+        n20down_primer_df = pd.merge(n20down_primer_template[['Region','Target sequence','Rev Target sequence']],n20down_primer_df,on=['Region'],how='inner')
+        #加接头
+        n20down_primer_df = p_d_seq.add_joint_sgRNA_primer(n20down_primer_df,enzyme_df,enzyme_name,'',stype='n20down_primer_joint')
 
-
-
-
+    elif plasmid_primer_desgin_type == 1:
+        plasmid_backbone = promoter_terminator_down_terminator_seq
+        n20down_primer_df =  one_plasmid_system_design_by_user_region(uha_dha_sgRNA_df,seq_json,gb_path,plasmid_backbone,enzyme_df,enzyme_name)
+    elif plasmid_primer_desgin_type == 3:
+        plasmid_backbone = promoter_terminator_down_terminator_seq
+        primer_position_json, sgRNA_failture_primer = p_d_seq.check_locate_primer(plasmid_backbone, seq_json)
+        n20down_primer_df = one_plasmid_system_design_by_user_primer(seq_json,primer_position_json,gb_path,plasmid_backbone,enzyme_df,enzyme_name)
 
 
     seq_altered_primer_template = info_df[info_df.seq_altered.apply(lambda x:len(x)>120)][['Name','Region','seq_altered']]
@@ -71,10 +143,6 @@ def one_plasmid_system_pcr_design_primer(gb_path,info_df,uha_dha_sgRNA_df,uha_dh
 
     #给同源臂引物加接头:uha取promoter_terminator_down_terminator_seq尾部反义4bp，dha取头promoter_terminator_up_promoter_seq正义4bp
     uha_dha_primer_df = p_d_seq.add_joint_sgRNA_primer(uha_dha_info_primer_df,enzyme_df,enzyme_name,promoter_terminator_down_terminator_seq, promoter_terminator_up_promoter_seq, stype = 'u_d_primer_joint')
-
-    #ccdb、sgrna质粒引物加接头
-    n20up_primer_df = p_d_seq.add_joint_sgRNA_primer(n20up_primer_df,enzyme_df,enzyme_name,'',stype='n20up_primer_joint')
-    n20down_primer_df = p_d_seq.add_joint_sgRNA_primer(n20down_primer_df,enzyme_df,enzyme_name,'',stype='n20down_primer_joint')
 
     #seq_altered_primer加接头
     seq_altered_primer_df = p_d_seq.add_joint_sgRNA_primer(seq_altered_primer_df,enzyme_df,enzyme_name,'',stype='seq_altered_primer_joint')
@@ -86,8 +154,26 @@ def one_plasmid_system_pcr_design_primer(gb_path,info_df,uha_dha_sgRNA_df,uha_dh
 
     n20down_primer_p_df = n20down_primer_df[["Region","primer_f_seq_(5'-3')_joint","primer_r_seq_(5'-3')_joint",'product_value_joint','product_size_joint']]
     n20up_primer_p_df = n20up_primer_df[["Region","primer_f_seq_(5'-3')_joint","primer_r_seq_(5'-3')_joint",'product_value_joint','product_size_joint']]
+    seq_altered_primer_df = seq_altered_primer_df[["Region","primer_f_seq_(5'-3')_joint","primer_r_seq_(5'-3')_joint",'product_value_joint','product_size_joint']]
 
     return uha_dha_sgRNA_df,uha_primer_df, dha_primer_df, n20down_primer_p_df, n20up_primer_p_df, seq_altered_primer_df,type_kind
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #one plasmid sequencing primer
 def one_plasmid_system_sequencing_design_primer(type_kind,uha_dha_sgRNA_df):
@@ -347,36 +433,7 @@ def two_plasmid_system_design_by_user_primer_sgRNA(no_ccdb_plasmid,
 
 
 
-def one_plasmid_system_design_by_user_primer(primer_json,primer_position_json,gb_path,plasmid_backbone,n_20_label,ccdb_label,promoter_terminator_label,enzyme_df,enzyme_name):
-
-    sgRNA_promoter_terminator_start = 0
-    #对引物进行排序,确定所有引物
-    primer_dict_df, primers_sum = p_d_seq.sort_compose_primer(sgRNA_promoter_terminator_start,
-                                                         primer_json,
-                                                         primer_position_json,
-                                                         gb_path,
-                                                         plasmid_backbone,
-                                                         n_20_label,
-                                                         ccdb_label,
-                                                         promoter_terminator_label,
-                                                             plasmid_type='one')
-    #给引物加接头
-    plasmid_primer_joint_df = p_d_seq.add_joint_plasmid_primer(enzyme_df,enzyme_name,
-                                                                 primer_dict_df,
-                                                                 int(primers_sum/2),
-                                                                 primer_type='ccdb')
-    #修改df格式
-    plasmid_primer_df = p_d_seq.plasmid_primer(plasmid_primer_joint_df)
-    #添加索引
-    plasmid_primer_df.insert(0,'index',plasmid_primer_df.index)
-    plasmid_primer_df.reset_index(drop=True, inplace=True)
-        
-    #给引物加产物
-    plasmid_primer_df = p_d_seq.add_product_and_size(gb_path, plasmid_primer_df, enzyme_df,enzyme_name)
-
-    return plasmid_primer_df
-
-
+ 
 
 
 def two_plasmid_system_design_by_user_primer_ccdb(ccdB_plasmid_backbone, ccdb_primer_json, ccdb_primer_position_json, no_sgRNA_plasmid,enzyme_df,enzyme_name,n_20_label,ccdb_label,promoter_terminator_label):
@@ -493,43 +550,115 @@ def genome_sequencing_design_primer(info_input_df, uha_dha_df):
     return genome_sequencing_primer_df
 
 #  
-def execute_one_plasmid_system(gb_path, info_df, info_input_df, uha_dha_df, uha_dha_sgRNA_df, uha_dha_info_primer_df, uha_dha_primer_df,enzyme_df,enzyme_name,output):
+def execute_one_plasmid_system(plasmid_primer_desgin_type,
+                                sgRNA_region_seq_json,
+                                sgRNA_primer_json,
+                                gb_path,
+                                info_df,
+                                info_input_df,
+                                uha_dha_df,
+                                uha_dha_sgRNA_df,
+                                uha_dha_info_primer_df,
+                                uha_dha_primer_df,
+                                enzyme_df,
+                                enzyme_name,
+                                output
+                                ):
     gb = SeqIO.read(gb_path, "genbank")
     gb_name = gb.name
 
-    #设计pcr引物
-    uha_dha_sgRNA_df,uha_primer_df,dha_primer_df,n20down_primer_p_df,n20up_primer_p_df, seq_altered_primer_df,type_kind = one_plasmid_system_pcr_design_primer(gb_path,
-                                                                                                                                    info_df,
-                                                                                                                                    uha_dha_sgRNA_df,
-                                                                                                                                    uha_dha_info_primer_df,
-                                                                                                                                    uha_dha_primer_df,
-                                                                                                                                    enzyme_df,enzyme_name)
-    
 
+    #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物  
+    if plasmid_primer_desgin_type == 2:
+        #无需用户指定范围
+        uha_dha_sgRNA_df,uha_primer_df,dha_primer_df,n20down_primer_p_df,n20up_primer_p_df, seq_altered_p_df,type_kind = one_plasmid_system_pcr_design_primer(                                                                                                                            
+                                                                                                                                        gb_path,
+                                                                                                                                        info_df,
+                                                                                                                                        uha_dha_sgRNA_df,
+                                                                                                                                        uha_dha_info_primer_df,
+                                                                                                                                        uha_dha_primer_df,
+                                                                                                                                        enzyme_df,
+                                                                                                                                        enzyme_name)
+    elif plasmid_primer_desgin_type == 1:
+        #用户指定范围
+        uha_dha_sgRNA_df,uha_primer_df,dha_primer_df,n20down_primer_p_df,n20up_primer_p_df, seq_altered_p_df,type_kind = one_plasmid_system_pcr_design_primer(                                                                                                                            
+                                                                                                                                        gb_path,
+                                                                                                                                        info_df,
+                                                                                                                                        uha_dha_sgRNA_df,
+                                                                                                                                        uha_dha_info_primer_df,
+                                                                                                                                        uha_dha_primer_df,
+                                                                                                                                        enzyme_df,
+                                                                                                                                        enzyme_name,
+                                                                                                                                        plasmid_primer_desgin_type,
+                                                                                                                                        sgRNA_region_seq_json
+                                                                                                                                        )
+    elif plasmid_primer_desgin_type == 3:
+         #用户指定额外引物  
+        uha_dha_sgRNA_df,uha_primer_df,dha_primer_df,n20down_primer_p_df,n20up_primer_p_df, seq_altered_p_df,type_kind = one_plasmid_system_pcr_design_primer(                                                                                                                            
+                                                                                                                                        gb_path,
+                                                                                                                                        info_df,
+                                                                                                                                        uha_dha_sgRNA_df,
+                                                                                                                                        uha_dha_info_primer_df,
+                                                                                                                                        uha_dha_primer_df,
+                                                                                                                                        enzyme_df,
+                                                                                                                                        enzyme_name,
+                                                                                                                                        plasmid_primer_desgin_type,
+                                                                                                                                        sgRNA_primer_json
+                                                                                                                                        )
+    
 
     #设计质粒测序引物
     plasmid_sequencing_primer_df = one_plasmid_system_sequencing_design_primer(type_kind,uha_dha_sgRNA_df)
     #设计基因组测序引物
     genome_sequencing_primer_df = genome_sequencing_design_primer(info_input_df, uha_dha_df)
-    #标准化重命名,uha_primer_df,dha_primer_df,sgRNA_primer_df,plasmid_sequencing_primer_df,genome_sequencing_primer_df
-    uha_primer_df,dha_primer_df,sgRNA_primer_df,plasmid_sequencing_primer_df,genome_sequencing_primer_df,plasmid_backbone_p_df,seq_altered_p_df = su.normal_primer_rename(
-                                                                                                                                                        uha_primer_df,
-                                                                                                                                                        dha_primer_df,
-                                                                                                                                                        n20up_primer_p_df,
-                                                                                                                                                        plasmid_sequencing_primer_df,                                                                                                                                                                                                                                                                                                                                                                                                                           
-                                                                                                                                                        genome_sequencing_primer_df,
-                                                                                                                                                        n20down_primer_p_df,                                                                                                                                         
-                                                                                                                                                        seq_altered_primer_df)
+
+    
+        
+    #标准化，重命名
+    df_common_list = su.rename_common_primer_df(n20up_primer_p_df, n20down_primer_p_df, seq_altered_p_df)
+    n20up_primer_p_df, n20down_primer_p_df, seq_altered_p_df = df_common_list[0], df_common_list[1], df_common_list[2]
+    uha_primer_df, dha_primer_df = su.rename_u_d_primer_df(uha_primer_df, dha_primer_df)
+    df_sequencing_list = su.rename_sequencing_primer_df(plasmid_sequencing_primer_df, genome_sequencing_primer_df)
+    plasmid_sequencing_primer_df, genome_sequencing_primer_df = df_sequencing_list[0], df_sequencing_list[1]
+
+    
+
 
     #输出引物  
     with pd.ExcelWriter(output+'one_plasmid_design_result.xlsx') as writer:  
-            uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
-            dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
-            sgRNA_primer_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')  
-            plasmid_backbone_p_df.to_excel(writer,sheet_name = 'Primer_plasmid',index_label='No.')
-            seq_altered_p_df.to_excel(writer,sheet_name = 'Seq_altered',index_label='No.')
-            plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P',index_label='No.')
-            genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.') 
+        uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
+        dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
+        n20up_primer_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')  
+        n20down_primer_p_df.to_excel(writer,sheet_name = 'Primer_plasmid',index_label='No.')
+        seq_altered_p_df.to_excel(writer,sheet_name = 'Seq_altered',index_label='No.')
+        plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
+        genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')
+
+
+
+
+
+
+    
+    # #标准化重命名,uha_primer_df,dha_primer_df,sgRNA_primer_df,plasmid_sequencing_primer_df,genome_sequencing_primer_df
+    # uha_primer_df,dha_primer_df,sgRNA_primer_df,plasmid_sequencing_primer_df,genome_sequencing_primer_df,plasmid_backbone_p_df,seq_altered_p_df = su.normal_primer_rename(
+    #                                                                                                                                                     uha_primer_df,
+    #                                                                                                                                                     dha_primer_df,
+    #                                                                                                                                                     n20up_primer_p_df,
+    #                                                                                                                                                     plasmid_sequencing_primer_df,                                                                                                                                                                                                                                                                                                                                                                                                                           
+    #                                                                                                                                                     genome_sequencing_primer_df,
+    #                                                                                                                                                     n20down_primer_p_df,                                                                                                                                         
+    #                                                                                                                                                     seq_altered_primer_df)
+
+    # #输出引物  
+    # with pd.ExcelWriter(output+'one_plasmid_design_result.xlsx') as writer:  
+    #         uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
+    #         dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
+    #         sgRNA_primer_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')  
+    #         plasmid_backbone_p_df.to_excel(writer,sheet_name = 'Primer_plasmid',index_label='No.')
+    #         seq_altered_p_df.to_excel(writer,sheet_name = 'Seq_altered',index_label='No.')
+    #         plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P',index_label='No.')
+    #         genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.') 
 
     return output + 'one_plasmid_design_result.xlsx'                                                                                                                                       
 
@@ -834,7 +963,9 @@ def main(data):
     #     "gap_len":1    
     # }
     
-    enzyme_path = './input/enzyme.csv'  
+
+    base_path = os.path.abspath(os.path.dirname(__file__)) + '/'
+    enzyme_path =  base_path + '/input/enzyme.csv'  
 
 
     
@@ -866,8 +997,21 @@ def main(data):
     print('---------------------------------------------------------',plasmid_system_type) 
 
     if plasmid_system_type == 1:
+
+        #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物
+        if sgRNA_region_seq_json == {} and  sgRNA_primer_json == {}:
+            plasmid_primer_desgin_type = 2
+        elif sgRNA_region_seq_json != {} and sgRNA_primer_json == {}:
+            plasmid_primer_desgin_type = 1
+        elif sgRNA_primer_json != {} and sgRNA_region_seq_json == {}:
+            plasmid_primer_desgin_type = 3
+
         # 6.执行单质粒系统
-        one_plasmid_output_path = execute_one_plasmid_system(one_plasmid_file_path,
+        one_plasmid_output_path = execute_one_plasmid_system(   
+                                                                plasmid_primer_desgin_type,
+                                                                sgRNA_region_seq_json,
+                                                                sgRNA_primer_json,
+                                                                one_plasmid_file_path,
                                                                 info_df,
                                                                 info_input_df,
                                                                 uha_dha_df,
@@ -878,7 +1022,8 @@ def main(data):
                                                                 enzyme_name,
                                                                 output
                                                                 )
-        return one_plasmid_output_path  
+        return one_plasmid_output_path
+      
     elif plasmid_system_type == 2:
         # 7.执行双质粒系统
         #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物
@@ -901,7 +1046,6 @@ def main(data):
                                     no_ccdb_plasmid,
                                     no_sgRNA_plasmid,
                                     uha_dha_sgRNA_df,
-
                                     plasmid_primer_desgin_type, 
                                     enzyme_df,
                                     enzyme_name,
@@ -918,7 +1062,33 @@ def main(data):
 
     elif plasmid_system_type ==0:
 
-        one_plasmid_output_path = execute_one_plasmid_system(one_plasmid_file_path, info_df, info_input_df, uha_dha_df, uha_dha_sgRNA_df, uha_dha_info_primer_df, uha_dha_primer_df,enzyme_df,enzyme_name,output)
+        plasmid_primer_desgin_type = 1
+
+        #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物
+        if sgRNA_region_seq_json == {} and  sgRNA_primer_json == {}:
+            plasmid_primer_desgin_type = 2
+        elif sgRNA_region_seq_json != {} and sgRNA_primer_json == {}:
+            plasmid_primer_desgin_type = 1
+        elif sgRNA_primer_json != {} and sgRNA_region_seq_json == {}:
+            plasmid_primer_desgin_type = 3
+        
+
+
+        one_plasmid_output_path = execute_one_plasmid_system(   
+                                                                plasmid_primer_desgin_type,
+                                                                sgRNA_region_seq_json,
+                                                                sgRNA_primer_json,
+                                                                one_plasmid_file_path,
+                                                                info_df,
+                                                                info_input_df,
+                                                                uha_dha_df,
+                                                                uha_dha_sgRNA_df,
+                                                                uha_dha_info_primer_df,
+                                                                uha_dha_primer_df,
+                                                                enzyme_df,
+                                                                enzyme_name,
+                                                                output
+                                                                )
 
         plasmid_primer_desgin_type = 2
         if sgRNA_primer_json !={} and ccdb_primer_json !={} and sgRNA_region_seq_json =={} and ccdb_region_seq_json =={}:

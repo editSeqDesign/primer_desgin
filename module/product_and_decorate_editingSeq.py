@@ -866,7 +866,7 @@ def sort_compose_primer(sgRNA_promoter_terminator_start,
                                             promoter_terminator_label,
                                             n_20_label,
                                             last_primer_num = int(primers_sum/2),
-                                            plasmid_backbone=sgRNA_plasmid_backbone
+                                            plasmid_backbone = sgRNA_plasmid_backbone
                                             )
 
       
@@ -901,7 +901,7 @@ def plasmid_primer(sgRNA_plasmid_primer_joint_df):
     return df
 
 def add_product_and_size(gb_path,primer_df,enzyme_df,enzyme_name='BsaI',seq=''):
-    
+       
     sgRNA_enzyme_df = enzyme_df[enzyme_df['name']==enzyme_name]
     protective_base = sgRNA_enzyme_df.loc[0,'protective_base']
     recognition_seq = sgRNA_enzyme_df.loc[0,'recognition_seq']
@@ -910,7 +910,7 @@ def add_product_and_size(gb_path,primer_df,enzyme_df,enzyme_name='BsaI',seq=''):
     gap_seq = 'AGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACT'
 
     joint_len  = len(protective_base) + len(recognition_seq) + gap_len + cut_seq_len
-
+    print('接头长度：',joint_len)  
     if seq != '':
         gb_seq = seq.upper()
     else:
@@ -918,27 +918,42 @@ def add_product_and_size(gb_path,primer_df,enzyme_df,enzyme_name='BsaI',seq=''):
         gb_seq = str(gb.seq)
         gb_seq = gb_seq.upper()
 
-    # no_ccdb_plasmid, no_sgRNA_plasmid
-    def work(f_primer,r_primer):
-
+       # no_ccdb_plasmid, no_sgRNA_plasmid
+    def work(f_primer,r_primer):    
+        left_joint_seq = f_primer[:joint_len]
         f_primer = f_primer[joint_len:]
-        r_primer = r_primer[joint_len:]
-
-        r_primer = su.revComp(r_primer)
-
+        right_joint_seq = r_primer[:joint_len]       
+        right_joint_seq = su.revComp(right_joint_seq)
+    
+        n20 = ''
         if len(r_primer) >= 40:
-            r_primer = r_primer[20:]
+            n20 = r_primer[joint_len:joint_len+20]
+            r_primer = r_primer[joint_len+20:]
+        else:
+            r_primer = r_primer[joint_len:]
+            
+        r_primer = su.revComp(r_primer)    
         start = gb_seq.find(f_primer)
         end = gb_seq.find(r_primer)+len(r_primer)
-        print(start, end)
+        
+        
         if end < start:
             product = gb_seq[start:] + gb_seq[:end]
         else:
             product = gb_seq[start:end]
+        
+        #加接头
+        if n20 != '':
+            product = left_joint_seq + product + su.revComp(n20) + right_joint_seq
+        else:
+            product = left_joint_seq + product + right_joint_seq
+        
+        
         return product, len(product)
 
-    df = su.lambda2cols(primer_df,work,in_coln=["primer_f_seq_(5'-3')_joint", "primer_r_seq_(5'-3')_joint"], to_colns=["product_value_joint","product_size_joint"])
-    return df 
+    df = su.lambda2cols(primer_df, work, in_coln=["primer_f_seq_(5'-3')_joint", "primer_r_seq_(5'-3')_joint"], to_colns=["product_value_joint","product_size_joint"])
+    return df
+
 
  
 
