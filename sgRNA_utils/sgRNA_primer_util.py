@@ -426,18 +426,22 @@ def extract_seq_from_genome(genome,gene_id,start=0,end=0):
 
 
 #只要不存在off-target，可义将一切序列转化成坐标
-def convert_seq_cor(gb_path,region_seq_json,strand='+'):
-    gb = SeqIO.read(gb_path, "genbank")
-    gb_seq = str(gb.seq).upper()
+def convert_seq_cor(gb_path,region_seq_json,strand='+',seq=''):
+    if seq != '':
+        gb_seq = seq.upper()
+        print('给定序列，坐标转成给定序列上的坐标')
+    else:
+        gb = SeqIO.read(gb_path, "genbank")
+        gb_seq = str(gb.seq).upper()
     
-    if strand == '-':
+    if strand == '-': 
         gb_seq = revComp(gb_seq)
     
     region_cor_json = {}
     for k,v in region_seq_json.items():
         v = v.upper()
         start = gb_seq.find(v)
-        end = start + len(v)
+        end = start + len(v)     
         if start == -1:
             i = 1
             start_seq = ''
@@ -470,6 +474,11 @@ def convert_seq_cor(gb_path,region_seq_json,strand='+'):
 
 
 
+
+
+
+
+
 def check_seq_in_gb(gb_path,seq_json):
     
     cor_json_plus = convert_seq_cor(gb_path,seq_json,strand='+')
@@ -478,14 +487,14 @@ def check_seq_in_gb(gb_path,seq_json):
     for plus,minus in zip(cor_json_plus,cor_json_min):
         if cor_json_plus[plus] =='-1,-1' and  cor_json_min[minus] == '-1,-1':
             #序列不存在GB文件
-             region_json[plus] = 'The sequence you provided is not on the plasmid file'
+            seq_json[plus] = 'The sequence you provided is not on the plasmid file'
         elif cor_json_plus[plus]!='-1,-1' and cor_json_min[minus] == '-1,-1':
             #序列在正义链
             pass
         elif cor_json_plus[plus]!='-1,-1' and cor_json_min[minus] == '-1,-1':
             #序列在负义链
-            region_json[plus] = su.revComp(region_json[plus])
+            seq_json[plus] = revComp(seq_json[plus])
         else:
             pass
-    return seq_json
+    return seq_json  
 

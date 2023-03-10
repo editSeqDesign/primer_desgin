@@ -54,10 +54,16 @@ def one_plasmid_system_pcr_design_primer(gb_path,info_df,uha_dha_sgRNA_df,uha_dh
     n20up_primer_df = pd.merge(n20up_primer_template[['Region','Target sequence','Rev Target sequence']],n20up_primer_df,on=['Region'],how='inner')
 
 
+
     n20down_primer_template = uha_dha_sgRNA_df[['Name','Region','n20_down_template','Target sequence','Rev Target sequence']]
     n20down_primer_template['Region'] = n20down_primer_template['Name'] +';'+ n20down_primer_template['Region']
     n20down_primer_df = p_d_seq.design_primer(n20down_primer_template,'Region','n20_down_template','sgRNA')
     n20down_primer_df = pd.merge(n20down_primer_template[['Region','Target sequence','Rev Target sequence']],n20down_primer_df,on=['Region'],how='inner')
+
+
+
+
+
 
     seq_altered_primer_template = info_df[info_df.seq_altered.apply(lambda x:len(x)>120)][['Name','Region','seq_altered']]
     seq_altered_primer_template['Region'] = seq_altered_primer_template['Name'] + seq_altered_primer_template['Region']
@@ -211,7 +217,7 @@ def two_plasmid_system_design_by_user_region(
 
     # sgRNA_region_json
     # ccdb_region_json
-        #区域转化距离
+        #区域转化距离    
     # "sgRNA_region_json":{
     #     "region1":"371,570",
     #     "region2":"3572,3770"
@@ -222,7 +228,7 @@ def two_plasmid_system_design_by_user_region(
     #     }
 
     #sgRNA载体质粒                   #启动子终止子若横跨零点有问题
-    promoter_terminator_seq = sgRNA_plasmid_region_seq['promoter_seq']+sgRNA_plasmid_region_seq['n20_coordinate_seq']+sgRNA_plasmid_region_seq['terminator_seq']
+    promoter_terminator_seq = sgRNA_plasmid_region_seq['promoter_seq'] + sgRNA_plasmid_region_seq['n20_coordinate_seq'] + sgRNA_plasmid_region_seq['terminator_seq']
     promoter_terminator_start = sgRNA_plasmid_seq.find(promoter_terminator_seq)
     promoter_terminator_end = promoter_terminator_start + len(promoter_terminator_seq)
 
@@ -266,7 +272,7 @@ def two_plasmid_system_design_by_user_region(
     ccdb_plasmid_primer_df.insert(0,'index',ccdb_plasmid_primer_df.index)
     ccdb_plasmid_primer_df.reset_index(drop=True, inplace=True)
     #给引物加产物
-    ccdb_plasmid_primer_df = p_d_seq.add_product_and_size(no_sgRNA_plasmid, ccdb_plasmid_primer_df, enzyme_df, enzyme_name='BsaI')
+    ccdb_plasmid_primer_df = p_d_seq.add_product_and_size(no_sgRNA_plasmid, ccdb_plasmid_primer_df, enzyme_df, enzyme_name=enzyme_name)
 
     return  sgRNA_plasmid_primer_df, ccdb_plasmid_primer_df
 
@@ -340,6 +346,39 @@ def two_plasmid_system_design_by_user_primer_sgRNA(no_ccdb_plasmid,
     return sgRNA_plasmid_primer_df
 
 
+
+def one_plasmid_system_design_by_user_primer(primer_json,primer_position_json,gb_path,plasmid_backbone,n_20_label,ccdb_label,promoter_terminator_label,enzyme_df,enzyme_name):
+
+    sgRNA_promoter_terminator_start = 0
+    #对引物进行排序,确定所有引物
+    primer_dict_df, primers_sum = p_d_seq.sort_compose_primer(sgRNA_promoter_terminator_start,
+                                                         primer_json,
+                                                         primer_position_json,
+                                                         gb_path,
+                                                         plasmid_backbone,
+                                                         n_20_label,
+                                                         ccdb_label,
+                                                         promoter_terminator_label,
+                                                             plasmid_type='one')
+    #给引物加接头
+    plasmid_primer_joint_df = p_d_seq.add_joint_plasmid_primer(enzyme_df,enzyme_name,
+                                                                 primer_dict_df,
+                                                                 int(primers_sum/2),
+                                                                 primer_type='ccdb')
+    #修改df格式
+    plasmid_primer_df = p_d_seq.plasmid_primer(plasmid_primer_joint_df)
+    #添加索引
+    plasmid_primer_df.insert(0,'index',plasmid_primer_df.index)
+    plasmid_primer_df.reset_index(drop=True, inplace=True)
+        
+    #给引物加产物
+    plasmid_primer_df = p_d_seq.add_product_and_size(gb_path, plasmid_primer_df, enzyme_df,enzyme_name)
+
+    return plasmid_primer_df
+
+
+
+
 def two_plasmid_system_design_by_user_primer_ccdb(ccdB_plasmid_backbone, ccdb_primer_json, ccdb_primer_position_json, no_sgRNA_plasmid,enzyme_df,enzyme_name,n_20_label,ccdb_label,promoter_terminator_label):
 
     
@@ -368,6 +407,11 @@ def two_plasmid_system_design_by_user_primer_ccdb(ccdB_plasmid_backbone, ccdb_pr
     ccdb_plasmid_primer_df = p_d_seq.add_product_and_size(no_sgRNA_plasmid, ccdb_plasmid_primer_df, enzyme_df,enzyme_name)
 
     return ccdb_plasmid_primer_df
+
+
+
+
+
 
 def two_plasmid_system_design_by_user_primer(uha_dha_sgRNA_df,
                                              sgRNA_primer_json, 
@@ -460,6 +504,9 @@ def execute_one_plasmid_system(gb_path, info_df, info_input_df, uha_dha_df, uha_
                                                                                                                                     uha_dha_info_primer_df,
                                                                                                                                     uha_dha_primer_df,
                                                                                                                                     enzyme_df,enzyme_name)
+    
+
+
     #设计质粒测序引物
     plasmid_sequencing_primer_df = one_plasmid_system_sequencing_design_primer(type_kind,uha_dha_sgRNA_df)
     #设计基因组测序引物
@@ -530,8 +577,8 @@ def execute_two_plasmid_system(
         #用户确定区域，程序给你设计模板，保证引物的数量和质量
         #将区域的序列转换成质粒上的坐标
         
-        sgRNA_region_json = su.convert_seq_cor(gb_path, sgRNA_region_seq_json)
-        ccdb_region_json = su.convert_seq_cor(gb_path, ccdb_region_seq_json)
+        sgRNA_region_json = su.convert_seq_cor(no_ccdb_plasmid, sgRNA_region_seq_json)
+        ccdb_region_json = su.convert_seq_cor(no_sgRNA_plasmid, ccdb_region_seq_json)
 
         #区域转换距离
         sgRNA_region_json={
@@ -704,7 +751,6 @@ def main(data):
     
     # enzyme_path = parent_base_path +'/'+ data['enzyme_path']
     
-
     sgRNA_result_path = data['sgRNA_result_path']
     one_plasmid_file_path = data['one_plasmid_file_path']
     no_ccdb_plasmid = data['no_ccdb_plasmid']
@@ -744,7 +790,7 @@ def main(data):
         else:
             return failture_seq_json
 
-    ccdb_region_seq_json = data['sgRNA_region_json']
+    ccdb_region_seq_json = data['ccdb_region_json']
     if  sgRNA_region_seq_json !={}:
         failture_seq_json, seq_json = check_quality_control(no_sgRNA_plasmid,ccdb_region_seq_json)
         if failture_seq_json == {}:
@@ -789,6 +835,9 @@ def main(data):
     # }
     
     enzyme_path = './input/enzyme.csv'  
+
+
+    
     enzyme_df = su.del_Unnamed(pd.read_csv(enzyme_path))
     enzyme = data['enzyme']
     enzyme_name = enzyme['enzyme_name']
@@ -818,7 +867,17 @@ def main(data):
 
     if plasmid_system_type == 1:
         # 6.执行单质粒系统
-        one_plasmid_output_path = execute_one_plasmid_system(one_plasmid_file_path, info_df, info_input_df, uha_dha_df, uha_dha_sgRNA_df, uha_dha_info_primer_df, uha_dha_primer_df,enzyme_df,enzyme_name,output)
+        one_plasmid_output_path = execute_one_plasmid_system(one_plasmid_file_path,
+                                                                info_df,
+                                                                info_input_df,
+                                                                uha_dha_df,
+                                                                uha_dha_sgRNA_df,
+                                                                uha_dha_info_primer_df,
+                                                                uha_dha_primer_df,
+                                                                enzyme_df,
+                                                                enzyme_name,
+                                                                output
+                                                                )
         return one_plasmid_output_path  
     elif plasmid_system_type == 2:
         # 7.执行双质粒系统
@@ -842,6 +901,7 @@ def main(data):
                                     no_ccdb_plasmid,
                                     no_sgRNA_plasmid,
                                     uha_dha_sgRNA_df,
+
                                     plasmid_primer_desgin_type, 
                                     enzyme_df,
                                     enzyme_name,

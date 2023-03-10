@@ -771,45 +771,56 @@ def check_locate_primer(sgRNA_plasmid_backbone, primer_json):
     return primer_position_json, failture_primer
 
 
-def first_left_last_right_primer_design(gb_path, ccdb_label, promoter_terminator_label, n_20_label, last_primer_num):
-    
-    before_processed_seq_dict, after_processed_seq_dict = fq.get_data_from_genebank(gb_path,marker=ccdb_label,target_gene=promoter_terminator_label)
-    promoter_terminator = before_processed_seq_dict['target_gene_seq']
-    promoter_terminator_up_seq = before_processed_seq_dict['target_gene_up_seq']
-    promoter_terminator_down_seq = before_processed_seq_dict['target_gene_down_seq']
-    
-    #N20
-    gb = SeqIO.read(gb_path, "genbank")
-    gb_seq = str(gb.seq)
-    n20_coordinate = su.get_feature_coordinate(n_20_label, gb_path)
-    primer_dict = {}
-    
-    if n20_coordinate[0] != -1:
-        #无ccdb，只有sgRNA的情况
-        n20_coordinate_seq = gb_seq[n20_coordinate[0]:n20_coordinate[1]]
-        promoter_seq = promoter_terminator[:promoter_terminator.find(n20_coordinate_seq)]
-    
-        #设计第一引物左引物
-        terminator_seq = promoter_terminator[promoter_terminator.find(promoter_seq) + len(promoter_seq) + 20 :]
-        first_primer_template = terminator_seq + promoter_terminator_down_seq
-        primer_result = su.primer_design(seqId = 'first', seqTemplate = first_primer_template, stype = 'right')
-        first_left_primer = primer_result["PRIMER_LEFT_0_SEQUENCE"]
-        primer_dict.update({f"primer_f_seq_(5'-3')_1":first_left_primer})
+def first_left_last_right_primer_design(gb_path, ccdb_label, promoter_terminator_label, n_20_label, last_primer_num, plasmid_backbone=''):
 
-        #设计最一引物右引物
-        last_primer_template = promoter_terminator_up_seq + promoter_seq
-        primer_result = su.primer_design(seqId = 'last', seqTemplate = last_primer_template, stype = 'left')
-        last_right_primer = primer_result["PRIMER_RIGHT_0_SEQUENCE"]
-        primer_dict.update({f"primer_r_seq_(5'-3')_{last_primer_num}":last_right_primer})
-    else:
-        #有ccdb的情况
-        ccdb_plasmid_backbone = promoter_terminator_down_seq + promoter_terminator_up_seq
-        primer_result = su.primer_design(seqId = 'fist_last', seqTemplate = ccdb_plasmid_backbone, stype = 'left_right')
+    primer_dict = {}
+
+    if plasmid_backbone != '':
+        primer_result = su.primer_design(seqId = 'fist_last', seqTemplate = plasmid_backbone, stype = 'left_right')
         first_left_primer = primer_result["PRIMER_LEFT_0_SEQUENCE"]
         last_right_primer = primer_result["PRIMER_RIGHT_0_SEQUENCE"]
         primer_dict.update({f"primer_f_seq_(5'-3')_1":first_left_primer})
         primer_dict.update({f"primer_r_seq_(5'-3')_{last_primer_num}":last_right_primer})
-    return primer_dict
+        print('一个质粒系统应用场景')
+        return  primer_dict
+    
+    else:
+        before_processed_seq_dict, after_processed_seq_dict = fq.get_data_from_genebank(gb_path,marker=ccdb_label,target_gene=promoter_terminator_label)
+        promoter_terminator = before_processed_seq_dict['target_gene_seq']
+        promoter_terminator_up_seq = before_processed_seq_dict['target_gene_up_seq']
+        promoter_terminator_down_seq = before_processed_seq_dict['target_gene_down_seq']
+        
+        #N20
+        gb = SeqIO.read(gb_path, "genbank")
+        gb_seq = str(gb.seq)
+        n20_coordinate = su.get_feature_coordinate(n_20_label, gb_path)
+
+        if n20_coordinate[0] != -1:
+            #无ccdb，只有sgRNA的情况
+            n20_coordinate_seq = gb_seq[n20_coordinate[0]:n20_coordinate[1]]
+            promoter_seq = promoter_terminator[:promoter_terminator.find(n20_coordinate_seq)]
+        
+            #设计第一引物左引物
+            terminator_seq = promoter_terminator[promoter_terminator.find(promoter_seq) + len(promoter_seq) + 20 :]
+            first_primer_template = terminator_seq + promoter_terminator_down_seq
+            primer_result = su.primer_design(seqId = 'first', seqTemplate = first_primer_template, stype = 'right')
+            first_left_primer = primer_result["PRIMER_LEFT_0_SEQUENCE"]
+            primer_dict.update({f"primer_f_seq_(5'-3')_1":first_left_primer})
+
+            #设计最一引物右引物
+            last_primer_template = promoter_terminator_up_seq + promoter_seq
+            primer_result = su.primer_design(seqId = 'last', seqTemplate = last_primer_template, stype = 'left')
+            last_right_primer = primer_result["PRIMER_RIGHT_0_SEQUENCE"]
+            primer_dict.update({f"primer_r_seq_(5'-3')_{last_primer_num}":last_right_primer})
+        else:
+            #有ccdb的情况
+            ccdb_plasmid_backbone = promoter_terminator_down_seq + promoter_terminator_up_seq
+            primer_result = su.primer_design(seqId = 'fist_last', seqTemplate = ccdb_plasmid_backbone, stype = 'left_right')
+            first_left_primer = primer_result["PRIMER_LEFT_0_SEQUENCE"]
+            last_right_primer = primer_result["PRIMER_RIGHT_0_SEQUENCE"]
+            primer_dict.update({f"primer_f_seq_(5'-3')_1":first_left_primer})
+            primer_dict.update({f"primer_r_seq_(5'-3')_{last_primer_num}":last_right_primer})
+        return primer_dict
 
 
 #对引物进行排序：
@@ -825,7 +836,9 @@ def sort_compose_primer(sgRNA_promoter_terminator_start,
                         sgRNA_plasmid_backbone,
                         n_20_label='N20',
                         ccdb_label='ccdB',
-                        promoter_terminator_label = 'gRNA'):
+                        promoter_terminator_label = 'gRNA',
+                        plasmid_type = 'two'
+                        ):
     
     
     position = list(primer_position_json.values())
@@ -839,12 +852,24 @@ def sort_compose_primer(sgRNA_promoter_terminator_start,
     primer_dict = {}
     i = 1
 
-    first_last_primer_dict = first_left_last_right_primer_design(
-                                        gb_path,
-                                        ccdb_label,
-                                        promoter_terminator_label,
-                                        n_20_label,
-                                        last_primer_num = int(primers_sum/2))
+    if plasmid_type == 'two':
+        first_last_primer_dict = first_left_last_right_primer_design(
+                                            gb_path,
+                                            ccdb_label,
+                                            promoter_terminator_label,
+                                            n_20_label,
+                                            last_primer_num = int(primers_sum/2))
+    else:
+        first_last_primer_dict = first_left_last_right_primer_design(
+                                            gb_path,
+                                            ccdb_label,
+                                            promoter_terminator_label,
+                                            n_20_label,
+                                            last_primer_num = int(primers_sum/2),
+                                            plasmid_backbone=sgRNA_plasmid_backbone
+                                            )
+
+      
 
     primer_dict.update(first_last_primer_dict)
     #在质粒上取引物,同时设计引物
@@ -875,7 +900,7 @@ def plasmid_primer(sgRNA_plasmid_primer_joint_df):
 #     df = df.drop_duplicates(subset = ["primer_f_seq_(5'-3')","primer_r_seq_(5'-3')"])
     return df
 
-def add_product_and_size(gb_path,primer_df,enzyme_df,enzyme_name='BsaI'):
+def add_product_and_size(gb_path,primer_df,enzyme_df,enzyme_name='BsaI',seq=''):
     
     sgRNA_enzyme_df = enzyme_df[enzyme_df['name']==enzyme_name]
     protective_base = sgRNA_enzyme_df.loc[0,'protective_base']
@@ -886,12 +911,21 @@ def add_product_and_size(gb_path,primer_df,enzyme_df,enzyme_name='BsaI'):
 
     joint_len  = len(protective_base) + len(recognition_seq) + gap_len + cut_seq_len
 
-    gb = SeqIO.read(gb_path, "genbank")
-    gb_seq = str(gb.seq)
+    if seq != '':
+        gb_seq = seq.upper()
+    else:
+        gb = SeqIO.read(gb_path, "genbank")
+        gb_seq = str(gb.seq)
+        gb_seq = gb_seq.upper()
+
     # no_ccdb_plasmid, no_sgRNA_plasmid
     def work(f_primer,r_primer):
+
         f_primer = f_primer[joint_len:]
         r_primer = r_primer[joint_len:]
+
+        r_primer = su.revComp(r_primer)
+
         if len(r_primer) >= 40:
             r_primer = r_primer[20:]
         start = gb_seq.find(f_primer)
@@ -904,8 +938,11 @@ def add_product_and_size(gb_path,primer_df,enzyme_df,enzyme_name='BsaI'):
         return product, len(product)
 
     df = su.lambda2cols(primer_df,work,in_coln=["primer_f_seq_(5'-3')_joint", "primer_r_seq_(5'-3')_joint"], to_colns=["product_value_joint","product_size_joint"])
-    return df
+    return df 
 
+ 
+
+ 
 def create_enzymeCutSeq_and_N20(temp_sgRNA_df,promoter_seq,enzyme_cut_len=4):
     def work(sgRNA_n20, promoter_N20_terminator):
         terminator_seq = promoter_N20_terminator[len(promoter_seq)+20:]
