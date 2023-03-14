@@ -563,7 +563,10 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                                                                                                                         uha_dha_info_primer_df,
                                                                                                                                         uha_dha_primer_df,
                                                                                                                                         enzyme_df,
-                                                                                                                                        enzyme_name)
+                                                                                                                                        enzyme_name,
+                                                                                                                                        plasmid_primer_desgin_type,
+                                                                                                                                        sgRNA_region_seq_json
+                                                                                                                                        )
     elif plasmid_primer_desgin_type == 1:
         #用户指定范围
         uha_dha_sgRNA_df,uha_primer_df,dha_primer_df,n20down_primer_p_df,n20up_primer_p_df, seq_altered_p_df,type_kind = one_plasmid_system_pcr_design_primer(                                                                                                                            
