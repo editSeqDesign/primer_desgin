@@ -20,9 +20,12 @@ from sgRNA_utils.sgRNA_primer_config import config
 #uha_dha_primer
 def extract_uha_dha_primer(info_input_df, sgRNA):
 
+   
     primer_template_for_u_d_ha_df = p_d_seq.create_primer_template(info_input_df,sgRNA)
+
     uha_dha_primer_df = p_d_seq.design_primer(primer_template_for_u_d_ha_df,'Name_Region','primer_template','u_d')
     uha_dha_primer_df = uha_dha_primer_df.rename(columns={'Region':'id'})
+    print('jghdsfhgasegdsjgdjsgfjcdhs', uha_dha_primer_df.columns)
     uha_dha_primer_df = uha_dha_primer_df.join(uha_dha_primer_df.id.str.split(';',expand=True).rename(columns = {0:'Name',1:'Region',2:'Type'})).drop(columns='id')
     
     return uha_dha_primer_df
@@ -138,7 +141,7 @@ def one_plasmid_system_pcr_design_primer(gb_path,
 
 
     seq_altered_primer_template = info_df[info_df.seq_altered.apply(lambda x:len(x)>120)][['Name','Region','seq_altered']]
-    seq_altered_primer_template['Region'] = seq_altered_primer_template['Name'] + seq_altered_primer_template['Region']
+    seq_altered_primer_template['Region'] = seq_altered_primer_template['Name'] +';'+ seq_altered_primer_template['Region']
     seq_altered_primer_df = p_d_seq.design_primer(seq_altered_primer_template,'Region','seq_altered',stype='seq_altered')
 
     #给同源臂引物加接头:uha取promoter_terminator_down_terminator_seq尾部反义4bp，dha取头promoter_terminator_up_promoter_seq正义4bp
@@ -959,7 +962,12 @@ def main(data):
       
 
     # 3.提取用户选择的sgRNA
-    sgRNA = p_d_seq.extract_sgRNA_from_chopchop(sgRNA_result_path)
+    selected_sgRNA_result = data['sgRNA_result']
+    sgRNA = p_d_seq.extract_sgRNA_from_chopchop(sgRNA_result_path, selected_sgRNA_result)
+
+
+
+
 
     # 4.设计源生同源臂引物
     print(info_input_df.columns, sgRNA.columns)   
@@ -1215,12 +1223,22 @@ if __name__ == '__main__':
         },
         "GENOME_Q_ARGS":{
             "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,  
+            "PRIMER_MIN_TM": 55,     
             "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
             "PRIMER_MAX_GC": 80
-        }
-       
+        },
+        'sgRNA_result':{
+            "Cgl0006_1176_G_A_sub":"1",
+            "Cgl2342_213_GCA_ins":"2",
+            "Cgl1436_1113_CAA_del":"3",
+            "Cgl1790_1647_TCC_sub":"1",
+            "Cgl1386_327_18to15_sub":"1",
+            "Cgl0591_-1_Ppgk_promoter_ins":"1",
+            "Cgl0141_cds_del":"1",
+            "153019_ecoil_ybeL_ins":"1",
+            "Cgl0851_ecoli_pgi_sub":"1"
+        }      
     }
     main(data)
 

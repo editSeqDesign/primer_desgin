@@ -15,14 +15,25 @@ from Bio.SeqRecord import SeqRecord
 import math
 
 #默认推荐最优sgRNA
-def extract_sgRNA_from_chopchop(sgRNA_result_path):
+def extract_sgRNA_from_chopchop(sgRNA_result_path, selected_sgRNA_result):
+
     sgRNA = su.del_Unnamed(pd.read_csv(sgRNA_result_path,index_col=False))
     sgRNA.index = list(range(len(sgRNA)))
     sgRNA = sgRNA.reindex(columns=['Name','Region','Rank','Target sequence','Genomic location','Strand','GC content (%)','Self-complementarity','MM0','MM1','MM2','MM3','Efficiency'])
-    sgRNA = sgRNA.groupby('Region').apply(lambda x: x.iloc[0]).apply(pd.Series)
-    sgRNA = sgRNA.reset_index(drop=True)
-    sgRNA['Rev Target sequence'] = sgRNA['Target sequence'].apply(lambda x: su.revComp(x))  
-    return sgRNA
+    df = pd.DataFrame()
+    for k,v in selected_sgRNA_result.items():
+        print(k,v)
+        temp_df = sgRNA[sgRNA['Name']==k]
+        print(temp_df)
+        best_sgRNA = temp_df[temp_df['Rank']==int(v)]
+        print(best_sgRNA)
+        df = df.append(best_sgRNA)
+    # def work(x):
+    #     x[x['Rank']=]
+    # sgRNA = sgRNA.groupby('Region').apply(lambda x: work(x))
+    # sgRNA = sgRNA.reset_index(drop=True)
+    df['Rev Target sequence'] = df['Target sequence'].apply(lambda x: su.revComp(x))  
+    return df
 
 def design_primer(primer_template,id_name,template_name,stype):
 
