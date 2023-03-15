@@ -767,7 +767,6 @@ def add_joint_plasmid_primer(enzyme_df,enzyme_name,sgRNA_plasmid_primer_joint_df
             v[f"primer_r_seq_(5'-3')_{primers_sum}"] = right_temp_seq + v[f"primer_r_seq_(5'-3')_{primers_sum}"]
     return sgRNA_plasmid_primer_joint_df
 
-
 def check_locate_primer(sgRNA_plasmid_backbone, primer_json):
     primer_position_json={}
     failture_primer={}
@@ -780,7 +779,6 @@ def check_locate_primer(sgRNA_plasmid_backbone, primer_json):
             start = sgRNA_plasmid_backbone.find(v)
             primer_position_json.update({k:start})
     return primer_position_json, failture_primer
-
 
 def first_left_last_right_primer_design(gb_path, ccdb_label, promoter_terminator_label, n_20_label, last_primer_num, plasmid_backbone=''):
 
@@ -839,7 +837,7 @@ def first_left_last_right_primer_design(gb_path, ccdb_label, promoter_terminator
     #2.优先排列引物所在位置的起始坐标 》sgRNA_promoter_terminator_start的位置坐标
     #3.其次排列引物所在位置的起始坐标 《 sgRNA_promoter_terminator_start的位置坐标
     #4.最终确定用户的引物排列顺序
-    
+
 def sort_compose_primer(sgRNA_promoter_terminator_start,
                         primer_json,
                         primer_position_json,
@@ -965,13 +963,211 @@ def add_product_and_size(gb_path,primer_df,enzyme_df,enzyme_name='BsaI',seq=''):
     df = su.lambda2cols(primer_df, work, in_coln=["primer_f_seq_(5'-3')_joint", "primer_r_seq_(5'-3')_joint"], to_colns=["product_value_joint","product_size_joint"])
     return df
 
-
- 
-
- 
 def create_enzymeCutSeq_and_N20(temp_sgRNA_df,promoter_seq,enzyme_cut_len=4):
     def work(sgRNA_n20, promoter_N20_terminator):
         terminator_seq = promoter_N20_terminator[len(promoter_seq)+20:]
         return (promoter_seq[-enzyme_cut_len:] + sgRNA_n20 + terminator_seq[:enzyme_cut_len])
     df = su.lambda2cols(df=temp_sgRNA_df, lambdaf=work, in_coln=['Target sequence','promoter_N20_terminator'], to_colns=['enzymeCutSeq_and_N20'])
     return df
+
+
+from Bio.SeqFeature import SeqFeature, FeatureLocation, CompoundLocation
+def create_gb_file(plasmid,primer_cor_dict):
+    plasmid_len = len(plasmid)
+    li_feature = []
+    
+     # 创建一个SeqRecord对象
+    record = SeqRecord(Seq(plasmid),
+                   id="plamid",
+                   name="plasmid",
+                   description="primer seq in plasmid")
+    
+    for k,v in primer_cor_dict.items():
+        print(k,v)
+        cor = v.split(';')[0]
+        seq = v.split(';')[1]
+        if cor != '()' or seq != '':
+            cor = cor.replace('(','').replace(')',"")
+            arr = cor.split(',')
+            print(arr[0],arr[1])
+            start, end = int(arr[0]), int(arr[1])
+            temp_feature = ''
+            
+            if 'LEFT' in k:
+                if start < 0:
+                    start = plasmid_len - abs(start)
+                    print('oooooooooooooooooooooo',start,end)
+                    locations = [FeatureLocation(start, plasmid_len,+1), FeatureLocation(0, end,+1)]
+                    temp_feature =  SeqFeature(CompoundLocation(locations), type='primer_bind',strand=+1,qualifiers={"note":k})
+                else:
+                    temp_feature = SeqFeature(FeatureLocation(start, end), type="primer_bind",strand=+1,qualifiers={"note":k})
+                record.features.append(temp_feature)
+            elif 'RIGHT' in k:
+                if end > plasmid_len:
+                    end = end - plasmid_len
+                    print('ppppppppppppp',start,end)
+                    locations = [FeatureLocation(0, end,-1), FeatureLocation(start, plasmid_len,-1)]
+                    temp_feature = SeqFeature(CompoundLocation(locations), type='primer_bind',strand=-1,qualifiers={"note":k})
+                else:
+                    temp_feature = SeqFeature(FeatureLocation(start, end), type="primer_bind",strand=-1,qualifiers={"note":k})
+            
+                li_feature.append(temp_feature)
+                record.features.append(temp_feature)
+                
+    # 添加molecule_type信息到annotations
+    record.annotations['molecule_type'] = 'genomic DNA'            
+#     SeqIO.write(record, "my_seq.gb", "genbank")
+    return record
+
+
+
+def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_len,cut_seq_len, output,type='sgRNA_uha_dha'):
+   
+    #处理特殊的质粒片段引物：不一定几对引物
+    print(n20down_primer_p_df)
+    n20down_primer_p_df.to_csv('123.csv',index=False)
+    
+   
+    
+    df = pd.DataFrame(columns=['name','gb'])
+
+    if type == 'sgRNA':
+        
+        # plasmid_primer_df = pd.merge(plasmid_primer_featrue_df,primer_df)
+        for i,v in plasmid_primer_featrue_df.iterrows():
+            plasmid  = v['PLASMID'].upper()
+            #在质粒上找到位置坐标
+            primer_df = su.groupby_columns_to_row(n20down_primer_p_df)
+
+           
+            primer_cor_dict={}
+            for k in primer_df.columns:
+                if k == 'ID':
+                    continue
+                value = primer_df.loc[i,k]
+                temp_value = value[joint_len-cut_seq_len:]
+
+                if 'RIGHT' in k:
+                    primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(temp_value))
+                    right_primer_cor = primer_cor[0], primer_cor[1] + (joint_len-cut_seq_len)
+                    primer_cor_dict.update({k: f"{right_primer_cor};{value}"})
+                else:
+                    primer_cor = su.create_primerCor_in_plasmid(plasmid,temp_value)
+                    left_primer_cor = primer_cor[0] - (joint_len-cut_seq_len), primer_cor[1]
+                    primer_cor_dict.update({k:f'{left_primer_cor};{value}'})
+
+          
+            gb_record = create_gb_file(plasmid,primer_cor_dict)
+            name=v['ID'].split(';')[0]
+            su.write_gb(gb_record, output_path = output, gb_name=name, gb_type='genbank')
+            #生成gb文件的csv文件
+            temp = pd.DataFrame(columns=['name','gb'],data=[[name,name + '.gb']])
+            df = df.append(temp)
+        df.to_csv(output+'/'+'gb_visualization.tsv', index=False, sep='\t')
+    elif type == 'sgRNA_uha_dha' or type == 'uha_dha': 
+        
+        n20down_primer_temp_df = su.columns_to_row(n20down_primer_p_df)
+
+        for i,v in plasmid_primer_featrue_df.iterrows():
+            plasmid  = v['PLASMID'].upper()
+
+            uha_left_primer = v['UHA_PRIMER_LEFT_WHOLE_SEQUENCE']
+            uha_left_nojoint_primer = uha_left_primer[joint_len:].upper()
+            uha_left_primer_cor = su.create_primerCor_in_plasmid(plasmid,uha_left_nojoint_primer)
+            uha_left_primer_cor = uha_left_primer_cor[0] - joint_len, uha_left_primer_cor[1]
+
+            uha_right_primer = v['UHA_PRIMER_RIGHT_WHOLE_SEQUENCE']
+            uha_right_nojoint_primer = uha_right_primer[joint_len:].upper()
+            uha_right_primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(uha_right_nojoint_primer))
+            uha_right_primer_cor = uha_right_primer_cor[0], uha_right_primer_cor[1] + joint_len
+
+            dha_left_primer = v['DHA_PRIMER_LEFT_WHOLE_SEQUENCE']
+            dha_left_nojoint_primer = dha_left_primer[joint_len:].upper()
+            dha_left_primer_cor = su.create_primerCor_in_plasmid(plasmid, dha_left_nojoint_primer)
+            dha_left_primer_cor = dha_left_primer_cor[0] - joint_len, dha_left_primer_cor[1]
+
+            dha_right_primer = v['DHA_PRIMER_RIGHT_WHOLE_SEQUENCE']
+            dha_right_nojoint_primer = dha_right_primer[joint_len:].upper()
+            dha_right_primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(dha_right_nojoint_primer))
+            dha_right_primer_cor = dha_right_primer_cor[0] - joint_len, dha_right_primer_cor[1]
+
+            seq_altered_left_primer = v['SEQ_PRIMER_LEFT_WHOLE_SEQUENCE']
+            seq_altered_left_primer_cor = ()
+            if seq_altered_left_primer != '':
+                seq_altered_left_nojoint_primer = seq_altered_left_primer[joint_len-cut_seq_len:].upper()
+                seq_altered_left_primer_cor = su.create_primerCor_in_plasmid(plasmid, seq_altered_left_nojoint_primer)
+                seq_altered_left_primer_cor = seq_altered_left_primer_cor[0] - (joint_len-cut_seq_len), seq_altered_left_primer_cor[1]
+
+            seq_altered_right_primer =  v['SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE']   
+            seq_altered_right_primer_cor = ()
+            if seq_altered_right_primer != '':
+                seq_altered_right_nojoint_primer = seq_altered_right_primer[joint_len-cut_seq_len:].upper()
+                seq_altered_right_primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(seq_altered_right_nojoint_primer))
+                seq_altered_right_primer_cor = seq_altered_right_primer_cor[0], seq_altered_right_primer_cor[1] + (joint_len-cut_seq_len)
+
+            if type == 'sgRNA_uha_dha':
+                n20up_left_primer = v['N20UP_PRIMER_LEFT_WHOLE_SEQUENCE']
+                n20up_left_nojoint_primer = n20up_left_primer[joint_len-cut_seq_len:].upper()
+                n20up_left_primer_cor = su.create_primerCor_in_plasmid(plasmid, n20up_left_nojoint_primer)
+                n20up_left_primer_cor = n20up_left_primer_cor[0]-(joint_len-cut_seq_len), n20up_left_primer_cor[1]
+
+                n20up_right_primer = v['N20UP_PRIMER_RIGHT_WHOLE_SEQUENCE']
+                n20up_right_nojoint_primer = n20up_right_primer[joint_len-cut_seq_len+20:].upper()
+                n20up_right_primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(n20up_right_nojoint_primer))
+                n20up_right_primer_cor = n20up_right_primer_cor[0], n20up_right_primer_cor[1]+(joint_len-cut_seq_len+20)
+
+
+            #在质粒上找到位置坐标
+            n20down_primer_temp_df = su.columns_to_row(n20down_primer_p_df)
+            n20down_primer_cor_dict={}
+            for i in n20down_primer_temp_df.columns:
+                value = n20down_primer_temp_df.loc[0,i]
+                temp_value = value[joint_len-cut_seq_len:]
+
+                if 'RIGHT' in i:
+                    primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(temp_value))
+                    n20down_right_primer_cor = primer_cor[0], primer_cor[1] + (joint_len-cut_seq_len)
+                    n20down_primer_cor_dict.update({i: f"{n20down_right_primer_cor};{value}"})
+                else:
+                    primer_cor = su.create_primerCor_in_plasmid(plasmid,temp_value)
+                    n20down_left_primer_cor = primer_cor[0] - (joint_len-cut_seq_len), primer_cor[1]
+                    n20down_primer_cor_dict.update({i:f'{n20down_left_primer_cor};{value}'})
+
+            if type == 'sgRNA_uha_dha':
+                primer_cor_dict = {
+                    'UHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{uha_left_primer_cor};{uha_left_primer}',
+                    'UHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{uha_right_primer_cor};{uha_right_primer}',
+                    'SEQ_PRIMER_LEFT_WHOLE_SEQUENCE':f'{seq_altered_left_primer_cor};{seq_altered_left_primer}',
+                    'SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{seq_altered_right_primer_cor};{seq_altered_right_primer}',
+                    'DHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{dha_left_primer_cor};{dha_left_primer}',
+                    'DHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{dha_right_primer_cor};{dha_right_primer}',
+                    'N20UP_PRIMER_LEFT_WHOLE_SEQUENCE':f'{n20up_left_primer_cor};{n20up_left_primer}',
+                    'N20UP_PRIMER_RIGHT_WHOLE_SEQUENCE':f"{n20up_right_primer_cor};{n20up_right_primer}"
+                }
+            elif type == 'uha_dha':   
+                primer_cor_dict = {
+                    'UHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{uha_left_primer_cor};{uha_left_primer}',
+                    'UHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{uha_right_primer_cor};{uha_right_primer}',
+                    'SEQ_PRIMER_LEFT_WHOLE_SEQUENCE':f'{seq_altered_left_primer_cor};{seq_altered_left_primer}',
+                    'SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{seq_altered_right_primer_cor};{seq_altered_right_primer}',
+                    'DHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{dha_left_primer_cor};{dha_left_primer}',
+                    'DHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{dha_right_primer_cor};{dha_right_primer}'
+                }
+            primer_cor_dict.update(n20down_primer_cor_dict)
+            print(primer_cor_dict,'\n')
+            gb_record = create_gb_file(plasmid,primer_cor_dict)
+
+            name=v['ID'].split(';')[0]
+            su.write_gb(gb_record, output_path = output, gb_name=name, gb_type='genbank')
+            #生成gb文件的csv文件
+            temp = pd.DataFrame(columns=['name','gb'],data=[[name,name + '.gb']])
+
+            df = df.append(temp)
+        
+
+        df.to_csv(output+'/'+'gb_visualization.tsv', index=False, sep='\t')
+    elif type == 'uha_dha':
+        pass
+
+       
+        

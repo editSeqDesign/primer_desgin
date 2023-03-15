@@ -471,14 +471,6 @@ def convert_seq_cor(gb_path,region_seq_json,strand='+',seq=''):
         
     return region_cor_json  
 
-
-
-
-
-
-
-
-
 def check_seq_in_gb(gb_path,seq_json):
     
     cor_json_plus = convert_seq_cor(gb_path,seq_json,strand='+')
@@ -498,3 +490,72 @@ def check_seq_in_gb(gb_path,seq_json):
             pass
     return seq_json  
 
+
+def get_joint_by_enzyme(enzyme_df,enzyme_name):
+    sgRNA_enzyme_df = enzyme_df[enzyme_df['name']==enzyme_name]
+    protective_base = sgRNA_enzyme_df.loc[0,'protective_base']
+    recognition_seq = sgRNA_enzyme_df.loc[0,'recognition_seq']
+    cut_seq_len = sgRNA_enzyme_df.loc[0,'cut_seq_len']
+    gap_len = sgRNA_enzyme_df.loc[0,'gap_len']
+    joint_len = len(protective_base) + len(recognition_seq) + gap_len + cut_seq_len
+    return joint_len, cut_seq_len
+
+def write_gb(record,output_path,gb_name,gb_type='genbank'):
+    SeqIO.write(record, output_path+'/'+gb_name+'.gb' ,gb_type)
+
+def columns_to_row(n20down_primer_p_df):
+    n20down_primer_p_df = n20down_primer_p_df.sort_values(by='ID')
+    temp = n20down_primer_p_df[['PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE']]
+    index = [str(i[0])+'_'+str(i[1]) for i in temp.stack().to_frame().index]
+    temp = temp.stack().to_frame()
+    temp.index = index
+    temp = temp.T
+    return temp
+
+def groupby_columns_to_row(df):
+    def work(x):
+        x = x.reset_index(drop=True)
+        id = list(x['ID'])[0]
+        temp = x[['PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE']]    
+        temp = temp.stack().to_frame()
+        temp = temp.T
+        temp.columns = [str(i[0]) + '_' + i[1] for i in temp.columns] 
+        temp.insert(0,'ID',id)
+        return temp
+    sg = df.groupby(by='ID').apply(lambda x: work(x))
+    sg = sg.reset_index(drop=True)
+    return sg  
+
+
+
+def create_primerCor_in_plasmid(plasmid_seq,primer):
+    start = plasmid_seq.find(primer)
+    end = start + len(primer)
+    return start,end
+   
+def create_plasmid_primer_featrue_df(sequencing_primer_template,
+                                     uha_primer_df,
+                                     seq_altered_p_df,
+                                     dha_primer_df,
+                                     n20up_primer_p_df=pd.DataFrame()):
+    
+    sequencing_plasmid = sequencing_primer_template[['Region','plasmid']].rename(columns={'Region':'ID','plasmid':'PLASMID'})
+    
+    uha_primer_df = uha_primer_df[['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE']]
+    uha_primer_df.columns = ['ID','UHA_PRIMER_LEFT_WHOLE_SEQUENCE','UHA_PRIMER_RIGHT_WHOLE_SEQUENCE']
+    
+    seq_altered_p_df = seq_altered_p_df[['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE']]
+    seq_altered_p_df.columns = ['ID','SEQ_PRIMER_LEFT_WHOLE_SEQUENCE','SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE']
+    
+    dha_primer_df = dha_primer_df[['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE']]
+    dha_primer_df.columns = ['ID','DHA_PRIMER_LEFT_WHOLE_SEQUENCE','DHA_PRIMER_RIGHT_WHOLE_SEQUENCE']
+    
+    if len(n20up_primer_p_df) != 0:
+        n20up_primer_p_df = n20up_primer_p_df[['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE']]
+        n20up_primer_p_df.columns = ['ID','N20UP_PRIMER_LEFT_WHOLE_SEQUENCE','N20UP_PRIMER_RIGHT_WHOLE_SEQUENCE']
+        df = pd.merge(sequencing_plasmid,uha_primer_df).merge(dha_primer_df).merge(n20up_primer_p_df)
+        df = pd.merge(seq_altered_p_df,df,how='outer')
+    else:
+        df = pd.merge(sequencing_plasmid,uha_primer_df).merge(dha_primer_df)
+        df = pd.merge(seq_altered_p_df,df,how='outer')    
+    return df
