@@ -833,7 +833,6 @@ def first_left_last_right_primer_design(gb_path, ccdb_label, promoter_terminator
             primer_dict.update({f"primer_r_seq_(5'-3')_{last_primer_num}":last_right_primer})
         return primer_dict
 
-
 #对引物进行排序：
     #1.确定sgRNA_promoter_terminator_start的位置坐标
     #2.优先排列引物所在位置的起始坐标 》sgRNA_promoter_terminator_start的位置坐标
@@ -964,10 +963,6 @@ def add_product_and_size(gb_path,primer_df,enzyme_df,enzyme_name='BsaI',seq=''):
 
     df = su.lambda2cols(primer_df, work, in_coln=["primer_f_seq_(5'-3')_joint", "primer_r_seq_(5'-3')_joint"], to_colns=["product_value_joint","product_size_joint"])
     return df
-
-
- 
-
  
 def create_enzymeCutSeq_and_N20(temp_sgRNA_df,promoter_seq,enzyme_cut_len=4):
     def work(sgRNA_n20, promoter_N20_terminator):
@@ -975,8 +970,6 @@ def create_enzymeCutSeq_and_N20(temp_sgRNA_df,promoter_seq,enzyme_cut_len=4):
         return (promoter_seq[-enzyme_cut_len:] + sgRNA_n20 + terminator_seq[:enzyme_cut_len])
     df = su.lambda2cols(df=temp_sgRNA_df, lambdaf=work, in_coln=['Target sequence','promoter_N20_terminator'], to_colns=['enzymeCutSeq_and_N20'])
     return df
-
-
 
 from Bio.SeqFeature import SeqFeature, FeatureLocation, CompoundLocation
 def create_gb_file(plasmid,primer_cor_dict):
@@ -1026,8 +1019,6 @@ def create_gb_file(plasmid,primer_cor_dict):
 #     SeqIO.write(record, "my_seq.gb", "genbank")
     return record
 
-
-
 def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_len,cut_seq_len, output,type='sgRNA_ccdb'):
    
     #处理特殊的质粒片段引物：不一定几对引
@@ -1044,6 +1035,7 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
 
            
             primer_cor_dict={}
+            primer_dict = {}
             for k in primer_df.columns:
                 if k == 'ID':
                     continue
@@ -1054,18 +1046,26 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
                     primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(temp_value))
                     right_primer_cor = primer_cor[0], primer_cor[1] + (joint_len-cut_seq_len)
                     primer_cor_dict.update({k: f"{right_primer_cor};{value}"})
+                    primer_dict.update({k:value})
                 else:
                     primer_cor = su.create_primerCor_in_plasmid(plasmid,temp_value)
                     left_primer_cor = primer_cor[0] - (joint_len-cut_seq_len), primer_cor[1]
                     primer_cor_dict.update({k:f'{left_primer_cor};{value}'})
-
+                    primer_dict.update({k:value})
           
             gb_record = create_gb_file(plasmid,primer_cor_dict)
             name=v['ID'].split(';')[0]
           
             su.write_gb(gb_record, output_path = output, gb_name=type+'_'+name, gb_type='genbank')
+
             #生成gb文件的csv文件
-            temp = pd.DataFrame(columns=['name',type+'_gb'],data=[[name, type+'_'+name+ '.gb']])
+
+            print(primer_dict)
+            temp_df = pd.DataFrame([primer_dict])
+
+            temp = pd.DataFrame(columns=['name',type+'_gb'],data=[[name, type+'_'+name+ '.gb', ]])
+
+
             df = df.append(temp)
         # df.to_csv(output+'/'+'gb_visualization.tsv', index=False, sep='\t')
     elif type == 'sgRNA_ccdb' or type == 'ccdb': 
@@ -1173,3 +1173,6 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
         # df.to_csv(output+'/'+'gb_visualization.tsv', index=False, sep='\t')
 
     return df
+
+
+
