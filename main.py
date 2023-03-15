@@ -613,8 +613,8 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     gb_output = output +'/'+ 'one_plasmid_system_gb/'
     if not exists(gb_output):
         os.makedirs(gb_output)   
-    p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_len, cut_seq_len, gb_output,type='sgRNA_uha_dha')
-    
+    tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_len, cut_seq_len, gb_output,type='sgRNA_ccdb')
+    tsv_df.to_csv(gb_output+'/'+'gb_visualization.tsv', index=False, sep='\t') 
 
     #输出引物  
     with pd.ExcelWriter(output+'one_plasmid_design_result.xlsx') as writer:  
@@ -741,7 +741,7 @@ def execute_two_plasmid_system(
 
     #设计seq_altered_primer，seq_altered > 120
     seq_altered_primer_template =  info_df[info_df.seq_altered.apply(lambda x:len(x)>120)][['Name','Region','seq_altered']]
-    seq_altered_primer_template['Region'] = seq_altered_primer_template['Name'] + seq_altered_primer_template['Region']
+    seq_altered_primer_template['Region'] = seq_altered_primer_template['Name'] +';'+ seq_altered_primer_template['Region']
     seq_altered_primer_df = p_d_seq.design_primer(seq_altered_primer_template,'Region','seq_altered',stype='seq_altered')
 
     #给引物加接头
@@ -783,10 +783,10 @@ def execute_two_plasmid_system(
     joint_len, cut_seq_len = su.get_joint_by_enzyme(enzyme_df,enzyme_name)
 
         #为每个编辑区域创建gb文件
-    gb_output = output +'/'+ 'two_plasmid_system_sgRNA_gb/'
+    gb_output = output +'/'+ 'two_plasmid_system_gb/'
     if not exists(gb_output):
         os.makedirs(gb_output)
-    p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, sgRNA_plasmid_primer, joint_len, cut_seq_len, gb_output,type='sgRNA')
+    sgRNA_tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, sgRNA_plasmid_primer, joint_len, cut_seq_len, gb_output,type='sgRNA')
 
 
 
@@ -802,23 +802,16 @@ def execute_two_plasmid_system(
     joint_len, cut_seq_len = su.get_joint_by_enzyme(enzyme_df,enzyme_name)
 
     #为每个编辑区域创建gb文件
-    gb_output = output +'/'+ 'two_plasmid_system_ccdb_gb/'
+    gb_output = output +'/'+ 'two_plasmid_system_gb/'
     if not exists(gb_output):
         os.makedirs(gb_output)   
-    p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, ccdb_plasmid_p_df, joint_len, cut_seq_len, gb_output,type='uha_dha')
-
-
-
-
-
-
-
-
-
-
-
-
-
+    ccdb_tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, ccdb_plasmid_p_df, joint_len, cut_seq_len, gb_output,type='ccdb')
+       
+    #生成tsv
+    print(sgRNA_tsv_df,'\n',ccdb_tsv_df)  
+    tsv_df = pd.merge(sgRNA_tsv_df, ccdb_tsv_df)
+    tsv_df.to_csv(gb_output+'/'+'gb_visualization.tsv', index=False, sep='\t')
+   
     #输出引物  
     with pd.ExcelWriter(output+'two_plasmid_design_result.xlsx') as writer:  
         uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
@@ -1278,7 +1271,7 @@ if __name__ == '__main__':
 
 
 
-
+   
 
 
 

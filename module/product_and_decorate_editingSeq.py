@@ -767,6 +767,7 @@ def add_joint_plasmid_primer(enzyme_df,enzyme_name,sgRNA_plasmid_primer_joint_df
             v[f"primer_r_seq_(5'-3')_{primers_sum}"] = right_temp_seq + v[f"primer_r_seq_(5'-3')_{primers_sum}"]
     return sgRNA_plasmid_primer_joint_df
 
+
 def check_locate_primer(sgRNA_plasmid_backbone, primer_json):
     primer_position_json={}
     failture_primer={}
@@ -779,6 +780,7 @@ def check_locate_primer(sgRNA_plasmid_backbone, primer_json):
             start = sgRNA_plasmid_backbone.find(v)
             primer_position_json.update({k:start})
     return primer_position_json, failture_primer
+
 
 def first_left_last_right_primer_design(gb_path, ccdb_label, promoter_terminator_label, n_20_label, last_primer_num, plasmid_backbone=''):
 
@@ -837,7 +839,7 @@ def first_left_last_right_primer_design(gb_path, ccdb_label, promoter_terminator
     #2.优先排列引物所在位置的起始坐标 》sgRNA_promoter_terminator_start的位置坐标
     #3.其次排列引物所在位置的起始坐标 《 sgRNA_promoter_terminator_start的位置坐标
     #4.最终确定用户的引物排列顺序
-
+    
 def sort_compose_primer(sgRNA_promoter_terminator_start,
                         primer_json,
                         primer_position_json,
@@ -963,12 +965,17 @@ def add_product_and_size(gb_path,primer_df,enzyme_df,enzyme_name='BsaI',seq=''):
     df = su.lambda2cols(primer_df, work, in_coln=["primer_f_seq_(5'-3')_joint", "primer_r_seq_(5'-3')_joint"], to_colns=["product_value_joint","product_size_joint"])
     return df
 
+
+ 
+
+ 
 def create_enzymeCutSeq_and_N20(temp_sgRNA_df,promoter_seq,enzyme_cut_len=4):
     def work(sgRNA_n20, promoter_N20_terminator):
         terminator_seq = promoter_N20_terminator[len(promoter_seq)+20:]
         return (promoter_seq[-enzyme_cut_len:] + sgRNA_n20 + terminator_seq[:enzyme_cut_len])
     df = su.lambda2cols(df=temp_sgRNA_df, lambdaf=work, in_coln=['Target sequence','promoter_N20_terminator'], to_colns=['enzymeCutSeq_and_N20'])
     return df
+
 
 
 from Bio.SeqFeature import SeqFeature, FeatureLocation, CompoundLocation
@@ -1021,15 +1028,11 @@ def create_gb_file(plasmid,primer_cor_dict):
 
 
 
-def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_len,cut_seq_len, output,type='sgRNA_uha_dha'):
+def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_len,cut_seq_len, output,type='sgRNA_ccdb'):
    
-    #处理特殊的质粒片段引物：不一定几对引物
-    print(n20down_primer_p_df)
-    n20down_primer_p_df.to_csv('123.csv',index=False)
+    #处理特殊的质粒片段引物：不一定几对引
     
-   
-    
-    df = pd.DataFrame(columns=['name','gb'])
+    df = pd.DataFrame(columns=['name',type+'_gb'])
 
     if type == 'sgRNA':
         
@@ -1059,12 +1062,13 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
           
             gb_record = create_gb_file(plasmid,primer_cor_dict)
             name=v['ID'].split(';')[0]
-            su.write_gb(gb_record, output_path = output, gb_name=name, gb_type='genbank')
+          
+            su.write_gb(gb_record, output_path = output, gb_name=type+'_'+name, gb_type='genbank')
             #生成gb文件的csv文件
-            temp = pd.DataFrame(columns=['name','gb'],data=[[name,name + '.gb']])
+            temp = pd.DataFrame(columns=['name',type+'_gb'],data=[[name, type+'_'+name+ '.gb']])
             df = df.append(temp)
-        df.to_csv(output+'/'+'gb_visualization.tsv', index=False, sep='\t')
-    elif type == 'sgRNA_uha_dha' or type == 'uha_dha': 
+        # df.to_csv(output+'/'+'gb_visualization.tsv', index=False, sep='\t')
+    elif type == 'sgRNA_ccdb' or type == 'ccdb': 
         
         n20down_primer_temp_df = su.columns_to_row(n20down_primer_p_df)
 
@@ -1105,7 +1109,7 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
                 seq_altered_right_primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(seq_altered_right_nojoint_primer))
                 seq_altered_right_primer_cor = seq_altered_right_primer_cor[0], seq_altered_right_primer_cor[1] + (joint_len-cut_seq_len)
 
-            if type == 'sgRNA_uha_dha':
+            if type == 'sgRNA_ccdb':
                 n20up_left_primer = v['N20UP_PRIMER_LEFT_WHOLE_SEQUENCE']
                 n20up_left_nojoint_primer = n20up_left_primer[joint_len-cut_seq_len:].upper()
                 n20up_left_primer_cor = su.create_primerCor_in_plasmid(plasmid, n20up_left_nojoint_primer)
@@ -1133,7 +1137,7 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
                     n20down_left_primer_cor = primer_cor[0] - (joint_len-cut_seq_len), primer_cor[1]
                     n20down_primer_cor_dict.update({i:f'{n20down_left_primer_cor};{value}'})
 
-            if type == 'sgRNA_uha_dha':
+            if type == 'sgRNA_ccdb':
                 primer_cor_dict = {
                     'UHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{uha_left_primer_cor};{uha_left_primer}',
                     'UHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{uha_right_primer_cor};{uha_right_primer}',
@@ -1144,7 +1148,7 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
                     'N20UP_PRIMER_LEFT_WHOLE_SEQUENCE':f'{n20up_left_primer_cor};{n20up_left_primer}',
                     'N20UP_PRIMER_RIGHT_WHOLE_SEQUENCE':f"{n20up_right_primer_cor};{n20up_right_primer}"
                 }
-            elif type == 'uha_dha':   
+            elif type == 'ccdb':   
                 primer_cor_dict = {
                     'UHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{uha_left_primer_cor};{uha_left_primer}',
                     'UHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{uha_right_primer_cor};{uha_right_primer}',
@@ -1158,16 +1162,14 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
             gb_record = create_gb_file(plasmid,primer_cor_dict)
 
             name=v['ID'].split(';')[0]
-            su.write_gb(gb_record, output_path = output, gb_name=name, gb_type='genbank')
+            name = name
+            su.write_gb(gb_record, output_path = output, gb_name=type+'_'+name, gb_type='genbank')
             #生成gb文件的csv文件
-            temp = pd.DataFrame(columns=['name','gb'],data=[[name,name + '.gb']])
+            temp = pd.DataFrame(columns=['name',type+'_gb'],data=[[name,type+'_'+name + '.gb']])
 
             df = df.append(temp)
         
 
-        df.to_csv(output+'/'+'gb_visualization.tsv', index=False, sep='\t')
-    elif type == 'uha_dha':
-        pass
+        # df.to_csv(output+'/'+'gb_visualization.tsv', index=False, sep='\t')
 
-       
-        
+    return df
