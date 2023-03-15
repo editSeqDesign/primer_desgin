@@ -617,7 +617,11 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     tsv_df.to_csv(gb_output+'/'+'gb_visualization.tsv', index=False, sep='\t') 
 
     #输出引物  
-    with pd.ExcelWriter(output+'one_plasmid_design_result.xlsx') as writer:  
+    xlsx_file = os.path.join(
+        output,
+        'one_plasmid_design_result.xlsx'
+    )
+    with pd.ExcelWriter(xlsx_file) as writer:  
         uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
         dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
         n20up_primer_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')  
@@ -626,7 +630,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
         plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
         genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')
 
-    return output + 'one_plasmid_design_result.xlsx'                                                                                                                                       
+    return xlsx_file                                                     
 
 def execute_two_plasmid_system(
                                  info_df,
@@ -813,7 +817,11 @@ def execute_two_plasmid_system(
     tsv_df.to_csv(gb_output+'/'+'gb_visualization.tsv', index=False, sep='\t')
    
     #输出引物  
-    with pd.ExcelWriter(output+'two_plasmid_design_result.xlsx') as writer:  
+    xlsx_file = os.path.join(
+        output,
+        'two_plasmid_design_result.xlsx'
+    )
+    with pd.ExcelWriter(xlsx_file) as writer:  
         uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
         dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
         sgRNA_plasmid_p_df.to_excel(writer,sheet_name = 'sgRNA_plasmid_fragment',index_label='No.')  
@@ -823,7 +831,7 @@ def execute_two_plasmid_system(
         ccdb_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P2',index_label='No.')
         genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')
 
-    return output + 'two_plasmid_design_result.xlsx'
+    return xlsx_file
 
 
 def read_chopchopInput_add_uha_dha(genome_path,chopchop_input,uha_dha_params):
