@@ -610,11 +610,11 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     joint_len, cut_seq_len = su.get_joint_by_enzyme(enzyme_df,enzyme_name)
 
     #为每个编辑区域创建gb文件
-    gb_output = output +'/'+ 'one_plasmid_system_gb/'
+    gb_output = os.path.join(output,'one_plasmid_system_gb/')
     if not exists(gb_output):
         os.makedirs(gb_output)   
     tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_len, cut_seq_len, gb_output,type='sgRNA_ccdb')
-    tsv_df.to_csv(gb_output+'/'+'gb_visualization.tsv', index=False, sep='\t') 
+    tsv_df.to_csv(os.path.join(gb_output,'gb_visualization.tsv'), index=False, sep='\t') 
 
     #输出引物  
     xlsx_file = os.path.join(
@@ -787,7 +787,7 @@ def execute_two_plasmid_system(
     joint_len, cut_seq_len = su.get_joint_by_enzyme(enzyme_df,enzyme_name)
 
         #为每个编辑区域创建gb文件
-    gb_output = output +'/'+ 'two_plasmid_system_gb/'
+    gb_output = os.path.join(output,'two_plasmid_system_gb/')
     if not exists(gb_output):
         os.makedirs(gb_output)
     sgRNA_tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, sgRNA_plasmid_primer, joint_len, cut_seq_len, gb_output,type='sgRNA')
@@ -806,7 +806,7 @@ def execute_two_plasmid_system(
     joint_len, cut_seq_len = su.get_joint_by_enzyme(enzyme_df,enzyme_name)
 
     #为每个编辑区域创建gb文件
-    gb_output = output +'/'+ 'two_plasmid_system_gb/'
+    gb_output = os.path.join(output ,'two_plasmid_system_gb/')
     if not exists(gb_output):
         os.makedirs(gb_output)   
     ccdb_tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, ccdb_plasmid_p_df, joint_len, cut_seq_len, gb_output,type='ccdb')
@@ -814,7 +814,7 @@ def execute_two_plasmid_system(
     #生成tsv
     print(sgRNA_tsv_df,'\n',ccdb_tsv_df)  
     tsv_df = pd.merge(sgRNA_tsv_df, ccdb_tsv_df)
-    tsv_df.to_csv(gb_output+'/'+'gb_visualization.tsv', index=False, sep='\t')
+    tsv_df.to_csv(os.path.join(gb_output,'gb_visualization.tsv'), index=False, sep='\t')
    
     #输出引物  
     xlsx_file = os.path.join(
