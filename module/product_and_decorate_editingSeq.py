@@ -631,7 +631,7 @@ def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_termin
                                                 'product_size',
                                                 "product_value_joint",
                                                 "product_size_joint",  
-                                                "Type"
+                                                "Type"                 
                                             ])
 
     elif stype == 'seq_altered_primer_joint' or stype == 'ccdb_plasmid_primer_joint':
@@ -1059,11 +1059,11 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
             su.write_gb(gb_record, output_path = output, gb_name=type+'_'+name, gb_type='genbank')
 
             #生成gb文件的csv文件
-            temp_df = pd.DataFrame([primer_dict])
-            temp_df.insert(0,'name', name)
-            temp_df.insert(1, type+'_gb',type+'_'+name+ '.gb')
-            # temp = pd.DataFrame(columns=['name',type+'_gb'],data=[[name, type+'_'+name+ '.gb', ]])
-            df = df.append(temp_df)
+            # temp_df = pd.DataFrame()   
+            # temp_df.insert(0,'name', name)
+            # temp_df.insert(1, type+'_gb',type+'_'+name+ '.gb')
+            temp = pd.DataFrame(columns=['name',type+'_gb'],data=[[name, type+'_'+name+ '.gb']])
+            df = df.append(temp)
 
         # df.to_csv(output+'/'+'gb_visualization.tsv', index=False, sep='\t')
     elif type == 'sgRNA_ccdb' or type == 'ccdb': 
@@ -1192,17 +1192,13 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
 
             su.write_gb(gb_record, output_path = output, gb_name=type+'_'+name, gb_type='genbank')
             #生成gb文件的csv文件
-            temp_df = pd.DataFrame([primer_dict])
-            temp_df.insert(0,'name', name)
-            temp_df.insert(1, type+'_gb',type+'_'+name+ '.gb')
-            # temp = pd.DataFrame(columns=['name',type+'_gb'],data=[[name, type+'_'+name+ '.gb', ]])
-            df = df.append(temp_df)
+            # temp_df = pd.DataFrame()   
+            # temp_df.insert(0,'name', name)
+            # temp_df.insert(1, type+'_gb',type+'_'+name+ '.gb')
+            # df = df.append(temp_df)
+            temp = pd.DataFrame(columns=['name',type+'_gb'],data=[[name, type+'_'+name+ '.gb']])
+            df = df.append(temp)
             
-        
-
-        # df.to_csv(output+'/'+'gb_visualization.tsv', index=False, sep='\t')
-    print(df)
     return df
 
-
-
+   

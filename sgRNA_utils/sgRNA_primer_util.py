@@ -385,7 +385,7 @@ def result_primer_list_to_df(primer_result_list):
 def rename_common_primer_df(*df_list):
     df_list_renamed = []
     for df in df_list:
-        if 'index' not in df.columns:
+        if 'index' not in df.columns:  
             df = df.rename(columns={'Region':'ID',
                                 "primer_f_seq_(5'-3')_joint":"PRIMER_LEFT_WHOLE_SEQUENCE",
                                 "primer_r_seq_(5'-3')_joint":"PRIMER_RIGHT_WHOLE_SEQUENCE",
