@@ -462,8 +462,17 @@ def two_plasmid_system_design_by_user_primer(uha_dha_sgRNA_df,
                                             ccdb_label):
 
     #定位和检查引物
-    sgRNA_primer_position_json, sgRNA_failture_primer = p_d_seq.check_locate_primer(sgRNA_plasmid_backbone, sgRNA_primer_json)
-    ccdb_primer_position_json, ccdb_failture_primer = p_d_seq.check_locate_primer(ccdB_plasmid_backbone, ccdb_primer_json)
+    if sgRNA_primer_json !={}:
+        sgRNA_primer_position_json, sgRNA_failture_primer = p_d_seq.check_locate_primer(sgRNA_plasmid_backbone, sgRNA_primer_json)
+    else:
+        #执行用户什么都不指定，设计sgRNA质粒引物
+        pass
+    if ccdb_primer_json !={}:
+        ccdb_primer_position_json, ccdb_failture_primer = p_d_seq.check_locate_primer(ccdB_plasmid_backbone, ccdb_primer_json)
+    else:
+        #执行用户什么都不指定，设计ccdb质粒引物
+        pass
+
 
     if  sgRNA_primer_position_json == {}:
         return sgRNA_failture_primer
@@ -548,7 +557,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     gb_name = gb.name
     
     #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物  
-    if plasmid_primer_desgin_type == 2:
+    if plasmid_primer_desgin_type == 2:    
         #无需用户指定范围
         uha_dha_sgRNA_df,uha_primer_df,dha_primer_df,n20down_primer_p_df,n20up_primer_p_df, seq_altered_p_df,type_kind = one_plasmid_system_pcr_design_primer(                                                                                                                            
                                                                                                                                         gb_path,
@@ -561,6 +570,11 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                                                                                                                         plasmid_primer_desgin_type,
                                                                                                                                         sgRNA_region_seq_json
                                                                                                                                         )
+        #修改 n20down_primer_p_df
+        temp = n20down_primer_p_df.loc[:0]
+        temp.loc[0,'Region'] = 1
+        n20down_primer_p_df = temp
+
     elif plasmid_primer_desgin_type == 1:
         #用户指定范围
         uha_dha_sgRNA_df,uha_primer_df,dha_primer_df,n20down_primer_p_df,n20up_primer_p_df, seq_altered_p_df,type_kind = one_plasmid_system_pcr_design_primer(                                                                                                                            
@@ -587,6 +601,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                                                                                                                         plasmid_primer_desgin_type,
                                                                                                                                         sgRNA_primer_json
                                                                                                                                         )
+        n20down_primer_p_df.to_csv('456.csv',index=False)    
     #设计质粒测序引物
     plasmid_sequencing_primer_df,sequencing_primer_template = one_plasmid_system_sequencing_design_primer(type_kind,uha_dha_sgRNA_df)
 
@@ -614,6 +629,8 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     if not exists(gb_output):
         os.makedirs(gb_output)   
     tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_len, cut_seq_len, gb_output,type='sgRNA_ccdb')
+
+    tsv_df = tsv_df.rename(columns={'name':'NAME','sgRNA_ccdb_gb':"SGRNA_CCDB_GB"})
     tsv_df.to_csv(os.path.join(gb_output,'gb_visualization.tsv'), index=False, sep='\t') 
 
     #输出引物  
@@ -785,7 +802,7 @@ def execute_two_plasmid_system(
     sgRNA_plasmid_primer = sgRNA_plasmid_p_df[['ID', 'PRIMER_LEFT_WHOLE_SEQUENCE', 'PRIMER_RIGHT_WHOLE_SEQUENCE']]
     print(plasmid_primer_featrue_df)
     joint_len, cut_seq_len = su.get_joint_by_enzyme(enzyme_df,enzyme_name)
-
+    
         #为每个编辑区域创建gb文件
     gb_output = os.path.join(output,'two_plasmid_system_gb/')
     if not exists(gb_output):
@@ -810,12 +827,17 @@ def execute_two_plasmid_system(
     if not exists(gb_output):
         os.makedirs(gb_output)   
     ccdb_tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, ccdb_plasmid_p_df, joint_len, cut_seq_len, gb_output,type='ccdb')
-       
+      
+
     #生成tsv
     print(sgRNA_tsv_df,'\n',ccdb_tsv_df)  
-    tsv_df = pd.merge(sgRNA_tsv_df, ccdb_tsv_df)
+    sgRNA_tsv_df.to_csv('sgRNA_tsv_df.csv',index=False)
+    ccdb_tsv_df.to_csv('ccdb_tsv_df.csv',index=False)
+
+    tsv_df = pd.merge(sgRNA_tsv_df, ccdb_tsv_df, on='name', suffixes=['_SGRNA', '_CCDB'])  
+    tsv_df.rename(columns={'name':'NAME','sgRNA_gb':'SGRNA_GB','ccdb_gb':"CCDB_GB"},inplace=True)
     tsv_df.to_csv(os.path.join(gb_output,'gb_visualization.tsv'), index=False, sep='\t')
-   
+     
     #输出引物  
     xlsx_file = os.path.join(
         output,
@@ -881,7 +903,31 @@ def check_quality_control(gb_path,seq_json):
 
     return failture_seq_json,seq_json
 
+
+
+def check_plasmid(gb_path, ccdb_label='', promoter_terminator_label='', n_20_label=''):
+
+    gb = SeqIO.read(gb_path, "genbank")
+    gb_seq = str(gb.seq)
+    #get coordinate
+    ccdb_coordinate = su.get_feature_coordinate(ccdb_label,gb_path) 
+    #N20
+    n20_coordinate = su.get_feature_coordinate(n_20_label,gb_path)
+
+    if ccdb_coordinate != (-1,-1) and n20_coordinate !=(-1,-1):
+        return 'one_plasmid_file_path'
+    elif ccdb_coordinate==(-1,-1) and n20_coordinate !=(-1,-1):
+        return 'no_ccdb_plasmid'
+    elif ccdb_coordinate != (-1,-1) and n20_coordinate ==(-1,-1):
+        return 'no_sgRNA_plasmid'
+    else:
+        return 'error'
+
     
+
+
+
+
 def main(data):
     
     chopchop_input = data['chopchop_input']
@@ -892,45 +938,87 @@ def main(data):
     # enzyme_path = parent_base_path +'/'+ data['enzyme_path']
     
     sgRNA_result_path = data['sgRNA_result_path']
-    one_plasmid_file_path = data['one_plasmid_file_path']
-    no_ccdb_plasmid = data['no_ccdb_plasmid']
-    no_sgRNA_plasmid = data['no_sgRNA_plasmid']
+
+    plasmid_file_1 = data['one_plasmid_file_path']
+    plasmid_file_2 = data['no_ccdb_plasmid']
+    plasmid_file_3 = data['no_sgRNA_plasmid']
     
     #plasmid label
     ccdb_label = data['plasmid_label']['ccdb_label']
     promoter_terminator_label = data['plasmid_label']['promoter_terminator_label']
     n_20_label = data['plasmid_label']['n_20_label']   
- 
+
+    one_plasmid_file_path=''
+    no_ccdb_plasmid=''
+    no_sgRNA_plasmid=''
+    
+    #检查质粒,自动判断质粒类型
+    if plasmid_file_1 != '':
+        plasmid_type = check_plasmid(plasmid_file_1, ccdb_label, promoter_terminator_label, n_20_label)
+        if plasmid_type == 'one_plasmid_file_path':
+            one_plasmid_file_path = plasmid_file_1
+        elif plasmid_type == 'no_ccdb_plasmid':
+            no_ccdb_plasmid = plasmid_file_1
+        elif plasmid_type == 'no_sgRNA_plasmid':
+            no_sgRNA_plasmid = plasmid_file_1
+        elif plasmid_type == 'error':
+            return  'There is a problem with the plasmid you uploaded'
+    
+    if plasmid_file_2 != '':
+        plasmid_type = check_plasmid(plasmid_file_2, ccdb_label, promoter_terminator_label, n_20_label)
+        if plasmid_type == 'one_plasmid_file_path':
+            one_plasmid_file_path = plasmid_file_2
+        elif plasmid_type == 'no_ccdb_plasmid':
+            no_ccdb_plasmid = plasmid_file_2
+        elif plasmid_type == 'no_sgRNA_plasmid':
+            no_sgRNA_plasmid = plasmid_file_2
+        elif plasmid_type == 'error':
+            return  'There is a problem with the plasmid you uploaded'
+
+    if plasmid_file_3 != '':
+        plasmid_type = check_plasmid(plasmid_file_3, ccdb_label, promoter_terminator_label, n_20_label)    
+        if plasmid_type == 'one_plasmid_file_path':
+            one_plasmid_file_path = plasmid_file_3
+        elif plasmid_type == 'no_ccdb_plasmid':
+            no_ccdb_plasmid = plasmid_file_3
+        elif plasmid_type == 'no_sgRNA_plasmid':
+            no_sgRNA_plasmid = plasmid_file_3
+        elif plasmid_type == 'error':
+            return  'There is a problem with the plasmid you uploaded'
+
+
     #primer
     sgRNA_primer_json = data['sgRNA_primer_json']
     ccdb_primer_json = data['ccdb_primer_json']
 
-    primer_json = data['primer_json']
-    region_seq_json = data['primer_json']
+    primer_json = data['primer_json']  
+    region_seq_json = data['region_json']
 
 
-    if primer_json != {}:
+
+
+    if primer_json != {} and one_plasmid_file_path !='':
         failture_seq_json, seq_json = check_quality_control(one_plasmid_file_path ,primer_json)
         if failture_seq_json == {}:
             primer_json = seq_json
         else:
             return failture_seq_json
     
-    if region_seq_json != {}:
+    if region_seq_json != {} and one_plasmid_file_path !='':
         failture_seq_json, seq_json = check_quality_control(one_plasmid_file_path ,region_seq_json)
         if failture_seq_json == {}:
             region_seq_json = seq_json
         else:
             return failture_seq_json
 
-    if sgRNA_primer_json !={}:
+    if sgRNA_primer_json !={} and no_ccdb_plasmid !='':
         failture_seq_json, seq_json = check_quality_control(no_ccdb_plasmid,sgRNA_primer_json)
         if failture_seq_json == {}:
             sgRNA_primer_json = seq_json
         else:
             return failture_seq_json
 
-    if  ccdb_primer_json !={}:
+    if  ccdb_primer_json !={} and no_sgRNA_plasmid != '':
         failture_seq_json, seq_json = check_quality_control(no_sgRNA_plasmid,ccdb_primer_json)
         if failture_seq_json == {}:
             ccdb_primer_json = seq_json
@@ -941,18 +1029,18 @@ def main(data):
     # ccdb_region_json = data['ccdb_region_json']
 
     sgRNA_region_seq_json = data['sgRNA_region_json']
-    if  sgRNA_region_seq_json !={}:
+    if  sgRNA_region_seq_json !={} and no_ccdb_plasmid !='':
         failture_seq_json, seq_json = check_quality_control(no_ccdb_plasmid,sgRNA_region_seq_json)
-        if failture_seq_json == {}:
+        if failture_seq_json == {} :
             sgRNA_region_seq_json = seq_json
         else:
             return failture_seq_json
 
     ccdb_region_seq_json = data['ccdb_region_json']
-    if  sgRNA_region_seq_json !={}:
+    if  sgRNA_region_seq_json !={} and no_sgRNA_plasmid !='':
         failture_seq_json, seq_json = check_quality_control(no_sgRNA_plasmid,ccdb_region_seq_json)
         if failture_seq_json == {}:
-            ccdb_region_seq_json = seq_json
+            ccdb_region_seq_json = seq_json  
         else:
             return failture_seq_json
 
@@ -1012,6 +1100,12 @@ def main(data):
     uha_dha_info_primer_df, uha_dha_df, uha_dha_sgRNA_df, info_df = extract_uha_dha(info_input_df,uha_dha_primer_df,sgRNA)
 
 
+
+
+
+
+    #
+
     if  one_plasmid_file_path != '' and no_ccdb_plasmid == '' and no_sgRNA_plasmid == '':
         plasmid_system_type =1
     elif  one_plasmid_file_path =='' and no_ccdb_plasmid != '' and no_sgRNA_plasmid != '':
@@ -1021,7 +1115,7 @@ def main(data):
     else:
         return '你选择这的双质粒系统，质粒没有上传完整!'
     
-    print('--1.执行单质粒系统---2.执行双质粒系统---0.执行单、双质粒系统都执行------现在正在执行的情况：',plasmid_system_type) 
+    print('--1.执行单质粒系统,--2.执行双质粒系统,---0.执行单、双质粒系统都执行------现在正在执行的情况：',plasmid_system_type) 
 
     if plasmid_system_type == 1:
 
@@ -1064,7 +1158,7 @@ def main(data):
         elif sgRNA_primer_json == {} and ccdb_primer_json == {} and sgRNA_region_seq_json == {} and ccdb_region_seq_json == {}:
             plasmid_primer_desgin_type = 2
 
-        print('--------------------------------------现在执行的情况：',plasmid_primer_desgin_type)    
+        print('--1---用户指定范围,--2----无需用户指定范围,--3----用户指定额外引物------------现在执行的情况：',plasmid_primer_desgin_type)    
 
         two_plasmid_output_path = execute_two_plasmid_system(
                                     info_df,
@@ -1090,17 +1184,17 @@ def main(data):
 
     elif plasmid_system_type == 0:
 
-       
-
+         
         #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物
         if region_seq_json == {} and  primer_json == {}:
             plasmid_primer_desgin_type = 2
         elif region_seq_json != {} and primer_json == {}:
             plasmid_primer_desgin_type = 1
-        elif primer_json != {} and region_seq_json == {}:
+        elif primer_json != {} and region_seq_json == {}:  
             plasmid_primer_desgin_type = 3
         elif primer_json != {} and region_seq_json != {}:
             plasmid_primer_desgin_type = 1
+        print('--1.用户指定范围---2.无需用户指定范围---3.用户指定额外引物------现在正在执行的情况：',plasmid_primer_desgin_type)
 
         one_plasmid_output_path = execute_one_plasmid_system(   
                                                                 plasmid_primer_desgin_type,
@@ -1165,22 +1259,22 @@ if __name__ == '__main__':
     # with open(input_path, "r") as f:
     #     data = json.load(f)
 
-    # main(data)   
+    # main(data)      
 
     data = {   
         "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
         "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
         "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
         "ref_genome":"/home/yanghe/program/data_preprocessing/input/GCA_000011325.1_ASM1132v1_genomic.fna",
-        "one_plasmid_file_path": "/home/yanghe/program/edit_sequence_design/input/pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
+        "one_plasmid_file_path":"",
         "no_ccdb_plasmid":"/home/yanghe/program/edit_sequence_design/input/no-ccdb-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
         "no_sgRNA_plasmid":"/home/yanghe/program/edit_sequence_design/input/no-sgRNA-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
 
         "uha_dha_config": {
-            "max_right_arm_seq_length": 1050,
+            "max_right_arm_seq_length": 1050,  
             "max_left_arm_seq_length": 1050,
             "min_left_arm_seq_length": 1000,   
-            "min_right_arm_seq_length": 1000
+            "min_right_arm_seq_length": 1000 
         },
 
         "plasmid_label":{
@@ -1190,32 +1284,32 @@ if __name__ == '__main__':
         },
 
         "primer_json":{
-            "primer1":"AACTATTTATCCAGTTGGTACAAAC"
+            
         },
         "region_json":{
-            "region1":"tgtgtggaattgtgagcggataacaatttcacacaggaaacagaatt"
-        },  
+            
+        },     
 
         "sgRNA_primer_json":{
-            "primer3":"AACTATTTATCCAGTTGGTACAAAC"
+           
         },
         "ccdb_primer_json":{
-            "primer3":"AACTGATTCAGTCTGATTTCGCGGT"
+           
         },
     
         "sgRNA_region_json":{
-            "region1":"tgtgtggaattgtgagcggataacaatttcacacaggaaacagaatt"
+           
         },
         
         "ccdb_region_json":{
-            "region1":"ATTGTGAGCGGATAACAATTTCACACAGGAAACAGAATTAATTAAGCTTAAAGGAGTTGAGAATGGATAAGAAATACTCAATAGGCTTAGATATCGGCACAAATAGCGTCGGATGGGCGGTGATC"
+            
         },
         
         "enzyme":{
             "enzyme_name":"BsaI",
-            "gap_sequence":"A",
+            "gap_sequence":"A",  
             "protection_sequence":"CCA"
-        },
+        },  
         
         "UHA_ARGS":{
             "PRIMER_OPT_TM": 65,
