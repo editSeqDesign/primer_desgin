@@ -164,17 +164,34 @@ def primer_design(seqId,
                   seqTemplate,
                   stype,
                   mute_type='single',
+                  primer_type = '',
                   global_args=config.GLOBAL_ARGS,
                   ):
 
     if mute_type == 'single':
         config.GLOBAL_ARGS.update(config.S_GLOBAL_ARGS)
-        global_args = config.GLOBAL_ARGS 
+        global_args = config.GLOBAL_ARGS
+        if primer_type == 'uha':
+            global_args.update(config.UHA_ARGS)
+        elif primer_type == 'dha':
+            global_args.update(config.DHA_ARGS)
+        elif primer_type == 'plasmid':
+            global_args.update(config.DOWN_SGRNA_ARGS)  
+        elif primer_type == 'sgRNA':
+            global_args.update(config.UP_SGRNA_ARGS)
+        elif primer_type == 'seq_altered':
+            global_args.update(config.SEQ_ALTERED_ARGS)
+
     elif mute_type == 'sequencing': 
         config.Q_GLOBAL_ARGS.update(config.Q_ARGS)
         global_args =config.Q_GLOBAL_ARGS 
+        if primer_type == 'plasmid_seq':
+            global_args.update(config.PLASMID_Q_ARGS)
+        elif primer_type == 'genome_seq':
+            global_args.update(config.GENOME_Q_ARGS)
 
-        
+
+
     #序列参数  
     seqlength = len(seqTemplate)   
     seq_args = {
@@ -347,9 +364,6 @@ def df_to_df(columns,df,index):
     return df
 
 
-
-
-
 #重命名
 def rename_u_d_primer_df(uha_primer_df,dha_primer_df):
     uha_primer_df = uha_primer_df.rename(columns={'Region':'ID',
@@ -490,7 +504,6 @@ def check_seq_in_gb(gb_path,seq_json):
             pass
     return seq_json  
 
-
 def get_joint_by_enzyme(enzyme_df,enzyme_name):
     sgRNA_enzyme_df = enzyme_df[enzyme_df['name']==enzyme_name]
     protective_base = sgRNA_enzyme_df.loc[0,'protective_base']
@@ -525,8 +538,6 @@ def groupby_columns_to_row(df):
     sg = df.groupby(by='ID').apply(lambda x: work(x))
     sg = sg.reset_index(drop=True)
     return sg  
-
-
 
 def create_primerCor_in_plasmid(plasmid_seq,primer):
     start = plasmid_seq.find(primer)

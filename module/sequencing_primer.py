@@ -4,7 +4,7 @@ from sgRNA_utils.sgRNA_primer_config import config
 import sgRNA_utils.sgRNA_primer_util as util
 
 #生成测序引物模板
-def design_sequencing_primers(dict_plasmid_id, dict_plasmid_seq,mute_position=0):
+def design_sequencing_primers(dict_plasmid_id, dict_plasmid_seq,mute_position=0,seq_type=''):
     '''
         生成测序引物模板（在target_gene_seq 前后加200bp）,设计测序引物
         params:     
@@ -34,18 +34,16 @@ def design_sequencing_primers(dict_plasmid_id, dict_plasmid_seq,mute_position=0)
         sequencing_peimers_template = target_gene_down_seq[-temp_len:] + sequencing_peimers_template
     #设计引物 
     if mute_position ==0:
-        print(len(sequencing_peimers_template))
-        result = design_seq_primer(seq_id=dict_plasmid_id, seq_temp=sequencing_peimers_template, seq_target=target_gene_seq)
+        result = design_seq_primer(seq_id=dict_plasmid_id, seq_temp=sequencing_peimers_template, seq_target=target_gene_seq,seq_type=seq_type)
         print(result)
-        
     else:
   
-        result = design_seq_primer(seq_id=dict_plasmid_id, seq_temp=sequencing_peimers_template, seq_target=target_gene_seq,mute_position=mute_position)
+        result = design_seq_primer(seq_id=dict_plasmid_id, seq_temp=sequencing_peimers_template, seq_target=target_gene_seq,mute_position=mute_position,seq_type=seq_type)
          
     return result
 
 #设计测序引物
-def design_seq_primer(seq_id, seq_temp, seq_target, mute_position=0):
+def design_seq_primer(seq_id, seq_temp, seq_target, mute_position=0,seq_type=''):
     dict_seq_primer={}
     dict_seq_primer_failtrue={}
     len_target=len(seq_target)     
@@ -56,6 +54,7 @@ def design_seq_primer(seq_id, seq_temp, seq_target, mute_position=0):
                                         seqTemplate=temp_p1,
                                         stype='none',
                                         mute_type='sequencing',
+                                        primer_type=seq_type,
                                         global_args=config.Q_GLOBAL_ARGS
                                     )
    
@@ -72,6 +71,7 @@ def design_seq_primer(seq_id, seq_temp, seq_target, mute_position=0):
                                         seqTemplate=temp_p2,
                                         stype='none',
                                         mute_type='sequencing',
+                                        primer_type=seq_type,
                                         global_args=config.Q_GLOBAL_ARGS
                                     )
          #判断引物是否成功
@@ -88,6 +88,7 @@ def design_seq_primer(seq_id, seq_temp, seq_target, mute_position=0):
                                         seqTemplate=temp_p2,
                                         stype='none',
                                         mute_type='sequencing',
+                                        primer_type=seq_type,
                                         global_args=config.Q_GLOBAL_ARGS
                                     )  
          #判断引物是否成功
@@ -104,6 +105,7 @@ def design_seq_primer(seq_id, seq_temp, seq_target, mute_position=0):
                                                 seqTemplate=temp_pn,
                                                 stype='none',
                                                 mute_type='sequencing',
+                                                primer_type=seq_type,
                                                 global_args=config.Q_GLOBAL_ARGS
                                             )
             seq_target = seq_target[600:]
@@ -129,6 +131,7 @@ def design_seq_primer(seq_id, seq_temp, seq_target, mute_position=0):
                                             seqTemplate=temp_pe,
                                             stype='none',
                                             mute_type='sequencing',
+                                            primer_type=seq_type,
                                             global_args=config.Q_GLOBAL_ARGS  
                                         )
             #判断引物是否成功
@@ -138,7 +141,7 @@ def design_seq_primer(seq_id, seq_temp, seq_target, mute_position=0):
                                     primer_name=f"SEQUENCING_PRIMER_{i}",     
                                     type='LEFT')
 
-    return dict_seq_primer, dict_seq_primer_failtrue
+    return dict_seq_primer, dict_seq_primer_failtrue  
   
 #判断引物是与否
 def judge_primer_is_or_not( seq_id, dict_res,primer_suc,primer_fail,primer_name,type='LEFT'):

@@ -42,16 +42,18 @@ def design_primer(primer_template,id_name,template_name,stype):
         result_dict = {}
         if stype == 'u_d':
             if row['type'] == 'uha':
-                primer_result = su.primer_design(row[id_name],row[template_name],'left')
+                primer_result = su.primer_design(row[id_name],row[template_name],'left',primer_type='uha')
             elif row['type'] == 'dha':
-                primer_result = su.primer_design(row[id_name],row[template_name],'right')
+                primer_result = su.primer_design(row[id_name],row[template_name],'right',primer_type='dha')
                 print(primer_result)    
-        elif stype == 'plasmid' or stype == 'sgRNA':
-            primer_result = su.primer_design(row[id_name],row[template_name],'left_right')
+        elif stype == 'plasmid':
+            primer_result = su.primer_design(row[id_name],row[template_name],'left_right',primer_type='plasmid')
+        elif stype == 'sgRNA':
+            primer_result = su.primer_design(row[id_name],row[template_name],'left_right',primer_type='sgRNA')
         elif stype == 'seq_altered':
-            primer_result = su.primer_design(row[id_name],row[template_name],'left_right')
+            primer_result = su.primer_design(row[id_name],row[template_name],'left_right',primer_type='seq_altered')
 
-        print(result_dict)   
+        print(result_dict)      
 
         result_dict['Region'] = row[id_name]    
         result_dict["primer_f_seq_(5'-3')"] = primer_result['PRIMER_LEFT_0_SEQUENCE']
@@ -191,7 +193,7 @@ def design_primer_by_region_in_plasmid(first_primer_start_position, plasmid_seq,
             template_seq_2 = plasmid_seq[:temp_len]
             template_seq = template_seq_1 + template_seq_2
             #这就可以设计引物
-            primer_result = su.primer_design(k,template_seq, 'right')
+            primer_result = su.primer_design(k,template_seq, 'right',primer_type='plasmid')
             if len(primer_result) < 10:
                 pass
             else: 
@@ -212,7 +214,7 @@ def design_primer_by_region_in_plasmid(first_primer_start_position, plasmid_seq,
         else:
             template_seq = plasmid_seq[primer_template_start : primer_template_end]
             #设计引物
-            primer_result = su.primer_design(k,template_seq, 'right')
+            primer_result = su.primer_design(k,template_seq, 'right',primer_type='plasmid')
             if len(primer_result) < 10:
                 pass
             else:
@@ -241,19 +243,16 @@ def design_primer_by_region_in_plasmid(first_primer_start_position, plasmid_seq,
    
     print(last_primer_end , first_primer_start_position, "hdsfjkgfhjgjghfj")
     if last_primer_end > first_primer_start_position:
+
         primer_template = plasmid_seq[last_primer_end:] + plasmid_seq[:first_primer_start_position-temp_variable]
-        
-        primer_result = su.primer_design('last',primer_template, 'left_right')
+        primer_result = su.primer_design('last',primer_template, 'left_right', primer_type='plasmid')
         
     else:
         # temp_len = last_product_value_seq_end - sgRNA_plasmid_seq_len
 
-
         primer_template = plasmid_seq[last_primer_end:first_primer_start_position-temp_variable]
-        primer_result = su.primer_design('last',primer_template, 'left_right')
+        primer_result = su.primer_design('last',primer_template, 'left_right', primer_type='plasmid')
     
-
-
     last_num = i 
     dict_primer_result={
                         'Region':last_num,
@@ -653,7 +652,7 @@ def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_termin
     return sgRNA_primer_df       
 
 #构建重组载体的测序引物
-def create_sequencing_primer(sgRNA_df,sequencing_primer,sequencing_template='plasmid',sequencing_region='plasmid_sequencing_region'):
+def create_sequencing_primer(sgRNA_df,sequencing_primer,sequencing_template='plasmid',sequencing_region='plasmid_sequencing_region',seq_type=''):
     
     sgRNA_plasmid_df = pd.DataFrame()
     for i,v in sgRNA_df.iterrows():
@@ -675,10 +674,10 @@ def create_sequencing_primer(sgRNA_df,sequencing_primer,sequencing_template='pla
         dict_plasmid_seq['target_gene_down_seq']=target_gene_down_seq
         dict_plasmid_seq['target_gene_up_seq']=target_gene_up_seq
         dict_plasmid_seq['mute_after_target_gene_seq']=target_gene_seq     #用户指定测序序列的区域序列
-
+   
         #测序质粒的id
         result = {'Region':v['Region']}
-        result.update(sequencing_primer.design_sequencing_primers(v['Region'], dict_plasmid_seq)[0])
+        result.update(sequencing_primer.design_sequencing_primers(v['Region'], dict_plasmid_seq, seq_type=seq_type )[0])
         sgRNA_plasmid_df = sgRNA_plasmid_df.append(pd.DataFrame([result]))
     sgRNA_plasmid_df = su.make_id_in_first_columns(sgRNA_plasmid_df,id='Region',columns=sgRNA_plasmid_df.columns.tolist())
     return sgRNA_plasmid_df
@@ -691,7 +690,7 @@ def merge_sequencing_result(plasmid_sequencing_primer_df1,plasmid_sequencing_pri
     new_columns = ['Region']
     for i in plasmid_sequencing_primer_df2.columns[1::2]:
         last_num = int(last_num) + 1
-        new_columns.append(i[:-1] + str(last_num))
+        new_columns.append(i[:-1] + str(last_num))  
         new_columns.append(i[:-1] + str(last_num) + '_TM')
     plasmid_sequencing_primer_df2.columns = new_columns
     plasmid_sequencing_primer_df = pd.merge(plasmid_sequencing_primer_df1,plasmid_sequencing_primer_df2,on='Region')
@@ -814,19 +813,19 @@ def first_left_last_right_primer_design(gb_path, ccdb_label, promoter_terminator
             #设计第一引物左引物
             terminator_seq = promoter_terminator[promoter_terminator.find(promoter_seq) + len(promoter_seq) + 20 :]
             first_primer_template = terminator_seq + promoter_terminator_down_seq
-            primer_result = su.primer_design(seqId = 'first', seqTemplate = first_primer_template, stype = 'right')
+            primer_result = su.primer_design(seqId = 'first', seqTemplate = first_primer_template, stype = 'right',primer_type='plasmid')
             first_left_primer = primer_result["PRIMER_LEFT_0_SEQUENCE"]
             primer_dict.update({f"primer_f_seq_(5'-3')_1":first_left_primer})
 
             #设计最一引物右引物
             last_primer_template = promoter_terminator_up_seq + promoter_seq
-            primer_result = su.primer_design(seqId = 'last', seqTemplate = last_primer_template, stype = 'left')
+            primer_result = su.primer_design(seqId = 'last', seqTemplate = last_primer_template, stype = 'left',primer_type='plasmid')
             last_right_primer = primer_result["PRIMER_RIGHT_0_SEQUENCE"]
             primer_dict.update({f"primer_r_seq_(5'-3')_{last_primer_num}":last_right_primer})
         else:
             #有ccdb的情况
             ccdb_plasmid_backbone = promoter_terminator_down_seq + promoter_terminator_up_seq
-            primer_result = su.primer_design(seqId = 'fist_last', seqTemplate = ccdb_plasmid_backbone, stype = 'left_right')
+            primer_result = su.primer_design(seqId = 'fist_last', seqTemplate = ccdb_plasmid_backbone, stype = 'left_right',primer_type='plasmid')
             first_left_primer = primer_result["PRIMER_LEFT_0_SEQUENCE"]
             last_right_primer = primer_result["PRIMER_RIGHT_0_SEQUENCE"]
             primer_dict.update({f"primer_f_seq_(5'-3')_1":first_left_primer})
@@ -1256,4 +1255,3 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, plasmid
 
 
 
-   
