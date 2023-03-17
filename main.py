@@ -640,7 +640,11 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                                                                                                                         )
         n20down_primer_p_df.to_csv('456.csv',index=False)    
     #设计质粒测序引物
-    plasmid_sequencing_primer_df,sequencing_primer_template = one_plasmid_system_sequencing_design_primer(type_kind,uha_dha_sgRNA_df)
+    plasmid_sequencing_primer_df, sequencing_primer_template = one_plasmid_system_sequencing_design_primer(type_kind,uha_dha_sgRNA_df)
+
+ 
+
+
 
     #设计基因组测序引物
     genome_sequencing_primer_df = genome_sequencing_design_primer(info_input_df, uha_dha_df)
@@ -652,7 +656,11 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     df_sequencing_list = su.rename_sequencing_primer_df(plasmid_sequencing_primer_df, genome_sequencing_primer_df)
     plasmid_sequencing_primer_df, genome_sequencing_primer_df = df_sequencing_list[0], df_sequencing_list[1]
 
-    #生成gb文件
+
+
+
+
+    #----------------------------生成gb文件用于可视化展示-------------------------------------------------------------------
     plasmid_primer_featrue_df = su.create_plasmid_primer_featrue_df(sequencing_primer_template,
                                                                  uha_primer_df,
                                                                  seq_altered_p_df,
@@ -665,10 +673,11 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     gb_output = os.path.join(output,'one_plasmid_system_gb/')   
     if not exists(gb_output):
         os.makedirs(gb_output)   
-    tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_len, cut_seq_len, gb_output, type='sgRNA_ccdb')
+    tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, plasmid_sequencing_primer_df, joint_len, cut_seq_len, gb_output, type='sgRNA_ccdb')
 
     # tsv_df = tsv_df.rename(columns={'name':'NAME','sgRNA_ccdb_gb':"SGRNA_CCDB_GB"})
     tsv_df.to_csv(os.path.join(gb_output,'gb_visualization.tsv'), index=False, sep='\t') 
+    #-----------------------------------------------------------------------------------------------------------------------
 
     #输出引物  
     xlsx_file = os.path.join(
@@ -828,21 +837,21 @@ def execute_two_plasmid_system(
     df_sequencing_list = su.rename_sequencing_primer_df(sgRNA_plasmid_sequencing_primer_df, ccdb_plasmid_sequencing_primer_df,genome_sequencing_primer_df)
     sgRNA_plasmid_sequencing_primer_df, ccdb_plasmid_sequencing_primer_df, genome_sequencing_primer_df = df_sequencing_list[0], df_sequencing_list[1], df_sequencing_list[2]
 
-    #生成sgRNA_gb文件
+
+    #------------------------------------------生成gb文件用于引物的可视化展示-------------------------------------------------------------
+    #------------------------------------------------生成sgRNA_gb文件-------------------------------------------------------------------
     plasmid_primer_featrue_df = sgRNA_plasmid_sequencing_primer_template[['Region','plasmid']].rename(columns={'Region':'ID','plasmid':"PLASMID"})
     sgRNA_plasmid_primer = sgRNA_plasmid_p_df[['ID', 'PRIMER_LEFT_WHOLE_SEQUENCE', 'PRIMER_RIGHT_WHOLE_SEQUENCE']]
-    print(plasmid_primer_featrue_df)
     joint_len, cut_seq_len = su.get_joint_by_enzyme(enzyme_df,enzyme_name)
     
     #为每个编辑区域创建gb文件
     gb_output = os.path.join(output,'two_plasmid_system_gb/')
     if not exists(gb_output):
         os.makedirs(gb_output)
-    sgRNA_tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, sgRNA_plasmid_primer, joint_len, cut_seq_len, gb_output,type='sgRNA')
+    sgRNA_tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, sgRNA_plasmid_primer, sgRNA_plasmid_sequencing_primer_df, joint_len, cut_seq_len, gb_output,type='sgRNA')
 
 
-
-    #生成ccdb_gb文件
+    #------------------------------------------------生成ccdb_gb文件---------------------------------------------------------------------
     # plasmid_primer_featrue_df = ccdb_plasmid_sequencing_primer_template[['Region','plasmid']].rename(columns={'Region':'ID','plasmid':"PLASMID"})
     plasmid_primer_featrue_df = su.create_plasmid_primer_featrue_df(ccdb_plasmid_sequencing_primer_template,
                                                                  uha_primer_df,
@@ -855,18 +864,17 @@ def execute_two_plasmid_system(
     gb_output = os.path.join(output ,'two_plasmid_system_gb/')
     if not exists(gb_output):
         os.makedirs(gb_output)   
-    ccdb_tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, ccdb_plasmid_p_df, joint_len, cut_seq_len, gb_output,type='ccdb')
+    ccdb_tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, ccdb_plasmid_p_df, ccdb_plasmid_sequencing_primer_df,joint_len, cut_seq_len, gb_output,type='ccdb')
       
 
     #生成tsv
     print(sgRNA_tsv_df,'\n',ccdb_tsv_df)  
-    sgRNA_tsv_df.to_csv('sgRNA_tsv_df.csv',index=False)
-    ccdb_tsv_df.to_csv('ccdb_tsv_df.csv',index=False)
-
     tsv_df = pd.merge(sgRNA_tsv_df, ccdb_tsv_df, on='name')  
     # tsv_df.rename(columns={'name':'NAME','sgRNA_gb':'SGRNA_GB','ccdb_gb':"CCDB_GB"},inplace=True)
     tsv_df.to_csv(os.path.join(gb_output,'gb_visualization.tsv'), index=False, sep='\t')
-     
+    #-------------------------------------------------------------------------------------------------------------------------------------------
+
+
     #输出引物  
     xlsx_file = os.path.join(
         output,
@@ -960,9 +968,7 @@ def main(data):
     uha_dha_params = data['uha_dha_config']
     
     # enzyme_path = parent_base_path +'/'+ data['enzyme_path']
-    
     sgRNA_result_path = data['sgRNA_result_path']
-
     plasmid_file_1 = data['one_plasmid_file_path']
     plasmid_file_2 = data['no_ccdb_plasmid']
     plasmid_file_3 = data['no_sgRNA_plasmid']
@@ -1109,7 +1115,7 @@ def main(data):
     enzyme_name = enzyme['enzyme_name']
 
 
-    # 3.提取用户选择的sgRNA
+    # 3.提取用户选择的sgRNA  
     selected_sgRNA_result = data['sgRNA_result']
     sgRNA = p_d_seq.extract_sgRNA_from_chopchop(sgRNA_result_path, selected_sgRNA_result)
 
@@ -1263,7 +1269,13 @@ def main(data):
                                     )
         
     return one_plasmid_output_path, two_plasmid_output_path
-     
+
+
+  
+
+
+
+
 if __name__ == '__main__':
 
     #read json
@@ -1273,7 +1285,7 @@ if __name__ == '__main__':
     # args = parser.parse_args()
     # input_path =  args.input
     # with open(input_path, "r") as f:
-    #     data = json.load(f)
+    #     data = json.load(f)     
 
     # main(data)      
 
@@ -1300,7 +1312,7 @@ if __name__ == '__main__':
         },
 
         "primer_json":{
-            
+        
         },
         "region_json":{
             
@@ -1389,17 +1401,4 @@ if __name__ == '__main__':
             "Cgl0851_ecoli_pgi_sub":"1"
         }      
     }
-    main(data)
-
-
-
-   
-
-
-
-
-
-
-
-
- 
+    main(data)     
