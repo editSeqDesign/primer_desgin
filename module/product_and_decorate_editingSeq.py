@@ -1021,6 +1021,24 @@ def create_gb_file(plasmid,primer_cor_dict):
                     temp_feature = SeqFeature(FeatureLocation(start, end), type="primer_bind",strand=+1,qualifiers={"note":k})
                 li_feature.append(temp_feature)
                 record.features.append(temp_feature)
+            elif 'UHA' in k:
+                temp_feature = SeqFeature(FeatureLocation(start, end), type="cds",strand=+1,qualifiers={"note":k})
+                li_feature.append(temp_feature)
+                record.features.append(temp_feature)
+            elif 'DHA' in k:
+                temp_feature = SeqFeature(FeatureLocation(start, end), type="cds",strand=+1,qualifiers={"note":k})
+                li_feature.append(temp_feature)
+                record.features.append(temp_feature)
+            elif 'SEQ_ALTERED' in k:
+                temp_feature = SeqFeature(FeatureLocation(start, end), type="cds",strand=+1,qualifiers={"note":k})  
+                li_feature.append(temp_feature)
+                record.features.append(temp_feature)
+            elif 'PROMOTER_N20_TERMINATOR' in k:
+                temp_feature = SeqFeature(FeatureLocation(start, end), type="cds",strand=+1,qualifiers={"note":k})
+                li_feature.append(temp_feature)
+                record.features.append(temp_feature)
+                
+
 
     # 添加molecule_type信息到annotations
     record.annotations['molecule_type'] = 'genomic DNA'            
@@ -1028,11 +1046,33 @@ def create_gb_file(plasmid,primer_cor_dict):
     return record
 
 
-def add_sequencing_primer_to_gb(plasmid,plasmid_sequencing_primer_df,ID):
+def add_sequencing_primer_to_gb(plasmid_sequencing_primer_df,temp_dict):
+    plasmid = temp_dict.get('PLASMID')
+    id = temp_dict.get('ID')
+    uha = temp_dict.get('UHA')
+    dha = temp_dict.get('DHA')
+    # seq_altered = temp_dict.get('SEQ_ALTERED')
+    pro_n20_ter = temp_dict.get('PROMOTER_N20_TERMINATOR')
+
     sequencing_primer_dict={}
-    sequencing_primer_temp = plasmid_sequencing_primer_df[plasmid_sequencing_primer_df['ID'] == ID]
+    sequencing_primer_temp = plasmid_sequencing_primer_df[plasmid_sequencing_primer_df['ID'] == id]
     sequencing_primer_temp.reset_index(drop=True,inplace=True)
     sequencing_primer_temp = sequencing_primer_temp.fillna('')
+
+    
+    # if seq_altered != '':
+    #     seq_altered_cor = su.create_primerCor_in_plasmid(plasmid, seq_altered)
+    #     sequencing_primer_dict.update({'SEQ_ALTERED': f'{seq_altered_cor};{seq_altered}'})
+    if uha != '' and uha != None:
+        uha_cor = su.create_primerCor_in_plasmid(plasmid, uha)
+        sequencing_primer_dict.update({'UHA': f'{uha_cor};{uha}'})
+    if dha != '' and dha != None:
+        dha_cor = su.create_primerCor_in_plasmid(plasmid, dha)
+        sequencing_primer_dict.update({'DHA':f'{dha_cor};{dha}'})
+    if pro_n20_ter !='' and pro_n20_ter != None: 
+        pro_n20_ter_cor = su.create_primerCor_in_plasmid(plasmid, pro_n20_ter)
+        sequencing_primer_dict.update({'PROMOTER_N20_TERMINATOR':f'{pro_n20_ter_cor};{pro_n20_ter}'})
+    
    
     k = 1
     for i in sequencing_primer_temp.columns:
@@ -1057,7 +1097,7 @@ def add_sequencing_primer_to_gb(plasmid,plasmid_sequencing_primer_df,ID):
     return  sequencing_primer_dict  
 
 
-def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, plasmid_sequencing_primer_df, joint_len, cut_seq_len, output, type='sgRNA_ccdb'):
+def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_len, cut_seq_len, output, type='sgRNA_ccdb'):
    
     #处理特殊的质粒片段引物：不一定几对引
     
@@ -1092,23 +1132,16 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, plasmid
                     primer_cor_dict.update({k:f'{left_primer_cor};{value}'})
                     primer_dict.update({k:value})
 
-            #添加测序引物
-            sequencing_primer_cor_dict = add_sequencing_primer_to_gb(plasmid, plasmid_sequencing_primer_df, ID)
-            primer_cor_dict.update(sequencing_primer_cor_dict)  
-          
+
             gb_record = create_gb_file(plasmid,primer_cor_dict)
             name=v['ID'].split(';')[0]
           
             su.write_gb(gb_record, output_path = output, gb_name=type+'_'+name, gb_type='genbank')
 
-            #生成gb文件的csv文件
-            # temp_df = pd.DataFrame()   
-            # temp_df.insert(0,'name', name)
-            # temp_df.insert(1, type+'_gb',type+'_'+name+ '.gb')
             temp = pd.DataFrame(columns=['name',type+'_gb'],data=[[name, type+'_'+name+ '.gb']])
             df = df.append(temp)
 
-        # df.to_csv(output+'/'+'gb_visualization.tsv', index=False, sep='\t')
+       
     elif type == 'sgRNA_ccdb' or type == 'ccdb': 
         
         print(n20down_primer_p_df)
@@ -1198,18 +1231,6 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, plasmid
                     'N20UP_PRIMER_RIGHT_WHOLE_SEQUENCE':f"{n20up_right_primer_cor};{n20up_right_primer}"
                 }
 
-                # primer_dict = {
-                #     'UHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{uha_left_primer}',
-                #     'UHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{uha_right_primer}',
-                #     'SEQ_PRIMER_LEFT_WHOLE_SEQUENCE':f'{seq_altered_left_primer}',
-                #     'SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{seq_altered_right_primer}',
-                #     'DHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{dha_left_primer}',
-                #     'DHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{dha_right_primer}',
-                #     'N20UP_PRIMER_LEFT_WHOLE_SEQUENCE':f'{n20up_left_primer}',
-                #     'N20UP_PRIMER_RIGHT_WHOLE_SEQUENCE':f"{n20up_right_primer}"   
-                # }
-
-
             elif type == 'ccdb':   
                 primer_cor_dict = {
                     'UHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{uha_left_primer_cor};{uha_left_primer}',
@@ -1229,12 +1250,7 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, plasmid
                 }   
 
             #添加质粒片段引物
-            primer_cor_dict.update(n20down_primer_cor_dict)
-            #添加测序引物
-            sequencing_primer_cor_dict = add_sequencing_primer_to_gb(plasmid, plasmid_sequencing_primer_df, ID)
-            primer_cor_dict.update(sequencing_primer_cor_dict)   
-            
-            # primer_dict.update(n20down_primer_dict)  
+            primer_cor_dict.update(n20down_primer_cor_dict) 
 
             print(primer_cor_dict,'\n')
             gb_record = create_gb_file(plasmid,primer_cor_dict)
@@ -1243,10 +1259,6 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, plasmid
 
             su.write_gb(gb_record, output_path = output, gb_name=type+'_'+name, gb_type='genbank')
             #生成gb文件的csv文件
-            # temp_df = pd.DataFrame()   
-            # temp_df.insert(0,'name', name)
-            # temp_df.insert(1, type+'_gb',type+'_'+name+ '.gb')
-            # df = df.append(temp_df)
             temp = pd.DataFrame(columns=['name',type+'_gb'],data=[[name, type+'_'+name+ '.gb']])
             df = df.append(temp)
             
@@ -1255,3 +1267,46 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, plasmid
 
 
 
+def create_gb_for_sequencing_region(plasmid_primer_featrue_df, plasmid_sequencing_primer_df, output, type='plasmid_sequencing'):
+
+    df = pd.DataFrame()
+    columns = list(plasmid_primer_featrue_df.columns)
+
+    for i,v in plasmid_primer_featrue_df.iterrows():
+        plasmid = v['PLASMID'].upper()
+        temp_dict = {   'ID':v['ID'],
+                        'PLASMID': plasmid}
+        
+        if type == 'genome_sequencing':
+            temp_dict.update({
+                'UHA':v['UHA'],
+                'DHA':v['DHA']
+            })
+        elif 'sequencing' in type:
+            if 'UHA' in columns and 'PROMOTER_N20_TERMINATOR' in columns:
+                temp_dict.update({
+                    'UHA':v['UHA'],
+                    'DHA':v['DHA'],
+                    'PROMOTER_N20_TERMINATOR':v['PROMOTER_N20_TERMINATOR']
+                })
+            elif 'UHA' not in columns and 'PROMOTER_N20_TERMINATOR' in columns:
+                temp_dict.update({
+                    'PROMOTER_N20_TERMINATOR':v['PROMOTER_N20_TERMINATOR']
+                })
+            elif 'UHA' in columns and 'PROMOTER_N20_TERMINATOR' not in columns:
+                temp_dict.update({
+                    'UHA':v['UHA'],
+                    'DHA':v['DHA']
+                })
+
+        sequencing_primer_cor_dict = add_sequencing_primer_to_gb(plasmid_sequencing_primer_df, temp_dict)
+
+        gb_record = create_gb_file(plasmid,sequencing_primer_cor_dict)
+        name=v['ID'].split(';')[0]
+
+        su.write_gb(gb_record, output_path = output, gb_name=type+'_'+name, gb_type='genbank')
+
+        temp = pd.DataFrame(columns=['name',type+'_gb'],data=[[name, type+'_'+name+ '.gb']])
+        df = df.append(temp)
+
+    return df   

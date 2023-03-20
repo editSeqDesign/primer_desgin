@@ -540,6 +540,8 @@ def groupby_columns_to_row(df):
     return sg  
 
 def create_primerCor_in_plasmid(plasmid_seq,primer):
+    plasmid_seq = plasmid_seq.upper()
+    primer = primer.upper()
     start = plasmid_seq.find(primer)
     end = start + len(primer)
     return start,end
