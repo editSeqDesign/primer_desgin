@@ -544,7 +544,7 @@ def create_primerCor_in_plasmid(plasmid_seq,primer):
     primer = primer.upper()
     start = plasmid_seq.find(primer)
     end = start + len(primer)
-    return start,end
+    return start, end
    
 def create_plasmid_primer_featrue_df(sequencing_primer_template,
                                      uha_primer_df,
@@ -552,10 +552,14 @@ def create_plasmid_primer_featrue_df(sequencing_primer_template,
                                      dha_primer_df,
                                      n20up_primer_p_df=pd.DataFrame()):
     
-    sequencing_plasmid = sequencing_primer_template[['Region','plasmid']].rename(columns={'Region':'ID','plasmid':'PLASMID'})
+   
+    if 'promoter_N20_terminator' in sequencing_primer_template.columns:
+        sequencing_plasmid = sequencing_primer_template[['Region','plasmid','UHA','DHA','promoter_N20_terminator']].rename(columns={'Region':'ID','plasmid':'PLASMID','promoter_N20_terminator':'PROMOTER_N20_TERMINATOR'})
+    else:
+        sequencing_plasmid = sequencing_primer_template[['Region','plasmid','UHA','DHA','seq_altered']].rename(columns={'Region':'ID','plasmid':'PLASMID','seq_altered':'SEQ_ALTERED'})      
     
     uha_primer_df = uha_primer_df[['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE']]
-    uha_primer_df.columns = ['ID','UHA_PRIMER_LEFT_WHOLE_SEQUENCE','UHA_PRIMER_RIGHT_WHOLE_SEQUENCE']
+    uha_primer_df.columns = ['ID','UHA_PRIMER_LEFT_WHOLE_SEQUENCE','UHA_PRIMER_RIGHT_WHOLE_SEQUENCE']  
     
     seq_altered_p_df = seq_altered_p_df[['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE']]
     seq_altered_p_df.columns = ['ID','SEQ_PRIMER_LEFT_WHOLE_SEQUENCE','SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE']
