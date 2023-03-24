@@ -15,7 +15,7 @@
             "min_left_arm_seq_length": 1000,   
             "min_right_arm_seq_length": 1000
         },
-
+        "scene":"only_primer",
         
         "plasmid_label":{
             "ccdb_label":"ccdB",

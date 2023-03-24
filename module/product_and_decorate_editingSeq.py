@@ -18,16 +18,18 @@ import math
 def extract_sgRNA_from_chopchop(sgRNA_result_path, selected_sgRNA_result):
 
     sgRNA = su.del_Unnamed(pd.read_csv(sgRNA_result_path,index_col=False))
+    
     sgRNA.index = list(range(len(sgRNA)))
     sgRNA = sgRNA.reindex(columns=['Name','Region','Rank','Target sequence','Genomic location','Strand','GC content (%)','Self-complementarity','MM0','MM1','MM2','MM3','Efficiency'])
     df = pd.DataFrame()
     for k,v in selected_sgRNA_result.items():
         print(k,v)
         temp_df = sgRNA[sgRNA['Name']==k]
-        print(temp_df)
+        
         best_sgRNA = temp_df[temp_df['Rank']==int(v)]
-        print(best_sgRNA)
         df = df.append(best_sgRNA)
+
+    
     # def work(x):
     #     x[x['Rank']=]
     # sgRNA = sgRNA.groupby('Region').apply(lambda x: work(x))

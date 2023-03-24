@@ -10,7 +10,7 @@ import module.order as order
 import warnings   
 warnings.filterwarnings('ignore')  
 import configparser
-from Bio import SeqIO
+from Bio import SeqIO  
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 import json
@@ -18,9 +18,6 @@ from sgRNA_utils.sgRNA_primer_config import config
 
 from os.path import exists,splitext,dirname,splitext,basename,realpath,abspath
 # from loguru import logger
-
-  
-
 
 
 #uha_dha_primer
@@ -319,7 +316,6 @@ def two_plasmid_system_design_by_user_region(
     return  sgRNA_plasmid_primer_df, ccdb_plasmid_primer_df   
 
 
-
 def two_plasmid_system_design_by_ccdb_no_user(ccdB_plasmid_backbone,enzyme_df,enzyme_name):
         
         #执行用户什么都不指定，设计ccdb质粒引物   
@@ -402,7 +398,6 @@ def two_plasmid_system_design_by_user_ccdb_region(uha_dha_sgRNA_df,no_sgRNA_plas
         ccdb_plasmid_primer_df = p_d_seq.add_product_and_size(no_sgRNA_plasmid, ccdb_plasmid_primer_df, enzyme_df, enzyme_name=enzyme_name)
 
         return ccdb_plasmid_primer_df
-
 
 
 def two_plasmid_system_design_by_no_user(no_ccdb_uha_dha_sgRNA_df,ccdB_plasmid_backbone,enzyme_df,enzyme_name):
@@ -1056,6 +1051,9 @@ def read_chopchopInput_add_uha_dha(genome_path,chopchop_input,uha_dha_params):
 
     info_input_df = su.del_Unnamed(pd.read_csv(chopchop_input))
 
+    info_input_df.columns = [i.lower() for i in info_input_df.columns]
+
+
     def work(mun_id,geneid, mutation_pos_index):
         if mutation_pos_index - max_left_arm_seq_length < 0:
             error_message = "The length of upstream sequence of manipulation site of " + mun_id + " must be larger than sum of 'Max Length of UHA' and 'Max Length of UIS'."
@@ -1083,9 +1081,9 @@ def read_chopchopInput_add_uha_dha(genome_path,chopchop_input,uha_dha_params):
                     )
         return  uha_upstream, dha_downstream, seq_uha_max_whole, seq_dha_max_whole
 
-    info_df = su.lambda2cols(info_input_df,lambdaf=work,in_coln=['id','geneid','mutation_pos_index'],to_colns=['uha_upstream','dha_downstream','seq_uha_max_whole','seq_dha_max_whole'])
+    info_df = su.lambda2cols(info_input_df,lambdaf=work,in_coln=['name','geneid','mutation_pos_index'],to_colns=['uha_upstream','dha_downstream','seq_uha_max_whole','seq_dha_max_whole'])
 
-    return info_df
+    return info_df  
 
 
 def check_quality_control(gb_path,seq_json):
@@ -1249,11 +1247,12 @@ def main(data):
     config.PLASMID_Q_ARGS = data['PLASMID_Q_ARGS']
     config.GENOME_Q_ARGS = data['GENOME_Q_ARGS']   
     
-
     #配置输出参数
     output = data['edit_sequence_design_workdir']
     if not os.path.exists(output):
         os.makedirs(output)
+
+    scene = data['scene']  
 
     
     #0 参数的质量控制
@@ -1275,11 +1274,15 @@ def main(data):
     enzyme = data['enzyme']
     enzyme_name = enzyme['enzyme_name']
 
+    # 3.提取用户选择的sgRNA     
+    if scene == 'only_primer': 
+        sgRNA = info_input_df[['name','crrna','region']].rename(columns={'crrna':"Target sequence","name":"Name","region":"Region"})
+        sgRNA['Rev Target sequence'] = sgRNA['Target sequence'].apply(lambda x: su.revComp(x)) 
 
-    # 3.提取用户选择的sgRNA  
-    selected_sgRNA_result = data['sgRNA_result']
-    sgRNA = p_d_seq.extract_sgRNA_from_chopchop(sgRNA_result_path, selected_sgRNA_result)
-
+    elif scene == 'both_sgRNA_primer':
+        selected_sgRNA_result = data['sgRNA_result']
+        sgRNA = p_d_seq.extract_sgRNA_from_chopchop(sgRNA_result_path, selected_sgRNA_result)
+    
 
     # 4.设计源生同源臂引物
     uha_dha_primer_df = extract_uha_dha_primer(info_input_df, sgRNA)   
@@ -1432,7 +1435,7 @@ def main(data):
         
     return one_plasmid_output_path, two_plasmid_output_path
 
-
+     
 if __name__ == '__main__':
 
     #read json
@@ -1444,7 +1447,7 @@ if __name__ == '__main__':
     # with open(input_path, "r") as f:
     #     data = json.load(f)     
 
-    # main(data)      
+    # main(data)         
 
     data = {     
         "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
@@ -1454,12 +1457,12 @@ if __name__ == '__main__':
         "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",   
         "no_ccdb_plasmid":"/home/yanghe/program/edit_sequence_design/input/no-ccdb-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
         "no_sgRNA_plasmid":"/home/yanghe/program/edit_sequence_design/input/no-sgRNA-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
-
+        "scene":"both_sgRNA_primer",
         "uha_dha_config": {
             "max_right_arm_seq_length": 1050,  
-            "max_left_arm_seq_length": 1050,
+            "max_left_arm_seq_length": 1050,   
             "min_left_arm_seq_length": 1000,   
-            "min_right_arm_seq_length": 1000 
+            "min_right_arm_seq_length": 1000     
         },
 
         "plasmid_label":{
@@ -1487,7 +1490,7 @@ if __name__ == '__main__':
         },
         
         "ccdb_region_json":{  
-             "region1":"ATTGTGAGCGGATAACAATTTCACACAGGAAACAGAATTAATTAAGCTTAAAGGAGTTGAGAATGGATAAGAAATACTCAATAGGCTTAGATATCGGCACAAATAGCGTCGGATGGGCGGTGATC"
+            
         },   
         
         "enzyme":{
@@ -1534,8 +1537,8 @@ if __name__ == '__main__':
         },
         'sgRNA_result':{
             "Cgl0006_1176_G_A_sub":"1",
-            "Cgl2342_213_GCA_ins":"2",
-            "Cgl1436_1113_CAA_del":"3",
+            "Cgl2342_213_GCA_ins":"1",
+            "Cgl1436_1113_CAA_del":"1",
             "Cgl1790_1647_TCC_sub":"1",
             "Cgl1386_327_18to15_sub":"1",
             "Cgl0591_-1_Ppgk_promoter_ins":"1",
@@ -1546,3 +1549,8 @@ if __name__ == '__main__':
     }
 
     main(data)     
+
+
+
+
+        
