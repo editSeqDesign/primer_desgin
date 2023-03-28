@@ -933,7 +933,7 @@ def execute_two_plasmid_system(
     df_sequencing_list = su.rename_sequencing_primer_df(sgRNA_plasmid_sequencing_primer_df, ccdb_plasmid_sequencing_primer_df,genome_sequencing_primer_df)
     sgRNA_plasmid_sequencing_primer_df, ccdb_plasmid_sequencing_primer_df, genome_sequencing_primer_df = df_sequencing_list[0], df_sequencing_list[1], df_sequencing_list[2]
 
-
+    
     
     #------------------------------------------生成gb文件用于引物的可视化展示-------------------------------------------------------------
     #--------------------------PCR----------------------生成sgRNA_gb文件-------------------------------------------------------------------
@@ -947,8 +947,13 @@ def execute_two_plasmid_system(
     #为每个编辑区域创建gb文件
     gb_output = os.path.join(output,'two_plasmid_system_pcr_gb/')
     if not exists(gb_output):
-        os.makedirs(gb_output)
-    sgRNA_pcr_tsv_df = p_d_seq.create_gb_for_region(sgRNA_plasmid_sequencing_primer_template, sgRNA_plasmid_primer, joint_len, cut_seq_len, gb_output,type='enzyme_cut')
+        os.makedirs(gb_output)   
+    if method == 'PCR':
+        type = 'sgRNA'
+        sgRNA_pcr_tsv_df = p_d_seq.create_gb_for_region(sgRNA_plasmid_sequencing_primer_template, sgRNA_plasmid_primer, joint_len, cut_seq_len, gb_output,type)
+    elif method == 'OLIGO':
+        type = 'enzyme_cut'
+        sgRNA_pcr_tsv_df = p_d_seq.create_gb_for_region(sgRNA_plasmid_sequencing_primer_template, sgRNA_plasmid_primer, joint_len, cut_seq_len, gb_output,type)
 
 
     #---------------------------PCR---------------------生成ccdb_gb文件---------------------------------------------------------------------
@@ -1252,14 +1257,12 @@ def main(data):
     config.SEQ_ALTERED_ARGS = data['SEQ_ALTERED_ARGS']
     config.DHA_ARGS = data['DHA_ARGS']
 
-
-    print(data.get('UP_SGRNA_ARGS'))
-    print(data.get('DOWN_SGRNA_ARGS'))
-
     if data.get('UP_SGRNA_ARGS') == {} or data.get('DOWN_SGRNA_ARGS') == {}:
         method = 'OLIGO'
+        print('执行方法：', method)
     else:
         method = 'PCR'
+        print('执行方法：', method)
         config.UP_SGRNA_ARGS = data['UP_SGRNA_ARGS']
         config.DOWN_SGRNA_ARGS = data['DOWN_SGRNA_ARGS']
 
@@ -1477,7 +1480,7 @@ if __name__ == '__main__':
 
     # main(data)         
  
-    data = {     
+    data1 = {     
         "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
         "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
         "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
@@ -1577,7 +1580,7 @@ if __name__ == '__main__':
     }
 
 
-    data = {     
+    data2 = {     
         "chopchop_input": "./input/only_primer/info_input.csv",   
         "sgRNA_result_path": "",
         "edit_sequence_design_workdir":"./output/only_primer",
@@ -1670,11 +1673,7 @@ if __name__ == '__main__':
             "PRIMER_MAX_GC": 70
         },
         "DOWN_SGRNA_ARGS": {
-            "PRIMER_OPT_TM": 60,
-            "PRIMER_MIN_TM": 55,
-            "PRIMER_MAX_TM": 65,
-            "PRIMER_MIN_GC": 30,
-            "PRIMER_MAX_GC": 70
+           
         },
         'sgRNA_result':{
             "Cgl0006_1176_G_A_sub":"1",
@@ -1688,7 +1687,7 @@ if __name__ == '__main__':
             "Cgl0851_ecoli_pgi_sub":"1"
         }      
     }
-    main(data)     
+    main(data2)     
 
 
 
