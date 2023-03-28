@@ -419,11 +419,9 @@ def two_plasmid_system_design_by_no_user(no_ccdb_uha_dha_sgRNA_df,ccdB_plasmid_b
     #ccdb质粒引物加接头
     ccdb_plasmid_primer_df = p_d_seq.add_joint_sgRNA_primer(ccdb_plasmid_primer_df,enzyme_df,enzyme_name,stype='ccdb_plasmid_primer_joint')
     
-    #提取引物的必要部分
-    sgRNA_plasmid_p_df = sgRNA_plasmid_primer_df[['Region',r"primer_f_seq_(5'-3')_joint",r"primer_r_seq_(5'-3')_joint","product_value_joint","product_size_joint"]]
-    ccdb_plasmid_p_df = ccdb_plasmid_primer_df[['Region',r"primer_f_seq_(5'-3')_joint",r"primer_r_seq_(5'-3')_joint","product_value_joint","product_size_joint"]]
+ 
 
-    return sgRNA_plasmid_p_df, ccdb_plasmid_p_df, sgRNA_plasmid_primer_df, ccdb_plasmid_primer_df
+    return sgRNA_plasmid_primer_df, ccdb_plasmid_primer_df
 
 def two_plasmid_system_design_by_user_primer_sgRNA( no_ccdb_plasmid,
                                                     uha_dha_sgRNA_df,
@@ -809,7 +807,7 @@ def execute_two_plasmid_system(
                                                                                     ccdb_region_json)
 
     elif    plasmid_primer_desgin_type == 2 and method == 'PCR':
-            sgRNA_plasmid_p_df, ccdb_plasmid_p_df, sgRNA_plasmid_primer_df, ccdb_plasmid_primer_df = two_plasmid_system_design_by_no_user(no_ccdb_uha_dha_sgRNA_df, ccdB_plasmid_backbone,enzyme_df,enzyme_name)
+            sgRNA_plasmid_primer_df, ccdb_plasmid_primer_df = two_plasmid_system_design_by_no_user(no_ccdb_uha_dha_sgRNA_df, ccdB_plasmid_backbone,enzyme_df,enzyme_name)
     elif    plasmid_primer_desgin_type == 3 and method == 'PCR':
          #用户提供正义链上的引物
         # 引物 AACTATTTATCCAGTTGGTACAAAC
@@ -876,9 +874,6 @@ def execute_two_plasmid_system(
                                                                                 promoter_terminator_label)
             
 
-
-
-
     #设计seq_altered_primer，seq_altered > 120
     seq_altered_primer_template =  info_df[info_df.seq_altered.apply(lambda x:len(x)>120)][['Name','Region','seq_altered']]
     seq_altered_primer_template['Region'] = seq_altered_primer_template['Name'] +';'+ seq_altered_primer_template['Region']
@@ -897,17 +892,19 @@ def execute_two_plasmid_system(
     #提取变化序列引物
     seq_altered_p_df = seq_altered_primer_df[['Region',"primer_f_seq_(5'-3')_joint","primer_r_seq_(5'-3')_joint","product_value_joint","product_size_joint"]]
 
-    if method == 'PCR':
-        sgRNA_plasmid_p_df = sgRNA_plasmid_primer_df
-    ccdb_plasmid_p_df = ccdb_plasmid_primer_df
+    
 
+ 
 
     # if 'index' in sgRNA_plasmid_primer_df.columns and 'index' in ccdb_plasmid_primer_df.columns:
        
     #     sgRNA_plasmid_p_df = sgRNA_plasmid_primer_df
     #     ccdb_plasmid_p_df = ccdb_plasmid_primer_df
 
-
+    #提取引物的必要部分
+    if method == 'PCR':
+        sgRNA_plasmid_p_df = sgRNA_plasmid_primer_df[['Region',r"primer_f_seq_(5'-3')_joint",r"primer_r_seq_(5'-3')_joint","product_value_joint","product_size_joint"]]
+    ccdb_plasmid_p_df = ccdb_plasmid_primer_df[['Region',r"primer_f_seq_(5'-3')_joint",r"primer_r_seq_(5'-3')_joint","product_value_joint","product_size_joint"]]
 
     
     # else:
@@ -971,21 +968,6 @@ def execute_two_plasmid_system(
     if not exists(gb_output):
         os.makedirs(gb_output)   
     ccdb_pcr_tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, ccdb_plasmid_p_df,joint_len, cut_seq_len, gb_output,type='ccdb')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1248,7 +1230,7 @@ def main(data):
 
 
     #genome
-    genome_path = data['ref_genome']
+    genome_path = data['ref_genome'] 
 
     #配置引物参数
     # config.S_GLOBAL_ARGS = data['S_GLOBAL_ARGS']
@@ -1257,7 +1239,7 @@ def main(data):
     config.SEQ_ALTERED_ARGS = data['SEQ_ALTERED_ARGS']
     config.DHA_ARGS = data['DHA_ARGS']
 
-    if data.get('UP_SGRNA_ARGS') == {} or data.get('DOWN_SGRNA_ARGS') == {}:
+    if data.get('UP_SGRNA_ARGS')['PRIMER_OPT_TM'] == '' or data.get('UP_SGRNA_ARGS') == {} or data.get('DOWN_SGRNA_ARGS') == {}:
         method = 'OLIGO'
         print('执行方法：', method)
     else:
@@ -1301,7 +1283,6 @@ def main(data):
         return return_value
     else:
         enzyme_df = return_value
-
 
 
 
@@ -1667,13 +1648,18 @@ if __name__ == '__main__':
             "PRIMER_MAX_GC": 80
         },
         "UP_SGRNA_ARGS": {
-            "PRIMER_MIN_TM": 55,
-            "PRIMER_MAX_TM": 65,
-            "PRIMER_MIN_GC": 30,
-            "PRIMER_MAX_GC": 70
+            "PRIMER_OPT_TM": "",
+            "PRIMER_MIN_TM": "",  
+            "PRIMER_MAX_TM": "",    
+            "PRIMER_MIN_GC": "",
+            "PRIMER_MAX_GC": ""
         },
         "DOWN_SGRNA_ARGS": {
-           
+            "PRIMER_OPT_TM": "",
+            "PRIMER_MIN_TM": "",  
+            "PRIMER_MAX_TM": "",    
+            "PRIMER_MIN_GC": "",
+            "PRIMER_MAX_GC": ""
         },
         'sgRNA_result':{
             "Cgl0006_1176_G_A_sub":"1",
