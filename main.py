@@ -19,7 +19,6 @@ from sgRNA_utils.sgRNA_primer_config import config
 from os.path import exists,splitext,dirname,splitext,basename,realpath,abspath
 # from loguru import logger
 
-
 #uha_dha_primer
 def extract_uha_dha_primer(info_input_df, sgRNA):
 
@@ -191,7 +190,7 @@ def one_plasmid_system_sequencing_design_primer(type_kind,uha_dha_sgRNA_df):
         sequencing_primer_template = sequencing_primer_df[['Name','Region','plasmid_sequencing_region','plasmid']]
         plasmid_sequencing_primer_df2 = p_d_seq.create_sequencing_primer(sequencing_primer_template,sr,'plasmid','plasmid_sequencing_region',seq_type='plasmid_seq')
         plasmid_sequencing_primer_df = p_d_seq.merge_sequencing_result(plasmid_sequencing_primer_df1, plasmid_sequencing_primer_df2)
-
+        plasmid_sequencing_primer_df2.to_csv('plasmid_sequencing_primer_df2.csv',index=False)
     elif type_kind == 2:  
         #载体测序  
         #uha_dha测序
@@ -666,7 +665,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                                                                                                                         plasmid_primer_desgin_type,
                                                                                                                                         sgRNA_primer_json
                                                                                                                                         )
-        n20down_primer_p_df.to_csv('456.csv',index=False)    
+
     #设计质粒测序引物
     plasmid_sequencing_primer_df, sequencing_primer_template = one_plasmid_system_sequencing_design_primer(type_kind,uha_dha_sgRNA_df)
 
@@ -935,7 +934,7 @@ def execute_two_plasmid_system(
     sgRNA_plasmid_sequencing_primer_df, ccdb_plasmid_sequencing_primer_df, genome_sequencing_primer_df = df_sequencing_list[0], df_sequencing_list[1], df_sequencing_list[2]
 
 
-    enzymeCutSeq_and_N20_df
+    
     #------------------------------------------生成gb文件用于引物的可视化展示-------------------------------------------------------------
     #--------------------------PCR----------------------生成sgRNA_gb文件-------------------------------------------------------------------
     sgRNA_plasmid_sequencing_primer_template = sgRNA_plasmid_sequencing_primer_template[['Region','plasmid','promoter_N20_terminator']].rename(columns={'Region':'ID','plasmid':"PLASMID","promoter_N20_terminator":"PROMOTER_N20_TERMINATOR"})
@@ -1115,6 +1114,21 @@ def check_plasmid(gb_path, ccdb_label='', promoter_terminator_label='', n_20_lab
         return 'error'
 
 
+def check_enzyme(enzyme,enzyme_df):
+    name = enzyme['enzyme_name']
+    gap_seq = enzyme['gap_sequence']
+    protection_seq = enzyme['protection_sequence']
+
+    if name in list(enzyme_df['name']) and len(enzyme_df[enzyme_df['name']==name]) == 1:
+        enzyme_df = enzyme_df[enzyme_df['name']==name]
+        enzyme_df['protective_base'] = protection_seq
+        enzyme_df['gap_len'] = len(protection_seq)
+        enzyme_df['gap_seq'] = gap_seq
+        return enzyme_df
+    else:
+        return 'There is a problem with the enzyme you provided'
+
+
 def main(data):
     
     chopchop_input = data['chopchop_input']
@@ -1237,7 +1251,12 @@ def main(data):
     config.UHA_ARGS = data['UHA_ARGS']
     config.SEQ_ALTERED_ARGS = data['SEQ_ALTERED_ARGS']
     config.DHA_ARGS = data['DHA_ARGS']
-    if data.get('UP_SGRNA_ARGS') == None and data.get('DOWN_SGRNA_ARGS') == None:
+
+
+    print(data.get('UP_SGRNA_ARGS'))
+    print(data.get('DOWN_SGRNA_ARGS'))
+
+    if data.get('UP_SGRNA_ARGS') == None or data.get('DOWN_SGRNA_ARGS') == None:
         method = 'OLIGO'
     else:
         method = 'PCR'
@@ -1272,7 +1291,16 @@ def main(data):
     enzyme_path =  base_path + '/input/enzyme.csv'      
     enzyme_df = su.del_Unnamed(pd.read_csv(enzyme_path))
     enzyme = data['enzyme']
-    enzyme_name = enzyme['enzyme_name']
+    enzyme_name = enzyme['enzyme_name']     
+    #检查酶的相关信息
+    return_value = check_enzyme(enzyme, enzyme_df)
+    if type(return_value) == str:
+        return return_value
+    else:
+        enzyme_df = return_value
+
+
+
 
     # 3.提取用户选择的sgRNA     
     if scene == 'only_primer': 
@@ -1448,7 +1476,7 @@ if __name__ == '__main__':
     #     data = json.load(f)     
 
     # main(data)         
-
+ 
     data = {     
         "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
         "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
@@ -1547,6 +1575,7 @@ if __name__ == '__main__':
             "Cgl0851_ecoli_pgi_sub":"1"
         }      
     }
+
 
     main(data)     
 

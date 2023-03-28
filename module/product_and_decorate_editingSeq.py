@@ -1018,7 +1018,9 @@ def create_gb_file(plasmid,primer_cor_dict):
             elif 'SEQUENCING' in k:
                 # if start < 0:
                 #     start = plasmid_len - abs(start)  
-                if 'SEQUENCING_PRIMER_2' == k:
+                if 'SEQUENCING_PRIMER_2' == k or 'right' in k:
+                    if 'right' in k:
+                        k, right = k.split(';')
                     temp_feature = SeqFeature(FeatureLocation(start, end), type="primer_bind",strand=-1,qualifiers={"note":k})
                 else:
                     temp_feature = SeqFeature(FeatureLocation(start, end), type="primer_bind",strand=+1,qualifiers={"note":k})
@@ -1097,9 +1099,16 @@ def add_sequencing_primer_to_gb(plasmid_sequencing_primer_df,temp_dict):
                 #唯一一条负义链的引物
                 if arr3 == '2':
                     primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(primer_seq))
+                    sequencing_primer_dict.update({key:f'{primer_cor};{primer_seq}'})     
                 else:
                     primer_cor = su.create_primerCor_in_plasmid(plasmid, primer_seq)
-                sequencing_primer_dict.update({key:f'{primer_cor};{primer_seq}'})
+
+                    if primer_cor[0] == -1:  
+                        primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(primer_seq))
+                        sequencing_primer_dict.update({key+';right':f'{primer_cor};{primer_seq}'})
+                    else:
+                        sequencing_primer_dict.update({key:f'{primer_cor};{primer_seq}'})
+
                 k = k + 1
     return  sequencing_primer_dict  
 
@@ -1322,7 +1331,7 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
             
     return df
 
-
+   
 def create_gb_for_sequencing_region(plasmid_primer_featrue_df, plasmid_sequencing_primer_df, output, type='plasmid_sequencing'):
 
     df = pd.DataFrame()
@@ -1365,4 +1374,4 @@ def create_gb_for_sequencing_region(plasmid_primer_featrue_df, plasmid_sequencin
         temp = pd.DataFrame(columns=['name',type+'_gb'],data=[[name, type+'_'+name+ '.gb']])
         df = df.append(temp)
 
-    return df   
+    return df
