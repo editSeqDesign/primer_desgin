@@ -1,0 +1,62 @@
+LOCUS       plasmid                 2315 bp    DNA              UNK 01-JAN-1980
+DEFINITION  primer seq in plasmid.
+ACCESSION   plamid
+VERSION     plamid
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     cds             124..1150
+                     /note="UHA"
+     cds             1166..2197
+                     /note="DHA"
+     primer_bind     20..41
+                     /note="SEQUENCING_PRIMER_1"
+     primer_bind     complement(2283..2306)
+                     /note="SEQUENCING_PRIMER_2"
+     primer_bind     616..637
+                     /note="SEQUENCING_PRIMER_3"
+     primer_bind     1651..1670
+                     /note="SEQUENCING_PRIMER_4"
+ORIGIN
+        1 gatcgtggcc cagagtcatg ggaagagttc tccgagtggg gtccaaagct gcaggaagcg
+       61 atggacagtg gtttcgcaca cggttgggga gatgcaacca actacctttc ttggactttc
+      121 gaaggcccaa tgtggtccct cggcggcaac tactctgaag gttgggagtc ccgtctgact
+      181 accccagaga ccatccgtgc agttgagtgg ctcaagtcca ccgttgatga aggtttcgca
+      241 accgtctcca ccgacgtcac caacgagttc gcaaccggcc tgatcggttc atgcatccag
+      301 tccaccggtg atctgtcttc ggttgccggc gctgcaagct tcgactgggg cgtagcagca
+      361 cttcctaacc caaccggcga gggcgcttgc ccaaccggtg gcgcaggcct gggaatccca
+      421 tctggcatct ctgagcagcg tcaggacaac gccctgaagt tcatcgactt cctcaccaac
+      481 gccgcgaaca ctggctactg gtcccgcgag accggttatg ttccagttcg taaggatgct
+      541 gcatctgatc cagatcacgc agcattcctc gaggagaacc ctgcatacaa cgttgcagtg
+      601 gagcagcttc ctgatacccg ttcccaggac aacttccgcg tgctgctgcc aaacggtgac
+      661 cgcaccatcg gtgacgcact ggagaagatc tgcctgactg gtgcagacat cgatgtcacc
+      721 ctggctgagg ttgagaccaa gctgaacacc atctacaccc gcgacatcga accacttatt
+      781 taatccgagc acttcagcta cacctattta aggaggctgt gacatggcgt caatcgtctt
+      841 tgaaaacgtc acacgcaaat actctccggg cgcacgcccg gccgtcgaca agcttaattt
+      901 ggaaatcgcc gacggcgagt tcctagttct cgttggaccc tcaggctgtg gaaagtccac
+      961 ttctttgcgc atgctggctg gtcttgagcc tatcgacgag ggacgtctac tcattgatgg
+     1021 taaagacgcc acggaactgc gtccgcagga tcgtgacatc gctatggtct tccagagcta
+     1081 cgcgctgtac ccgaatatga ctgttcggga caacatgggc tttgcgctga agaatcagaa
+     1141 ggtggctaag gcgtggcgcg gttaagctga gatcgaaaag cgtgttgctg aagcctcacg
+     1201 cattctgcag ctggatccgt atcttgatcg taagcctgca gctttgtctg gtggtcagcg
+     1261 ccagcgcgtg gccatgggcc gtgcaattgt gcgtgagcca tcggtgttct gcatggatga
+     1321 gccactgtcc aacctagatg cgaagctgcg tgtgtctacg cgtgcggaga tctctggttt
+     1381 gcagcgtcgc atgggcgtga ccacggtgta tgtgactcac gatcaggtcg aggccatgac
+     1441 catgggtgat cgcgtcgctg tgcttttgct cggtgtgctg cagcaagtag acaccccgca
+     1501 gaacctgtac gactacccag caaatgcgtt cgtcgccagc ttcattggtt ccccttccat
+     1561 gaacttgatt gagggcacca tccgtggcga taaggtcact ttgggtactg gaattcagat
+     1621 ttcagttcct gatgaggtgg cagcagaggt tcgcaacaac ccggatcgct ttgagggtcg
+     1681 tccagtcatt gttggtgctc gtcccgagca catgtatttg accacggcga atgagagtgg
+     1741 tgctgtattg ggcgaagtca gccacattga tgagctcggc gcggattcaa tggtctacgt
+     1801 attggcgtct ggtgtgaaga acccgaatac tgatcttttg ggtgagggca ttccagagga
+     1861 tatgcgcgtg accgttgtcg gtgctgaaga gaccgataag gcccggctgg gtattcgtgt
+     1921 tgagcgccat cacggtctga aggccggcga taaggtgcac gttgttgctg caccgaagga
+     1981 tgttcacctc ttcgacggtc ttgatggccg tcgaatcggt gcaacggttc tagctccagc
+     2041 ccatacagtc caggctggtc actagattat ttaccagtgc aactccccag caggggaggg
+     2101 cgcgaggaaa cgagagggat cgctaacagt ggcgtaatca acgccagctt gttgtgcgat
+     2161 cccaaacgca ttttcatccc gaattgtcca gcagccaacc ttgattccct tggtatgtag
+     2221 atcagcaatt gacgccacgt ttagtgcttt ccacgagggc aagatcgcgc ccacattttt
+     2281 tagcgggatg taatcaagaa tgcgcagatc atcca
+//
