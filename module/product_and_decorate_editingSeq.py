@@ -383,12 +383,13 @@ def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_
 def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_terminator_down_terminator_seq='',promoter_terminator_up_promoter_seq='',stype='sgRNA_joint'):
     
     sgRNA_enzyme_df = enzyme_df[enzyme_df['name']==enzyme_name]
+    sgRNA_enzyme_df = sgRNA_enzyme_df.reset_index(drop=True)
     protective_base = sgRNA_enzyme_df.loc[0,'protective_base']
     recognition_seq = sgRNA_enzyme_df.loc[0,'recognition_seq']
     cut_seq_len = sgRNA_enzyme_df.loc[0,'cut_seq_len']
     gap_len = sgRNA_enzyme_df.loc[0,'gap_len']
     gap_seq = 'AGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACT'
-    gap_seq = enzyme_df.loc[0,'gap_seq']
+    gap_seq = sgRNA_enzyme_df.loc[0,'gap_seq']
 
 
     def work(*x):       
@@ -739,12 +740,14 @@ def add_joint_plasmid_primer(enzyme_df,enzyme_name,sgRNA_plasmid_primer_joint_df
     # enzyme_name = 'BsaI'
 
     sgRNA_enzyme_df = enzyme_df[enzyme_df['name']==enzyme_name]
+    sgRNA_enzyme_df = sgRNA_enzyme_df.reset_index(drop=True)
+    
     protective_base = sgRNA_enzyme_df.loc[0,'protective_base']
     recognition_seq = sgRNA_enzyme_df.loc[0,'recognition_seq']
     cut_seq_len = sgRNA_enzyme_df.loc[0,'cut_seq_len']
     gap_len = sgRNA_enzyme_df.loc[0,'gap_len']
     gap_seq = 'AGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACT'
-    gap_seq = enzyme_df.loc[0,'gap_seq']
+    gap_seq = sgRNA_enzyme_df.loc[0,'gap_seq']
 
     left_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len]
     right_temp_seq = su.revComp(protective_base + recognition_seq + gap_seq[:gap_len])[::-1]
@@ -774,15 +777,17 @@ def add_joint_plasmid_primer(enzyme_df,enzyme_name,sgRNA_plasmid_primer_joint_df
 
 
 def check_locate_primer(sgRNA_plasmid_backbone, primer_json):
+    sgRNA_plasmid_backbone = sgRNA_plasmid_backbone.upper()
+    
     primer_position_json={}
     failture_primer={}
     for k,v in primer_json.items():
         #引物特异性、存在性验证
-        if sgRNA_plasmid_backbone.count(v) != 1:
+        if sgRNA_plasmid_backbone.count(v.upper()) != 1:
             failture_primer.update({k:v})
         else:
         #确定引物的位置
-            start = sgRNA_plasmid_backbone.find(v)
+            start = sgRNA_plasmid_backbone.find(v.upper())
             primer_position_json.update({k:start})
     return primer_position_json, failture_primer
 
@@ -918,12 +923,13 @@ def plasmid_primer(sgRNA_plasmid_primer_joint_df):
 def add_product_and_size(gb_path,primer_df,enzyme_df,enzyme_name='BsaI',seq=''):
        
     sgRNA_enzyme_df = enzyme_df[enzyme_df['name']==enzyme_name]
+    sgRNA_enzyme_df = sgRNA_enzyme_df.reset_index(drop=True)
     protective_base = sgRNA_enzyme_df.loc[0,'protective_base']
     recognition_seq = sgRNA_enzyme_df.loc[0,'recognition_seq']
     cut_seq_len = sgRNA_enzyme_df.loc[0,'cut_seq_len']
     gap_len = sgRNA_enzyme_df.loc[0,'gap_len']
     gap_seq = 'AGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACT'
-    gap_seq = enzyme_df.loc[0,'gap_seq']
+    gap_seq = sgRNA_enzyme_df.loc[0,'gap_seq']
 
     joint_len  = len(protective_base) + len(recognition_seq) + gap_len + cut_seq_len
     print('接头长度：',joint_len)  

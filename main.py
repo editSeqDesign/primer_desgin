@@ -211,7 +211,9 @@ def one_plasmid_system_sequencing_design_primer(type_kind,uha_dha_sgRNA_df):
 
 def two_plasmid_system_n20_enzyme_cut_seq(no_ccdb_uha_dha_sgRNA_df,promoter_seq,enzyme_df,enzyme_name):
 
+
     sgRNA_enzyme_df = enzyme_df[enzyme_df['name']==enzyme_name]
+    sgRNA_enzyme_df = sgRNA_enzyme_df.reset_index(drop=True)
     cut_seq_len = sgRNA_enzyme_df.loc[0,'cut_seq_len']
   
 
@@ -1109,14 +1111,8 @@ def check_enzyme(enzyme,enzyme_df):
         enzyme_df['gap_seq'] = gap_seq
         return enzyme_df
     else:
+        print('There is a problem with the enzyme you provided')
         return 'There is a problem with the enzyme you provided'
-
-
-
-
-
-
-
 
 
 
@@ -1429,7 +1425,7 @@ def main(data):
         elif sgRNA_primer_json == {} and ccdb_primer_json == {} and sgRNA_region_seq_json == {} and ccdb_region_seq_json == {}:
             plasmid_primer_desgin_type = 2
 
-        print('--------------------------------------现在执行的情况：',plasmid_primer_desgin_type)    
+        print('--------------------------------------现在执行的情况：',plasmid_primer_desgin_type) 
 
         two_plasmid_output_path = execute_two_plasmid_system(
                                     method,
@@ -1591,15 +1587,15 @@ if __name__ == '__main__':
             "n_20_label":"N20"
         },
 
-        "primer_json":{
-        
+        "primer_json":{   
+            
         },
         "region_json":{
             
         },     
 
         "sgRNA_primer_json":{
-           
+            
         },
         "ccdb_primer_json":{
                 
@@ -1614,10 +1610,10 @@ if __name__ == '__main__':
         },   
         
         "enzyme":{
-            "enzyme_name":"BsaI",
-            "gap_sequence":"A",  
-            "protection_sequence":"CCA"   
-        },    
+            "enzyme_name":"BbsI",
+            "gap_sequence":"AA",    
+            "protection_sequence":"CCAA"   
+        },      
         
         "UHA_ARGS":{
             "PRIMER_OPT_TM": 65,
@@ -1681,6 +1677,7 @@ if __name__ == '__main__':
             "Cgl0851_ecoli_pgi_sub":"1"
         }      
     }
+
     main(data2)     
 
 

@@ -506,6 +506,7 @@ def check_seq_in_gb(gb_path,seq_json):
 
 def get_joint_by_enzyme(enzyme_df,enzyme_name):
     sgRNA_enzyme_df = enzyme_df[enzyme_df['name']==enzyme_name]
+    sgRNA_enzyme_df = sgRNA_enzyme_df.reset_index(drop=True)
     protective_base = sgRNA_enzyme_df.loc[0,'protective_base']
     recognition_seq = sgRNA_enzyme_df.loc[0,'recognition_seq']
     cut_seq_len = sgRNA_enzyme_df.loc[0,'cut_seq_len']
