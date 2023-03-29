@@ -409,8 +409,6 @@ def two_plasmid_system_design_by_no_user(no_ccdb_uha_dha_sgRNA_df,ccdB_plasmid_b
     #sgRNA质粒引物加接头
     sgRNA_plasmid_primer_df = pd.merge(no_ccdb_uha_dha_sgRNA_df[['Region','Target sequence','Rev Target sequence']],sgRNA_plasmid_primer_df,on=['Region'],how='inner')
     sgRNA_plasmid_primer_df = p_d_seq.add_joint_sgRNA_primer(sgRNA_plasmid_primer_df,enzyme_df,enzyme_name,stype='sgRNA_plasmid_primer_joint')
-
-
     
     #设计ccdB质粒引物
     no_sgRNA_primer_template_df = pd.DataFrame(columns=['plasmid_backbone_primer','plasmid_backbone'],data=[[f'ccdb_plasmid;primer',ccdB_plasmid_backbone]])
@@ -418,9 +416,7 @@ def two_plasmid_system_design_by_no_user(no_ccdb_uha_dha_sgRNA_df,ccdB_plasmid_b
     
     #ccdb质粒引物加接头
     ccdb_plasmid_primer_df = p_d_seq.add_joint_sgRNA_primer(ccdb_plasmid_primer_df,enzyme_df,enzyme_name,stype='ccdb_plasmid_primer_joint')
-    
- 
-
+      
     return sgRNA_plasmid_primer_df, ccdb_plasmid_primer_df
 
 def two_plasmid_system_design_by_user_primer_sgRNA( no_ccdb_plasmid,
@@ -1109,16 +1105,28 @@ def check_enzyme(enzyme,enzyme_df):
     if name in list(enzyme_df['name']) and len(enzyme_df[enzyme_df['name']==name]) == 1:
         enzyme_df = enzyme_df[enzyme_df['name']==name]
         enzyme_df['protective_base'] = protection_seq
-        enzyme_df['gap_len'] = len(protection_seq)
+        enzyme_df['gap_len'] = len(gap_seq)
         enzyme_df['gap_seq'] = gap_seq
         return enzyme_df
     else:
         return 'There is a problem with the enzyme you provided'
 
 
+
+
+
+
+
+
+
+
+
+
 def main(data):
     
     chopchop_input = data['chopchop_input']
+
+    print(os.getcwd())
 
     #uha_dha参数
     uha_dha_params = data['uha_dha_config']
@@ -1238,8 +1246,8 @@ def main(data):
     config.UHA_ARGS = data['UHA_ARGS']
     config.SEQ_ALTERED_ARGS = data['SEQ_ALTERED_ARGS']
     config.DHA_ARGS = data['DHA_ARGS']
-
-    if data.get('UP_SGRNA_ARGS')['PRIMER_OPT_TM'] == '' or data.get('UP_SGRNA_ARGS') == {} or data.get('DOWN_SGRNA_ARGS') == {}:
+ 
+    if data.get('UP_SGRNA_ARGS').get('PRIMER_OPT_TM') == '' or data.get('UP_SGRNA_ARGS') == {} or data.get('DOWN_SGRNA_ARGS') == {}:
         method = 'OLIGO'
         print('执行方法：', method)
     else:
@@ -1609,7 +1617,7 @@ if __name__ == '__main__':
             "enzyme_name":"BsaI",
             "gap_sequence":"A",  
             "protection_sequence":"CCA"   
-        },  
+        },    
         
         "UHA_ARGS":{
             "PRIMER_OPT_TM": 65,
@@ -1639,7 +1647,7 @@ if __name__ == '__main__':
             "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
             "PRIMER_MAX_GC": 80
-        },
+        },  
         "GENOME_Q_ARGS":{
             "PRIMER_OPT_TM": 65,
             "PRIMER_MIN_TM": 55,     

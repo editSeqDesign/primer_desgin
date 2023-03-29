@@ -388,8 +388,10 @@ def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_termin
     cut_seq_len = sgRNA_enzyme_df.loc[0,'cut_seq_len']
     gap_len = sgRNA_enzyme_df.loc[0,'gap_len']
     gap_seq = 'AGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACT'
+    gap_seq = enzyme_df.loc[0,'gap_seq']
 
-    def work(*x): 
+
+    def work(*x):       
         if len(x) == 4:  
             left_primer,right_primer,product_value,Name = x[0],x[1],x[2],x[3]
         if len(x) == 5:
@@ -742,6 +744,7 @@ def add_joint_plasmid_primer(enzyme_df,enzyme_name,sgRNA_plasmid_primer_joint_df
     cut_seq_len = sgRNA_enzyme_df.loc[0,'cut_seq_len']
     gap_len = sgRNA_enzyme_df.loc[0,'gap_len']
     gap_seq = 'AGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACT'
+    gap_seq = enzyme_df.loc[0,'gap_seq']
 
     left_temp_seq = protective_base + recognition_seq + gap_seq[:gap_len]
     right_temp_seq = su.revComp(protective_base + recognition_seq + gap_seq[:gap_len])[::-1]
@@ -920,6 +923,7 @@ def add_product_and_size(gb_path,primer_df,enzyme_df,enzyme_name='BsaI',seq=''):
     cut_seq_len = sgRNA_enzyme_df.loc[0,'cut_seq_len']
     gap_len = sgRNA_enzyme_df.loc[0,'gap_len']
     gap_seq = 'AGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACT'
+    gap_seq = enzyme_df.loc[0,'gap_seq']
 
     joint_len  = len(protective_base) + len(recognition_seq) + gap_len + cut_seq_len
     print('接头长度：',joint_len)  
