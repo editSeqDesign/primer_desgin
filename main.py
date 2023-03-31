@@ -8,7 +8,7 @@ import module.parser_input_to_df as pf
 import module.product_and_decorate_editingSeq as p_d_seq
 import module.order as order
 import warnings   
-warnings.filterwarnings('ignore')  
+warnings.filterwarnings('ignore')     
 import configparser
 from Bio import SeqIO  
 from Bio.Seq import Seq
@@ -77,7 +77,7 @@ def one_plasmid_system_design_by_user_region(uha_dha_sgRNA_df,sgRNA_region_seq_j
     #序列转换成坐标
     region_json = su.convert_seq_cor(one_plasmid_file_path, sgRNA_region_seq_json,seq=sgRNA_plasmid_backbone)
     #坐标转转换成距离
-    distance_dict = region_2_distance(len(sgRNA_plasmid_backbone), region_json, 0)
+    distance_dict = region_2_distance(len(sgRNA_plasmid_backbone), region_json, 0)   
 
     #根据区域设计引物
     primer_result_list = p_d_seq.design_primer_by_region_in_plasmid(0,sgRNA_plasmid_backbone,distance_dict)
@@ -1069,16 +1069,42 @@ def read_chopchopInput_add_uha_dha(genome_path,chopchop_input,uha_dha_params):
 
     return info_df  
 
-
-def check_quality_control(gb_path,seq_json):
-    seq_json = su.check_seq_in_gb(gb_path, seq_json)  
+def check_quality_control(plasmid_backbone,seq_json):
+    
     failture_seq_json = {}
+    print(failture_seq_json == {})  
     for k,v in seq_json.items():
-        if 'The sequence' in v:
-            failture_seq_json.update({k:v})
+        plasmid_backbone = plasmid_backbone.upper()
+        start = plasmid_backbone.find(v.upper())
+        errorMessage = ""
 
-    return failture_seq_json,seq_json
 
+         #是否是DNA序列
+        if not su.is_dna(v):
+            errorMessage = f"{v}: The sequence is not a DNA sequence" 
+            failture_seq_json.update({k:errorMessage})
+            raise ValueError(errorMessage)  
+
+        if start == -1:
+            failture_seq_json.update({k: f'{v}:The sequence is not on the plasmid, please enter the sequence on the sense chain of the plasmid'})
+            errorMessage = f'{v}: The sequence is not on the plasmid, please enter the sequence on the sense chain of the plasmid'
+            failture_seq_json.update({k:errorMessage})
+            raise ValueError(errorMessage)  
+        else:
+            #判断 5 < 序列长度 < 300
+            if len(v) < 5  or  len(v) > 300:
+                errorMessage = f"{v}: The sequence length should be between 5 and 300" 
+                failture_seq_json.update({k:errorMessage}) 
+                raise ValueError(errorMessage)  
+           
+            # 去取质粒骨架，引物的位置距离质粒骨架起始的距离大于50bp，引物的位置距离质粒骨架终止的距离大于50bp
+            if start < 50 or len(plasmid_backbone) - (start + len(v)) < 50:
+                errorMessage = f'{v} The distance between the position of the sequence and the start of the plasmid skeleton should be greater than 50 bp, and the distance between the position of the sequence and the end of the plasmid skeleton should be greater than 50 bp'
+                failture_seq_json.update({k:errorMessage})
+                raise ValueError(errorMessage)  
+        
+
+    return failture_seq_json
    
 def check_plasmid(gb_path, ccdb_label='', promoter_terminator_label='', n_20_label=''):
 
@@ -1096,34 +1122,40 @@ def check_plasmid(gb_path, ccdb_label='', promoter_terminator_label='', n_20_lab
     elif ccdb_coordinate != (-1,-1) and n20_coordinate ==(-1,-1):
         return 'no_sgRNA_plasmid'
     else:
-        return 'error'
+        raise ValueError('The plasmid you uploaded does not contain the necessary tags')
 
 
 def check_enzyme(enzyme,enzyme_df):
     name = enzyme['enzyme_name']
     gap_seq = enzyme['gap_sequence']
     protection_seq = enzyme['protection_sequence']
+    errorMessage = "" 
 
+    if len(gap_seq) < 1 or len(gap_seq) >10:
+        errorMessage = f"The gap sequence:{gap_seq} length should be greater than 1 and less than 10" 
+        raise ValueError(errorMessage) 
+    if not su.is_dna(gap_seq):
+        errorMessage = f'The gap sequence:{gap_seq} is not a DNA sequence'
+        raise ValueError(errorMessage) 
+    if not su.is_dna(protection_seq):
+        errorMessage = f'The protection sequence:{gap_seq} is not a DNA sequence'
+        raise ValueError(errorMessage) 
+    if len(protection_seq) < 1 or len(protection_seq) >20:
+        errorMessage = f"The protection sequence:{gap_seq} length should be greater than 1 and less than 10" 
+        raise ValueError(errorMessage) 
+    
     if name in list(enzyme_df['name']) and len(enzyme_df[enzyme_df['name']==name]) == 1:
         enzyme_df = enzyme_df[enzyme_df['name']==name]
         enzyme_df['protective_base'] = protection_seq
         enzyme_df['gap_len'] = len(gap_seq)
-        enzyme_df['gap_seq'] = gap_seq
+        enzyme_df['gap_seq'] = gap_seq   
         return enzyme_df
-    else:
-        print('There is a problem with the enzyme you provided')
-        return 'There is a problem with the enzyme you provided'
-
-
-
-
-
+      
 def main(data):
     
     chopchop_input = data['chopchop_input']
-
     print(os.getcwd())
-
+    
     #uha_dha参数
     uha_dha_params = data['uha_dha_config']
     
@@ -1136,13 +1168,25 @@ def main(data):
     #plasmid label
     ccdb_label = data['plasmid_label']['ccdb_label']
     promoter_terminator_label = data['plasmid_label']['promoter_terminator_label']
-    n_20_label = data['plasmid_label']['n_20_label']   
+    n_20_label = data['plasmid_label']['n_20_label'] 
+
+    #检查质粒标签
+    if ccdb_label == promoter_terminator_label or ccdb_label == n_20_label:
+        errorMessage = 'There are duplicates in the three plasmid label you entered'
+        raise ValueError(errorMessage)
+    elif promoter_terminator_label == n_20_label or promoter_terminator_label == ccdb_label:
+        errorMessage = 'There are duplicates in the three plasmid label you entered'
+        raise ValueError(errorMessage)
+  
+
+
+
 
     one_plasmid_file_path=''
     no_ccdb_plasmid=''
     no_sgRNA_plasmid=''
     
-    #检查质粒,自动判断质粒类型
+    #0.检查质粒,自动判断质粒类型
     if plasmid_file_1 != '':
         plasmid_type = check_plasmid(plasmid_file_1, ccdb_label, promoter_terminator_label, n_20_label)
         if plasmid_type == 'one_plasmid_file_path':
@@ -1177,60 +1221,64 @@ def main(data):
             return  'There is a problem with the plasmid you uploaded'
 
 
-    #primer
+    #1.获取引物，检查引物
     sgRNA_primer_json = data['sgRNA_primer_json']
-    ccdb_primer_json = data['ccdb_primer_json']
-
+    ccdb_primer_json = data['ccdb_primer_json']  
     primer_json = data['primer_json']  
-    region_seq_json = data['region_json']
-
 
     if primer_json != {} and one_plasmid_file_path !='':
-        failture_seq_json, seq_json = check_quality_control(one_plasmid_file_path ,primer_json)
-        if failture_seq_json == {}:
-            primer_json = seq_json
-        else:
-            return failture_seq_json
+        #取质粒骨架，质粒label：ccdb_label、promoter_terminator_label、n_20_label
+        plasmid_backbone =  p_d_seq.get_plasmid_backbone_by_labels(one_plasmid_file_path, ccdb_label=ccdb_label, promoter_terminator_label=promoter_terminator_label, n_20_label=n_20_label)
+        failture_seq_json = check_quality_control(plasmid_backbone, primer_json)
+        if failture_seq_json != {} or failture_seq_json == None:
+            raise ValueError(failture_seq_json)
     
-    if region_seq_json != {} and one_plasmid_file_path !='':
-        failture_seq_json, seq_json = check_quality_control(one_plasmid_file_path ,region_seq_json)
-        if failture_seq_json == {}:
-            region_seq_json = seq_json
-        else:
-            return failture_seq_json
-
     if sgRNA_primer_json !={} and no_ccdb_plasmid !='':
-        failture_seq_json, seq_json = check_quality_control(no_ccdb_plasmid,sgRNA_primer_json)
-        if failture_seq_json == {}:
-            sgRNA_primer_json = seq_json
-        else:
-            return failture_seq_json
+        plasmid_backbone =  p_d_seq.get_plasmid_backbone_by_labels(no_ccdb_plasmid, ccdb_label=ccdb_label, promoter_terminator_label=promoter_terminator_label, n_20_label=n_20_label)
+        failture_seq_json = check_quality_control(plasmid_backbone, sgRNA_primer_json)
+        if failture_seq_json != {}:
+            raise ValueError(failture_seq_json)
+            
+    if ccdb_primer_json !={} and no_sgRNA_plasmid != '':
+        plasmid_backbone =  p_d_seq.get_plasmid_backbone_by_labels(no_sgRNA_plasmid, ccdb_label=ccdb_label, promoter_terminator_label=promoter_terminator_label, n_20_label=n_20_label)
+        failture_seq_json = check_quality_control(plasmid_backbone, ccdb_primer_json)
+        if failture_seq_json != {}:
+            raise ValueError(failture_seq_json)
 
-    if  ccdb_primer_json !={} and no_sgRNA_plasmid != '':
-        failture_seq_json, seq_json = check_quality_control(no_sgRNA_plasmid,ccdb_primer_json)
-        if failture_seq_json == {}:
-            ccdb_primer_json = seq_json
-        else:
-            return failture_seq_json
 
-    # sgRNA_region_json = data['sgRNA_region_json']
-    # ccdb_region_json = data['ccdb_region_json']
+    #2.根据获取的label，取出region序列，且检查区域序列
+    region_label = data['region_label']
+    sgRNA_region_label = data['sgRNA_region_label']
+    ccdb_region_label = data['ccdb_region_label']
 
-    sgRNA_region_seq_json = data['sgRNA_region_json']
-    if  sgRNA_region_seq_json !={} and no_ccdb_plasmid !='':
-        failture_seq_json, seq_json = check_quality_control(no_ccdb_plasmid,sgRNA_region_seq_json)
-        if failture_seq_json == {} :
-            sgRNA_region_seq_json = seq_json
-        else:
-            return failture_seq_json
+    region_seq_json = {}
+    sgRNA_region_seq_json = {}
+    ccdb_region_seq_json = {}
+    
+    if region_label !="" and one_plasmid_file_path !="":
+        seq = su.get_sequence_by_feature_label(one_plasmid_file_path, region_label)
+        region_seq_json = {'region1':seq}
+        #检查
+        failture_seq_json = check_quality_control(plasmid_backbone, region_seq_json)
+        if failture_seq_json != {}:
+            raise ValueError(failture_seq_json)
+    
+    if sgRNA_region_label !="" and no_ccdb_plasmid !="":
+        seq = su.get_sequence_by_feature_label(no_ccdb_plasmid, sgRNA_region_label)
+        sgRNA_region_seq_json = {'region1':seq}
+        #检查
+        failture_seq_json = check_quality_control(plasmid_backbone, sgRNA_region_seq_json)
+        if failture_seq_json != {}:
+            raise ValueError(failture_seq_json)
+    
+    if ccdb_region_label !="" and no_sgRNA_plasmid !="":
+        seq = su.get_sequence_by_feature_label(no_sgRNA_plasmid, ccdb_region_label)
+        ccdb_region_seq_json = {'region1':seq}
+        #检查
+        failture_seq_json = check_quality_control(plasmid_backbone, ccdb_region_seq_json)
+        if failture_seq_json != {}:
+            raise ValueError(failture_seq_json)
 
-    ccdb_region_seq_json = data['ccdb_region_json']
-    if  sgRNA_region_seq_json !={} and no_sgRNA_plasmid !='':
-        failture_seq_json, seq_json = check_quality_control(no_sgRNA_plasmid,ccdb_region_seq_json)
-        if failture_seq_json == {}:
-            ccdb_region_seq_json = seq_json  
-        else:
-            return failture_seq_json
 
 
     #genome
@@ -1242,7 +1290,8 @@ def main(data):
     config.UHA_ARGS = data['UHA_ARGS']
     config.SEQ_ALTERED_ARGS = data['SEQ_ALTERED_ARGS']
     config.DHA_ARGS = data['DHA_ARGS']
- 
+    
+    #4.判断使用何种技术方法：PCR、OLIGO
     if data.get('UP_SGRNA_ARGS').get('PRIMER_OPT_TM') == '' or data.get('UP_SGRNA_ARGS') == {} or data.get('DOWN_SGRNA_ARGS') == {}:
         method = 'OLIGO'
         print('执行方法：', method)
@@ -1259,12 +1308,10 @@ def main(data):
     output = data['edit_sequence_design_workdir']
     if not os.path.exists(output):
         os.makedirs(output)
-
     scene = data['scene']  
 
-    
-    #0 参数的质量控制
-    # 1.read 编辑序列信息,给chopchop输入加uha、dha信息
+  
+    # 5.read 编辑序列信息,给chopchop输入加uha、dha信息
     info_input_df = read_chopchopInput_add_uha_dha(genome_path, chopchop_input, uha_dha_params)
 
 
@@ -1281,16 +1328,11 @@ def main(data):
     enzyme_df = su.del_Unnamed(pd.read_csv(enzyme_path))
     enzyme = data['enzyme']
     enzyme_name = enzyme['enzyme_name']     
-    #检查酶的相关信息
-    return_value = check_enzyme(enzyme, enzyme_df)
-    if type(return_value) == str:
-        return return_value
-    else:
-        enzyme_df = return_value
+    #6.检查酶的相关信息
+    enzyme_df = check_enzyme(enzyme, enzyme_df)
 
 
-
-    # 3.提取用户选择的sgRNA     
+    # 7.判断不同的场景，提取用户选择的sgRNA     
     if scene == 'only_primer': 
         sgRNA = info_input_df[['name','crrna','region']].rename(columns={'crrna':"Target sequence","name":"Name","region":"Region"})
         sgRNA['Rev Target sequence'] = sgRNA['Target sequence'].apply(lambda x: su.revComp(x)) 
@@ -1300,13 +1342,13 @@ def main(data):
         sgRNA = p_d_seq.extract_sgRNA_from_chopchop(sgRNA_result_path, selected_sgRNA_result)
     
 
-    # 4.设计源生同源臂引物
+    # 8.设计源生同源臂引物
     uha_dha_primer_df = extract_uha_dha_primer(info_input_df, sgRNA)   
 
-    # 5.提取同源臂
+    # 9.提取同源臂
     uha_dha_info_primer_df, uha_dha_df, uha_dha_sgRNA_df, info_df = extract_uha_dha(info_input_df, uha_dha_primer_df, sgRNA)
   
-    #判断质粒的执行类型    
+    #10.判断质粒的执行类型    
     if  one_plasmid_file_path != '' and no_ccdb_plasmid == '' and no_sgRNA_plasmid == '':
         plasmid_system_type = 1
     elif  one_plasmid_file_path =='' and no_ccdb_plasmid != '' and no_sgRNA_plasmid != '':
@@ -1451,7 +1493,9 @@ def main(data):
         
     return one_plasmid_output_path, two_plasmid_output_path
 
-     
+
+
+
 if __name__ == '__main__':
 
     #read json
@@ -1490,9 +1534,7 @@ if __name__ == '__main__':
         "primer_json":{
         
         },
-        "region_json":{
-            
-        },     
+        "region_label":"",     
 
         "sgRNA_primer_json":{
            
@@ -1501,26 +1543,22 @@ if __name__ == '__main__':
                 
         },   
     
-        "sgRNA_region_json":{
-              
-        },
+        "sgRNA_region_label":"",
         
-        "ccdb_region_json":{  
-            
-        },   
+        "ccdb_region_label":"",   
         
         "enzyme":{
             "enzyme_name":"BsaI",
-            "gap_sequence":"A",  
+            "gap_sequence":"AA",  
             "protection_sequence":"CCA"   
         },  
-        
+          
         "UHA_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,
-            "PRIMER_MAX_TM": 75,
+            "PRIMER_OPT_TM": 40,
+            "PRIMER_MIN_TM": 10,
+            "PRIMER_MAX_TM": 80,
             "PRIMER_MIN_GC": 20,
-            "PRIMER_MAX_GC": 80
+            "PRIMER_MAX_GC": 40
         },
         "SEQ_ALTERED_ARGS":{
             "PRIMER_OPT_TM": 65,
@@ -1581,18 +1619,16 @@ if __name__ == '__main__':
             "min_right_arm_seq_length": 1000     
         },
 
-        "plasmid_label":{
+          "plasmid_label":{
             "ccdb_label":"ccdB",  
             "promoter_terminator_label":"gRNA",
             "n_20_label":"N20"
         },
 
         "primer_json":{   
-            
+          
         },
-        "region_json":{
-            
-        },     
+        "region_label":"",     
 
         "sgRNA_primer_json":{
             
@@ -1601,24 +1637,20 @@ if __name__ == '__main__':
                 
         },   
     
-        "sgRNA_region_json":{
-              
-        },
+        "sgRNA_region_label":"",
         
-        "ccdb_region_json":{  
-            
-        },   
+        "ccdb_region_label":"",   
         
         "enzyme":{
             "enzyme_name":"BbsI",
             "gap_sequence":"AA",    
-            "protection_sequence":"CCAA"   
+            "protection_sequence":"CCA"   
         },      
         
         "UHA_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,
-            "PRIMER_MAX_TM": 75,
+            "PRIMER_OPT_TM": 0,
+            "PRIMER_MIN_TM": 0,
+            "PRIMER_MAX_TM": 0,
             "PRIMER_MIN_GC": 20,
             "PRIMER_MAX_GC": 80
         },

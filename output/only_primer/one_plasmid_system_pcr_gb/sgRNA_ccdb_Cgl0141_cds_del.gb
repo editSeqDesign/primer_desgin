@@ -7,32 +7,28 @@ SOURCE      .
   ORGANISM  .
             .
 FEATURES             Location/Qualifiers
-     primer_bind     join(13596..13611,1..21)
+     primer_bind     join(13591..13611,1..21)
                      /note="UHA_PRIMER_LEFT_WHOLE_SEQUENCE"
      cds             1..1035
                      /note="UHA"
-     primer_bind     complement(1012..1047)
+     primer_bind     complement(1012..1052)
                      /note="UHA_PRIMER_RIGHT_WHOLE_SEQUENCE"
-     primer_bind     1020..1058
+     primer_bind     1015..1058
                      /note="DHA_PRIMER_LEFT_WHOLE_SEQUENCE"
      cds             1036..2059
                      /note="DHA"
-     primer_bind     complement(2024..2059)
+     primer_bind     complement(2019..2059)
                      /note="DHA_PRIMER_RIGHT_WHOLE_SEQUENCE"
-     primer_bind     2048..2077
+     primer_bind     2043..2077
                      /note="N20UP_PRIMER_LEFT_WHOLE_SEQUENCE"
-     primer_bind     complement(5881..5936)
+     primer_bind     complement(5881..5941)
                      /note="N20UP_PRIMER_RIGHT_WHOLE_SEQUENCE"
      cds             4852..7315
                      /note="PROMOTER_N20_TERMINATOR"
-     primer_bind     5913..5948
+     primer_bind     5904..5948
                      /note="0_PRIMER_LEFT_WHOLE_SEQUENCE"
-     primer_bind     complement(11674..11713)
+     primer_bind     complement(join(13587..13611,1..17))
                      /note="0_PRIMER_RIGHT_WHOLE_SEQUENCE"
-     primer_bind     11686..11722
-                     /note="1_PRIMER_LEFT_WHOLE_SEQUENCE"
-     primer_bind     complement(join(13587..13611,1..12))
-                     /note="1_PRIMER_RIGHT_WHOLE_SEQUENCE"
 ORIGIN
         1 tcatcatcgg cggccacatg tggtggaccc taggactcgt gctggcagtc gccaatgtcg
        61 caggcgcaca actcggtgcc cgaacggtgc ttggtggcgg taccaggcta attagatacg

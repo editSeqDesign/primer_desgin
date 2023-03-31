@@ -57,13 +57,28 @@ def design_primer(primer_template,id_name,template_name,stype):
 
         print(result_dict)      
 
-        result_dict['Region'] = row[id_name]    
-        result_dict["primer_f_seq_(5'-3')"] = primer_result['PRIMER_LEFT_0_SEQUENCE']
-        result_dict["primer_r_seq_(5'-3')"] = primer_result['PRIMER_RIGHT_0_SEQUENCE']
-        result_dict["primer_f_Tm"] = primer_result['PRIMER_LEFT_0_TM']
-        result_dict["primer_r_Tm"] = primer_result['PRIMER_RIGHT_0_TM']
-        result_dict['product_size'] = primer_result['PRIMER_PAIR_0_PRODUCT_SIZE']   
-        result_dict['product_value'] = row[template_name][primer_result['PRIMER_LEFT_0'][0]:primer_result['PRIMER_RIGHT_0'][0]+1]
+        result_dict['Region'] = row[id_name]
+        if primer_result.get('PRIMER_LEFT_0_SEQUENCE') == None:
+            result_dict["primer_f_seq_(5'-3')"] = primer_result['PRIMER_LEFT_EXPLAIN']
+            result_dict["primer_f_Tm"] = 0
+        else:
+            result_dict["primer_f_seq_(5'-3')"] = primer_result['PRIMER_LEFT_0_SEQUENCE']
+            result_dict["primer_f_Tm"] = primer_result['PRIMER_LEFT_0_TM']
+    
+        if  primer_result.get('PRIMER_RIGHT_0_SEQUENCE') == None:
+            result_dict["primer_r_seq_(5'-3')"] = primer_result['PRIMER_RIGHT_EXPLAIN']
+            result_dict["primer_r_Tm"] = 0
+        else:
+            result_dict["primer_r_seq_(5'-3')"] = primer_result['PRIMER_RIGHT_0_SEQUENCE']
+            result_dict["primer_r_Tm"] = primer_result['PRIMER_RIGHT_0_TM']
+
+        if primer_result.get('PRIMER_LEFT_0_SEQUENCE') == None or primer_result.get('PRIMER_RIGHT_0_SEQUENCE') == None:
+            result_dict['product_size'] = 0
+            result_dict['product_value'] = ''
+        else:
+            result_dict['product_size'] = primer_result['PRIMER_PAIR_0_PRODUCT_SIZE']   
+            result_dict['product_value'] = row[template_name][primer_result['PRIMER_LEFT_0'][0]:primer_result['PRIMER_RIGHT_0'][0]+1]
+
         result_list.append(result_dict)
     primer_df = pd.DataFrame(result_list)  
     return primer_df
@@ -268,6 +283,51 @@ def design_primer_by_region_in_plasmid(first_primer_start_position, plasmid_seq,
     primer_result_list.append(dict_primer_result)
 
     return primer_result_list
+
+
+def get_plasmid_backbone_by_labels(gb_path, ccdb_label='ccdB', promoter_terminator_label='gRNA', n_20_label='N20'):
+
+    gb = SeqIO.read(gb_path, "genbank")
+    #get coordinate
+    ccdb_coordinate = su.get_feature_coordinate(ccdb_label,gb_path)
+    promoter_terminator_coordinate = su.get_feature_coordinate(promoter_terminator_label,gb_path)  
+  
+
+    if ccdb_coordinate[0] !=-1 and promoter_terminator_coordinate[0] != -1:
+        before_processed_seq_dict, after_processed_seq_dict = fq.get_data_from_genebank(gb_path,marker=ccdb_label, target_gene=n_20_label)
+
+        # ccdb = before_processed_seq_dict['marker_seq']
+        n_20 = before_processed_seq_dict['target_gene_seq']
+        n20_up_seq = before_processed_seq_dict['target_gene_up_seq']
+        n20_down_seq = before_processed_seq_dict['target_gene_down_seq']
+             
+        plasmid_backbone = n20_down_seq
+    
+    elif ccdb_coordinate[0] == -1 and promoter_terminator_coordinate[0] != -1:
+
+         #双质粒系统:无ccdb
+        before_processed_seq_dict, after_processed_seq_dict = fq.get_data_from_genebank(gb_path,marker=ccdb_label, target_gene=n_20_label)
+
+        ccdb = before_processed_seq_dict['marker_seq']
+        n_20 = before_processed_seq_dict['target_gene_seq']
+        n20_up_seq = before_processed_seq_dict['target_gene_up_seq']
+        n20_down_seq = before_processed_seq_dict['target_gene_down_seq']
+        
+        plasmid_backbone = n20_up_seq + n_20 + n20_down_seq
+
+
+    elif ccdb_coordinate[0] != -1 and promoter_terminator_coordinate[0]  == -1:
+
+         #双质粒系统：无sgRNA
+        before_processed_seq_dict, after_processed_seq_dict = fq.get_data_from_genebank(gb_path,marker=n_20_label,target_gene=ccdb_label)
+        ccdb = before_processed_seq_dict['target_gene_seq']
+        ccdb_up_seq = before_processed_seq_dict['target_gene_up_seq']
+        ccdb_down_seq = before_processed_seq_dict['target_gene_down_seq']
+       
+        plasmid_backbone = ccdb_down_seq + ccdb_up_seq
+
+    return  plasmid_backbone
+
 
 def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_label='gRNA', n_20_label='N20'):
     gb = SeqIO.read(gb_path, "genbank")

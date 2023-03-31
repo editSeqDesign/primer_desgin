@@ -7,36 +7,32 @@ SOURCE      .
   ORGANISM  .
             .
 FEATURES             Location/Qualifiers
-     primer_bind     join(14091..14106,1..20)
+     primer_bind     join(14086..14106,1..20)
                      /note="UHA_PRIMER_LEFT_WHOLE_SEQUENCE"
      cds             1..1034
                      /note="UHA"
-     primer_bind     complement(1010..1050)
+     primer_bind     complement(1010..1055)
                      /note="UHA_PRIMER_RIGHT_WHOLE_SEQUENCE"
-     primer_bind     1023..1059
+     primer_bind     1018..1059
                      /note="SEQ_PRIMER_LEFT_WHOLE_SEQUENCE"
-     primer_bind     complement(1497..1529)
+     primer_bind     complement(1497..1534)
                      /note="SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE"
-     primer_bind     1502..1542
+     primer_bind     1497..1542
                      /note="DHA_PRIMER_LEFT_WHOLE_SEQUENCE"
      cds             1518..2554
                      /note="DHA"
-     primer_bind     complement(2519..2554)
+     primer_bind     complement(2514..2554)
                      /note="DHA_PRIMER_RIGHT_WHOLE_SEQUENCE"
-     primer_bind     2543..2572
+     primer_bind     2538..2572
                      /note="N20UP_PRIMER_LEFT_WHOLE_SEQUENCE"
-     primer_bind     complement(6376..6431)
+     primer_bind     complement(6376..6436)
                      /note="N20UP_PRIMER_RIGHT_WHOLE_SEQUENCE"
      cds             5347..7810
                      /note="PROMOTER_N20_TERMINATOR"
-     primer_bind     6408..6443
+     primer_bind     6399..6443
                      /note="0_PRIMER_LEFT_WHOLE_SEQUENCE"
-     primer_bind     complement(12169..12208)
+     primer_bind     complement(join(14082..14106,1..17))
                      /note="0_PRIMER_RIGHT_WHOLE_SEQUENCE"
-     primer_bind     12181..12217
-                     /note="1_PRIMER_LEFT_WHOLE_SEQUENCE"
-     primer_bind     complement(join(14082..14106,1..12))
-                     /note="1_PRIMER_RIGHT_WHOLE_SEQUENCE"
 ORIGIN
         1 aaagccctgc ccaccggatg gaaacgctgg gccgccatcg ttgcagtcgg actcatcgca
        61 gcctacgacg gcatcttcgg acccggaacc ggcatgttcc tcatcatggc gttcaccgca

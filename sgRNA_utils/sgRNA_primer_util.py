@@ -74,7 +74,7 @@ def lambda2cols(df,lambdaf,in_coln,to_colns):         #apply函数的助手
     df = df.join(df_)        
     return df
 
-#取互补序列
+#取互补序列  
 # def dna_complement(seq):
 #     seq = seq.upper()
 #     seq = seq.replace('A', 'T')
@@ -130,7 +130,7 @@ def columns_2_row_by_groupby(uha_dha_primer_df,in_col,ou_col,type='u_d'):
     UHA_DHA_df.reset_index(drop=True,inplace=True)
     return UHA_DHA_df   
 
-#读取质粒的特征坐标
+#读取质粒的特征坐标     
 def get_feature_coordinate(target_gene_label,gb_path):
     gb = SeqIO.read(gb_path, "genbank")        
     for ele in gb.features:
@@ -159,7 +159,7 @@ def replace_primer3Name_to_peopleReadName(df,type=''):
                         } )
     return df  
 
-#设计引物
+#设计引物   
 def primer_design(seqId,
                   seqTemplate,
                   stype,
@@ -189,8 +189,6 @@ def primer_design(seqId,
             global_args.update(config.PLASMID_Q_ARGS)
         elif primer_type == 'genome_seq':
             global_args.update(config.GENOME_Q_ARGS)
-
-
 
     #序列参数  
     seqlength = len(seqTemplate)   
@@ -226,11 +224,26 @@ def primer_design(seqId,
         primer_num = 1
 
     #设定全局参数   
-    global_args['PRIMER_PRODUCT_SIZE_RANGE']=size_range
+    global_args['PRIMER_PRODUCT_SIZE_RANGE']=size_range   
     global_args['PRIMER_NUM_RETURN']= primer_num
   
     #调用工具
-    primer3_result = primer3.bindings.designPrimers(seq_args, global_args)    
+    primer3_result = primer3.bindings.designPrimers(seq_args, global_args)
+
+    if primer3_result.get('PRIMER_LEFT_EXPLAIN') != None or primer3_result.get('PRIMER_RIGHT_EXPLAIN') != None:
+
+        errorMessage = f'{primer_type}: '
+        if primer3_result.get('PRIMER_LEFT_0_SEQUENCE') == None:
+            PRIMER_LEFT_EXPLAIN = primer3_result.get('PRIMER_LEFT_EXPLAIN')
+            errorMessage = errorMessage + f'PRIMER_LEFT_EXPLAIN:{PRIMER_LEFT_EXPLAIN}; '
+
+        if primer3_result.get('PRIMER_RIGHT_0_SEQUENCE') == None:  
+            PRIMER_RIGHT_EXPLAIN = primer3_result.get('PRIMER_RIGHT_EXPLAIN')
+            errorMessage = errorMessage + f'PRIMER_RIGHT_EXPLAIN:{PRIMER_RIGHT_EXPLAIN}'
+        if errorMessage !=  f'{primer_type}: ': 
+            print(errorMessage)
+            raise ValueError(errorMessage)  
+
     return primer3_result
 
 #输出引物设计成功的
@@ -485,7 +498,7 @@ def convert_seq_cor(gb_path,region_seq_json,strand='+',seq=''):
         
     return region_cor_json  
 
-def check_seq_in_gb(gb_path,seq_json):
+def check_seq_in_gb(gb_path, seq_json):
     
     cor_json_plus = convert_seq_cor(gb_path,seq_json,strand='+')
     cor_json_min = convert_seq_cor(gb_path,seq_json,strand='-')
@@ -577,3 +590,25 @@ def create_plasmid_primer_featrue_df(sequencing_primer_template,
         df = pd.merge(sequencing_plasmid,uha_primer_df).merge(dha_primer_df)
         df = pd.merge(seq_altered_p_df,df,how='outer')    
     return df
+
+
+#根据质粒特征label取序列
+def get_sequence_by_feature_label(filename, feature_label):
+    for record in SeqIO.parse(filename, "genbank"):
+        for feature in record.features:
+            if 'label' in  feature.qualifiers and feature.qualifiers['label'][0] == feature_label :
+                print(feature.location.extract(record).seq)
+                return feature.location.extract(record).seq
+    return None
+
+
+import re
+def is_dna(sequence):
+    # 将序列中的所有字母转换为大写字母
+    sequence = sequence.upper()
+    # 使用正则表达式匹配是否只包含A、T、G、C四种字符
+    pattern = re.compile(r'^[ATGC]+$')
+    if pattern.match(sequence):
+        return True
+    else:
+        return False
