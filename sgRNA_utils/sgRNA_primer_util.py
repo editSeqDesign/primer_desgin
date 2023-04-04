@@ -612,3 +612,22 @@ def is_dna(sequence):
         return True
     else:
         return False
+    
+
+
+# #打包文件为zip
+
+import zipfile
+import os
+def zip_ya(startdir, file_news,num=1):
+    z = zipfile.ZipFile(file_news, 'a', zipfile.ZIP_DEFLATED)
+    for dirpath, dirnames, filenames in os.walk(startdir):
+        fpath = dirpath.replace(startdir, '')  # 这一句很重要，不replace的话，就从根目录开始复制
+        fpath = fpath and fpath + os.sep or ''
+        for filename in filenames:  
+            if num == 1:
+                if filename =='success.xlsx' or filename == 'failtrue.xlsx':
+                    z.write(os.path.join(dirpath, filename), fpath + filename,zipfile.ZIP_DEFLATED)
+            else:
+                fpath=startdir.split('/')[-2]+'/'
+                z.write(os.path.join(dirpath, filename), fpath + filename,zipfile.ZIP_DEFLATED)

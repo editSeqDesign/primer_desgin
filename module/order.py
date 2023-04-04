@@ -282,31 +282,60 @@ def order_primer_rename_by_ways(primer_orders_df,label=['A','B','C','D','E','F',
 
 
 #引物合并
-def merge_primer(uha_primer_df,dha_primer_df,sgRNA_primer_df,plasmid_backbone_p_df,seq_altered_p_df,plasmid_sequencing_primer_df,genome_sequencing_primer_df):
+def merge_primer(*li):  
+    if len(li) == 7:
+        uha_primer_df,dha_primer_df,sgRNA_primer_df,plasmid_backbone_p_df,seq_altered_p_df,plasmid_sequencing_primer_df,genome_sequencing_primer_df = li
+        #给质粒骨架引物的id命名
+        plasmid_backbone_p_df['ID'] = 'plasmid'
+    elif len(li) == 8:
+        uha_primer_df,dha_primer_df,sgRNA_primer_df,ccdb_primer_df,seq_altered_p_df,sgRNA_plasmid_sequencing_primer_df,ccdb_plasmid_sequencing_primer_df,genome_sequencing_primer_df = li
 
-    #同源臂、sgRNA
 
-    #给质粒骨架引物的id命名
-    plasmid_backbone_p_df['ID'] = 'plasmid'
-    
+    #同源臂、sgRNA  
     u_primer = rename_primer_ID(uha_primer_df,in_col=['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE'],df_name='u',stype=1)
     d_primer = rename_primer_ID(dha_primer_df,in_col=['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE'],df_name='d',stype=1)
-    sgRNA_primer = rename_primer_ID(sgRNA_primer_df,in_col=['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE'],df_name='f',stype=1)
-    plasmid_backbone_primer = rename_primer_ID(plasmid_backbone_p_df,in_col=['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE'],df_name='b',stype=1)
     seq_altered_primer = rename_primer_ID(seq_altered_p_df,in_col=['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE'],df_name='s',stype=1)
-    
-    #质粒测序
-    plasmid_sequencing_primer_df_columns = [i for i in plasmid_sequencing_primer_df.columns if (i.split('_')[-1]).isdigit() ]
-    plasmid_sequencing_primer_df_columns.append('ID')
-    p_s_primer = rename_primer_ID(plasmid_sequencing_primer_df,in_col=plasmid_sequencing_primer_df_columns,df_name='p',stype=2)
+
     #基因组测序
     genome_sequencing_primer_df_columns = [i for i in genome_sequencing_primer_df.columns if (i.split('_')[-1]).isdigit() ]
     genome_sequencing_primer_df_columns.append('ID')
     g_s_primer = rename_primer_ID(genome_sequencing_primer_df, in_col=genome_sequencing_primer_df_columns, df_name='g', stype=2)
-    #合并引物
-    all_primer_df = pd.concat([u_primer,d_primer,sgRNA_primer,plasmid_backbone_primer,seq_altered_primer,p_s_primer,g_s_primer])
 
-    all_primer_df=all_primer_df.drop_duplicates(keep='first', subset=[0])
+
+    if len(li) == 7:
+        sgRNA_primer = rename_primer_ID(sgRNA_primer_df,in_col=['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE'],df_name='f',stype=1)
+        plasmid_backbone_primer = rename_primer_ID(plasmid_backbone_p_df,in_col=['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE'],df_name='b',stype=1)
+
+        #质粒测序
+        plasmid_sequencing_primer_df_columns = [i for i in plasmid_sequencing_primer_df.columns if (i.split('_')[-1]).isdigit() ]
+        plasmid_sequencing_primer_df_columns.append('ID')
+        p_s_primer = rename_primer_ID(plasmid_sequencing_primer_df,in_col=plasmid_sequencing_primer_df_columns,df_name='p',stype=2)
+
+        #合并引物
+        all_primer_df = pd.concat([u_primer,d_primer,sgRNA_primer,plasmid_backbone_primer,seq_altered_primer,p_s_primer,g_s_primer])
+    elif len(li)==8:
+        if len(sgRNA_primer_df.columns) < 4:
+            sgRNA_primer = rename_primer_ID(sgRNA_primer_df,in_col=['ID','Target sequence'],df_name='sgRNA',stype=1)
+        else:  
+            sgRNA_primer = rename_primer_ID(sgRNA_primer_df,in_col=['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE'],df_name='sgRNA',stype=1)
+
+        ccdb_primer = rename_primer_ID(ccdb_primer_df,in_col=['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE'],df_name='ccdb',stype=1)
+
+        #sgRNA质粒测序引物
+        sgRNA_plasmid_sequencing_primer_df_columns = [i for i in sgRNA_plasmid_sequencing_primer_df.columns if (i.split('_')[-1]).isdigit() ]
+        sgRNA_plasmid_sequencing_primer_df_columns.append('ID')
+        p1_s_primer = rename_primer_ID(sgRNA_plasmid_sequencing_primer_df, in_col=sgRNA_plasmid_sequencing_primer_df_columns, df_name='p1',stype=2)
+        #ccdb质粒测序引物
+        ccdb_plasmid_sequencing_primer_df_columns = [i for i in ccdb_plasmid_sequencing_primer_df.columns if (i.split('_')[-1]).isdigit() ]
+        ccdb_plasmid_sequencing_primer_df_columns.append('ID')
+        p2_s_primer = rename_primer_ID(ccdb_plasmid_sequencing_primer_df, in_col=ccdb_plasmid_sequencing_primer_df_columns, df_name='p2',stype=2)
+
+        #合并引物   
+        all_primer_df = pd.concat([u_primer,d_primer,sgRNA_primer,ccdb_primer,seq_altered_primer,p1_s_primer,p2_s_primer,g_s_primer])
+    
+    all_primer_df = all_primer_df.drop_duplicates(keep='first', subset=[0])
+    all_primer_df =  all_primer_df.dropna()
+      
     all_primer_df.index = [f'M{math.ceil(i/96)}|{v}' for i,v in zip(range(1,len(all_primer_df.index)+1),all_primer_df.index)]
 
     #排序

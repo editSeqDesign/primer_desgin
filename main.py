@@ -714,13 +714,27 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     #合并三个df 
     tsv_df = pd.merge(pcr_tsv_df,plasmid_seq_tsv_df,on='name',how='inner').merge(genome_seq_tsv_df,on='name',how='inner')
     tsv_df.to_csv(os.path.join(output,'one_plasmid_system_gb_visualization.tsv'), index=False, sep='\t') 
-    #-----------------------------------------------------------------------------------------------------------------------
+    #-----------------------------------------------------------------------------------------------------------------------   
 
-    #输出引物  
+    parent_output  = output
+    output = output+'/one_plasmid_system_result/'
+    if not exists(output):
+        os.makedirs(output)
+
     xlsx_file = os.path.join(
         output,
         'one_plasmid_design_result.xlsx'
     )
+    order_file = os.path.join(
+        output,
+        'one_plasmid_primer_order.xlsx'
+    )
+
+    #0：输出引物合成订单
+    unique_all_primer_df = order.merge_primer(uha_primer_df, dha_primer_df, n20up_primer_p_df, n20down_primer_p_df, seq_altered_p_df, plasmid_sequencing_primer_df, genome_sequencing_primer_df)
+    order.create_orders(unique_all_primer_df, orders_path = order_file)
+
+    #1：输出引物excel文件     
     with pd.ExcelWriter(xlsx_file) as writer:  
         uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
         dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
@@ -730,7 +744,11 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
         plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
         genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')
 
-    return xlsx_file                                                     
+    #输出一个zip文件夹
+
+    su.zip_ya(output, os.path.join(parent_output,'one_plasmid_system_result.zip'),num=0)
+
+    return os.path.join(parent_output,'one_plasmid_system_result.zip')                                              
 
 def execute_two_plasmid_system(
                                  method,
@@ -747,7 +765,7 @@ def execute_two_plasmid_system(
                                  sgRNA_primer_json,
                                  ccdb_primer_json,  
                                  sgRNA_region_seq_json,
-                                 ccdb_region_seq_json,
+                                 ccdb_region_seq_json,  
                                  ccdb_label,
                                  promoter_terminator_label,
                                  n_20_label,
@@ -893,25 +911,10 @@ def execute_two_plasmid_system(
     #提取变化序列引物
     seq_altered_p_df = seq_altered_primer_df[['Region',"primer_f_seq_(5'-3')_joint","primer_r_seq_(5'-3')_joint","product_value_joint","product_size_joint"]]
 
-    
-
- 
-
-    # if 'index' in sgRNA_plasmid_primer_df.columns and 'index' in ccdb_plasmid_primer_df.columns:
-       
-    #     sgRNA_plasmid_p_df = sgRNA_plasmid_primer_df
-    #     ccdb_plasmid_p_df = ccdb_plasmid_primer_df
-
     #提取引物的必要部分
     if method == 'PCR':
         sgRNA_plasmid_p_df = sgRNA_plasmid_primer_df[['Region',r"primer_f_seq_(5'-3')_joint",r"primer_r_seq_(5'-3')_joint","product_value_joint","product_size_joint"]]
     ccdb_plasmid_p_df = ccdb_plasmid_primer_df[['Region',r"primer_f_seq_(5'-3')_joint",r"primer_r_seq_(5'-3')_joint","product_value_joint","product_size_joint"]]
-
-    
-    # else:
-    #     if method =='PCR':
-    #         sgRNA_plasmid_p_df = sgRNA_plasmid_primer_df[['Region',"primer_f_seq_(5'-3')_joint","primer_r_seq_(5'-3')_joint","product_value_joint","product_size_joint"]]
-    #         ccdb_plasmid_p_df = ccdb_plasmid_primer_df[['Region',"primer_f_seq_(5'-3')_joint","primer_r_seq_(5'-3')_joint","product_value_joint","product_size_joint"]]
 
     #设计质粒测序引物
     sgRNA_plasmid_sequencing_primer_df,sgRNA_plasmid_sequencing_primer_template, ccdb_plasmid_sequencing_primer_df,ccdb_plasmid_sequencing_primer_template = two_plasmid_system_sequencing_design_primer(no_ccdb_uha_dha_sgRNA_df,no_sgRNA_uha_dha_ccdb_df)
@@ -970,10 +973,6 @@ def execute_two_plasmid_system(
         os.makedirs(gb_output)   
     ccdb_pcr_tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, ccdb_plasmid_p_df,joint_len, cut_seq_len, gb_output,type='ccdb')
 
-
-
-
-
     #---------------------plasmid-------SEQUENCING------------------------------------------------------------------------------------------------------------
     #为每个编辑区域创建gb文件
     gb_output = os.path.join(output,'two_plasmid_system_plasmid_sequencing_gb/')
@@ -1003,6 +1002,25 @@ def execute_two_plasmid_system(
     #-------------------------------------------------------------------------------------------------------------------------------------------
 
 
+
+
+    parent_output  = output
+    output = output+'/two_plasmid_system_result/'
+    if not exists(output):
+        os.makedirs(output)
+
+    #输出引物订单
+    order_file = os.path.join(
+        output,
+        'two_plasmid_primer_order.xlsx'
+    )
+    if method == "PCR":
+        unique_all_primer_df = order.merge_primer(uha_primer_df,dha_primer_df,sgRNA_plasmid_p_df,ccdb_plasmid_p_df,seq_altered_p_df,sgRNA_plasmid_sequencing_primer_df,ccdb_plasmid_sequencing_primer_df,genome_sequencing_primer_df)
+        order.create_orders(unique_all_primer_df, orders_path = order_file)
+    else:
+        unique_all_primer_df = order.merge_primer(uha_primer_df,dha_primer_df,enzymeCutSeq_and_N20_df,ccdb_plasmid_p_df,seq_altered_p_df,sgRNA_plasmid_sequencing_primer_df,ccdb_plasmid_sequencing_primer_df,genome_sequencing_primer_df)
+        order.create_orders(unique_all_primer_df, orders_path = order_file)
+
     #输出引物     
     xlsx_file = os.path.join(
         output,
@@ -1029,8 +1047,11 @@ def execute_two_plasmid_system(
             ccdb_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P2',index_label='No.')
             genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')
 
-    return xlsx_file
 
+    su.zip_ya(output, os.path.join(parent_output,'two_plasmid_system_result.zip'),num=0)
+
+    return os.path.join(parent_output,'two_plasmid_system_result.zip') 
+ 
   
 def read_chopchopInput_add_uha_dha(genome_path,chopchop_input,uha_dha_params):
     max_left_arm_seq_length = uha_dha_params['max_left_arm_seq_length']
@@ -1299,7 +1320,6 @@ def main(data):
                 raise ValueError(failture_seq_json)
 
   
-
     #genome
     genome_path = data['ref_genome'] 
 
@@ -1396,7 +1416,7 @@ def main(data):
         # 6.执行单质粒系统
         import time
         start_time = time.time()
-        plasmid_primer_desgin_type = 2
+        
         one_plasmid_output_path = execute_one_plasmid_system(   
                                                                 plasmid_primer_desgin_type,
                                                                 region_seq_json,
@@ -1456,7 +1476,6 @@ def main(data):
 
     elif plasmid_system_type == 0:
 
-         
         #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物
         if region_seq_json == {} and  primer_json == {}:
             plasmid_primer_desgin_type = 2
@@ -1670,7 +1689,7 @@ if __name__ == '__main__':
         "primer_json":{   
           
         },
-        "region_label":"cat",     
+        "region_label":"",     
 
         "sgRNA_primer_json":{
             
@@ -1690,16 +1709,16 @@ if __name__ == '__main__':
         },      
         
         "UHA_ARGS":{
-            "PRIMER_OPT_TM": 0,
-            "PRIMER_MIN_TM": 0,
-            "PRIMER_MAX_TM": 0,
+            "PRIMER_OPT_TM": 65,
+            "PRIMER_MIN_TM": 55,  
+            "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
             "PRIMER_MAX_GC": 80
         },
         "SEQ_ALTERED_ARGS":{
             "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,
-            "PRIMER_MAX_TM": 75,  
+            "PRIMER_MIN_TM": 55,  
+            "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
             "PRIMER_MAX_GC": 80
         },
@@ -1724,7 +1743,7 @@ if __name__ == '__main__':
             "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
             "PRIMER_MAX_GC": 80
-        },
+        },  
         "UP_SGRNA_ARGS": {
             "PRIMER_OPT_TM": "",
             "PRIMER_MIN_TM": "",  
@@ -1752,9 +1771,9 @@ if __name__ == '__main__':
         }      
     }
 
-    main(data1)     
+    main(data2)     
 
-
+  
 
 
           
