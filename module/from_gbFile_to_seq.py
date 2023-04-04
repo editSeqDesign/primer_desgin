@@ -48,7 +48,7 @@ def deal_coordinate(obt,start,end,opt=0):
 
 
 #顺时针为准(即坐标为准),不考虑引物方向
-def get_data_from_genebank(infile='icd-28a-new.gb',marker='KanR',target_gene='alsD-target gene'):
+def get_data_from_genebank(infile='icd-28a-new.gb',marker='KanR',target_gene='alsD-target gene',target_opt=0,marker_opt=0):
   
     genebank_db = SeqIO.read(infile, "genbank")    
 
@@ -113,23 +113,27 @@ def get_data_from_genebank(infile='icd-28a-new.gb',marker='KanR',target_gene='al
 
 
         if target_gene_start != -1 and target_gene_end !=-1:
-            #拿坐标                                          
+            #拿坐标
+            if target_opt != 0 :
+                target_opt = AMPLICONIC_GENE_TARGET_SEQ_LENGTH
             target_gene_coordinate = deal_coordinate(
                                                         'target_gene',
                                                         target_gene_start,
                                                         target_gene_end,
-                                                        opt=AMPLICONIC_GENE_TARGET_SEQ_LENGTH
+                                                        target_opt
                                                     )
             #取序列
             target_gene_seq = coordinate_2_seq(target_gene_coordinate,seq=genebank_db.seq)
 
         if marker_start != -1 and marker_end !=-1:
             #拿坐标
+            if marker_opt != 0:
+                marker_opt = AMPLICONIC_MARKER_SEQ_LENGTH
             marker_coordinate = deal_coordinate(
                                                     'marker',
                                                     marker_start,
                                                     marker_end,
-                                                    opt=AMPLICONIC_MARKER_SEQ_LENGTH
+                                                    marker_opt
                                             )
             #取序列
           
@@ -138,7 +142,7 @@ def get_data_from_genebank(infile='icd-28a-new.gb',marker='KanR',target_gene='al
         #针对目标序列在质粒上的分布情况，重新划分质粒
         #1.target_gene_seq在左，marker_seq在右    条件：
         if marker_coordinate[1] <= target_gene_coordinate[0] and marker_coordinate[0] < target_gene_coordinate[0]: 
-            print('kjfdhsgjkhd')   
+             
             marker_up_coordinate = deal_coordinate(
                                                         'marker_up_coordinate',
                                                         start,
@@ -215,23 +219,28 @@ def get_data_from_genebank(infile='icd-28a-new.gb',marker='KanR',target_gene='al
 
     elif tag == 1:                                                  #target_gene在零点处
         #处理gene目标
+        if target_opt != 0:
+            target_opt = AMPLICONIC_GENE_TARGET_SEQ_LENGTH
         target_gene1_coordinate = deal_coordinate(
                                                     'target_gene1',
                                                     target_gene1_start,
                                                     end,
-                                                    opt=AMPLICONIC_GENE_TARGET_SEQ_LENGTH
+                                                    opt=target_opt
                                                 )
         target_gene2_coordinate = deal_coordinate(
                                                     'target_gene2',
                                                     start,
                                                     target_gene2_end,
-                                                    opt=AMPLICONIC_GENE_TARGET_SEQ_LENGTH
+                                                    opt=target_opt
                                                 )
+        if marker_opt != 0:
+            marker_opt = AMPLICONIC_MARKER_SEQ_LENGTH
+
         marker_coordinate = deal_coordinate(
                                                 'marker',
                                                 marker_start,
                                                 marker_end,
-                                                opt=AMPLICONIC_MARKER_SEQ_LENGTH
+                                                opt=marker_opt
                                         )
          #取序列
         target_gene_seq = coordinate_2_seq(target_gene1_coordinate,seq=genebank_db.seq) + coordinate_2_seq(target_gene2_coordinate,seq=genebank_db.seq)
@@ -250,11 +259,16 @@ def get_data_from_genebank(infile='icd-28a-new.gb',marker='KanR',target_gene='al
     elif tag == 2:                                                  #marker在零点处
         #处理marker目标
         if marker1_end - marker1_start >= AMPLICONIC_MARKER_SEQ_LENGTH:
+
+
+            if marker_opt != 0:
+                marker_opt = AMPLICONIC_MARKER_SEQ_LENGTH
+
             marker_coordinate = deal_coordinate(
                                                 'marker',
                                                 marker1_start,
                                                 marker1_end,
-                                                opt= AMPLICONIC_MARKER_SEQ_LENGTH
+                                                opt= marker_opt
                                         )
             #取marker序列
             marker_seq = coordinate_2_seq(marker_coordinate,seq=genebank_db.seq)
@@ -263,18 +277,22 @@ def get_data_from_genebank(infile='icd-28a-new.gb',marker='KanR',target_gene='al
             target_gene_down_seq = coordinate_2_seq( (target_gene_coordinate[1], marker_coordinate[0]) ,seq=genebank_db.seq)
            
         else:
+
+            if marker_opt != 0:
+                marker_opt = AMPLICONIC_MARKER_SEQ_LENGTH
+
             marker1_coordinate = deal_coordinate(
                                                 'marker',   
                                                 marker1_start,
                                                 end,
-                                                opt=AMPLICONIC_MARKER_SEQ_LENGTH
+                                                opt=marker_opt
                                         )
 
             marker2_coordinate = deal_coordinate(
                                                 'marker',
                                                 marker2_start,
                                                 marker2_end,
-                                                opt= AMPLICONIC_MARKER_SEQ_LENGTH-(marker1_end-marker1_start)
+                                                opt= marker_opt-(marker1_end-marker1_start)
                                         ) 
             #取marker序列
             marker_seq = coordinate_2_seq(marker1_coordinate,seq=genebank_db.seq) + coordinate_2_seq(marker2_coordinate,seq=genebank_db.seq)

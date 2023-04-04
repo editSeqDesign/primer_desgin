@@ -295,11 +295,11 @@ def get_plasmid_backbone_by_labels(gb_path, ccdb_label='ccdB', promoter_terminat
 
     if ccdb_coordinate[0] !=-1 and promoter_terminator_coordinate[0] != -1:
         before_processed_seq_dict, after_processed_seq_dict = fq.get_data_from_genebank(gb_path,marker=ccdb_label, target_gene=n_20_label)
-
+       
         # ccdb = before_processed_seq_dict['marker_seq']
-        n_20 = before_processed_seq_dict['target_gene_seq']
-        n20_up_seq = before_processed_seq_dict['target_gene_up_seq']
-        n20_down_seq = before_processed_seq_dict['target_gene_down_seq']
+        n_20 = after_processed_seq_dict['target_gene_seq']
+        n20_up_seq = after_processed_seq_dict['target_gene_up_seq']    
+        n20_down_seq = after_processed_seq_dict['target_gene_down_seq']
              
         plasmid_backbone = n20_down_seq
     
@@ -679,6 +679,7 @@ def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_termin
     elif stype == 'u_d_primer_joint':
         # sgRNA_primer_df = sgRNA_primer_df.groupby(by=['Name','Region'])
         # sgRNA_primer_df = su.lambda2cols(sgRNA_primer_df,work,["primer_f_seq_(5'-3')","primer_r_seq_(5'-3')","product_value","Type","product_value"],["primer_f_seq_(5'-3')_joint","primer_r_seq_(5'-3')_joint","product_value_joint","product_size_joint"])
+        
         aa = sgRNA_primer_df.groupby(by=['Name','Region']).apply(lambda x:u_d_primer_joint(x))
         aa.index = sgRNA_primer_df.index
         sgRNA_primer_df = pd.merge(aa,sgRNA_primer_df)

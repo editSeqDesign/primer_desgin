@@ -7,21 +7,21 @@ SOURCE      .
   ORGANISM  .
             .
 FEATURES             Location/Qualifiers
-     primer_bind     join(12914..12934,1..24)
+     primer_bind     join(12920..12934,1..24)
                      /note="UHA_PRIMER_LEFT_WHOLE_SEQUENCE"
      cds             1..1024
                      /note="UHA"
-     primer_bind     complement(1000..1044)
+     primer_bind     complement(1000..1038)
                      /note="UHA_PRIMER_RIGHT_WHOLE_SEQUENCE"
-     primer_bind     1007..1047
+     primer_bind     1013..1047
                      /note="DHA_PRIMER_LEFT_WHOLE_SEQUENCE"
      cds             1028..2052
                      /note="DHA"
-     primer_bind     complement(2010..2048)
+     primer_bind     complement(2016..2048)
                      /note="DHA_PRIMER_RIGHT_WHOLE_SEQUENCE"
-     primer_bind     2036..2073
+     primer_bind     2042..2073
                      /note="0_PRIMER_LEFT_WHOLE_SEQUENCE"
-     primer_bind     complement(join(12910..12934,1..17))
+     primer_bind     complement(join(12910..12934,1..11))
                      /note="0_PRIMER_RIGHT_WHOLE_SEQUENCE"
 ORIGIN
         1 gcaggacaat agcgttaccc tggtcagcga cacgacgagt gagctcagac ctgaaaaggt

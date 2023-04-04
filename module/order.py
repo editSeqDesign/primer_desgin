@@ -56,7 +56,7 @@ def set_merge_style(workbook, tag):
     return cell_format   
 
 # 输出引物订单
-def create_orders(primer_orders_df,orders_path=config.OUTPUT_FILE_PATH+config.OUTPUT_ORDERS_NAME,):
+def create_orders(primer_orders_df,orders_path=config.OUTPUT_FILE_PATH+config.OUTPUT_ORDERS_NAME):
     workbook = xlsxwriter.Workbook(orders_path)
     worksheet=workbook.add_worksheet('常规引物合')
     #设置行高
