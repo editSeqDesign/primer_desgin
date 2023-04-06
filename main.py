@@ -19,8 +19,6 @@ from sgRNA_utils.sgRNA_primer_config import config
 from os.path import exists,splitext,dirname,splitext,basename,realpath,abspath
 # from loguru import logger
 
-
-
 #uha_dha_primer
 def extract_uha_dha_primer(info_input_df, sgRNA):
 
@@ -316,7 +314,6 @@ def two_plasmid_system_design_by_user_region(
         ccdb_plasmid_primer_df = two_plasmid_system_design_by_ccdb_no_user(ccdB_plasmid_backbone,enzyme_df,enzyme_name)
 
     return  sgRNA_plasmid_primer_df, ccdb_plasmid_primer_df   
-
 
 def two_plasmid_system_design_by_ccdb_no_user(ccdB_plasmid_backbone,enzyme_df,enzyme_name):
         
@@ -743,6 +740,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
 
     #复制one_plasmid_system_pcr_gb到one_plasmid_system_result中
     os.system(f"cp -r {os.path.join(parent_output,'one_plasmid_system_pcr_gb')} {output}")
+    os.system(f"cp -r {os.path.join(parent_output,'blast/Evaluation_result.txt')} {output}")  
     #输出一个zip文件夹     
     su.zip_ya(output, os.path.join(parent_output,'one_plasmid_system_result.zip'),num=0)
 
@@ -1048,11 +1046,11 @@ def execute_two_plasmid_system(
 
     #复制one_plasmid_system_pcr_gb到one_plasmid_system_result中
     os.system(f"cp -r {os.path.join(parent_output,'two_plasmid_system_pcr_gb')} {output}")
+    os.system(f"cp -r {os.path.join(parent_output,'blast/Evaluation_result.txt')} {output}")
 
     su.zip_ya(output, os.path.join(parent_output,'two_plasmid_system_result.zip'),num=0)
 
     return os.path.join(parent_output,'two_plasmid_system_result.zip') 
- 
   
 def read_chopchopInput_add_uha_dha(genome_path,chopchop_input,uha_dha_params):
     max_left_arm_seq_length = uha_dha_params['max_left_arm_seq_length']
@@ -1154,7 +1152,6 @@ def check_plasmid(gb_path, ccdb_label='', promoter_terminator_label='', n_20_lab
     else:
         raise ValueError('The plasmid you uploaded does not contain the necessary tags')
 
-
 def check_enzyme(enzyme,enzyme_df):
     name = enzyme['enzyme_name']
     gap_seq = enzyme['gap_sequence']
@@ -1180,7 +1177,38 @@ def check_enzyme(enzyme,enzyme_df):
         enzyme_df['gap_len'] = len(gap_seq)
         enzyme_df['gap_seq'] = gap_seq   
         return enzyme_df
-      
+
+
+def blastEvaluate_uha_dha_in_genome(genome, uha_dha_df, workdir, id, name1, name2, name):
+
+    # run blast   
+    workdir = workdir + '/blast/'
+  
+    if not os.path.exists(workdir):
+        os.makedirs(workdir)
+
+    blast_input_file_path = workdir+'/blast.fasta'
+    blast_output_file_path= workdir+'/blast_output.txt'
+    
+    #convert df  
+    df = su.convert_twoColumns_to_oneColumns(uha_dha_df, id=id, name1=name1, name2=name2, name=name)
+    
+    #create fasta
+    su.convert_df_to_fastaFile(df, id, name, blast_input_file_path)  
+    
+    #run blast
+    su.blast_ha(genome,blast_input_file_path, blast_output_file_path)
+
+    su.blast_output_evaluate(workdir, blast_input = blast_input_file_path, blast_output= blast_output_file_path)
+
+
+
+
+
+
+
+
+
 def main(data):
       
     chopchop_input = data['chopchop_input']
@@ -1387,8 +1415,12 @@ def main(data):
 
     # 9.提取同源臂
     uha_dha_info_primer_df, uha_dha_df, uha_dha_sgRNA_df, info_df = extract_uha_dha(info_input_df, uha_dha_primer_df, sgRNA)
-  
-    #10.判断质粒的执行类型    
+
+
+    # 10.对同源臂在基因组上进行序列比对
+    blastEvaluate_uha_dha_in_genome(genome_path, uha_dha_df, workdir=output, id='Name',name1='UHA',name2='DHA',name='seq')
+    
+    # 11.判断质粒的执行类型    
     if  one_plasmid_file_path != '' and no_ccdb_plasmid == '' and no_sgRNA_plasmid == '':
         plasmid_system_type = 1
     elif  one_plasmid_file_path =='' and no_ccdb_plasmid != '' and no_sgRNA_plasmid != '':
@@ -1540,8 +1572,6 @@ def main(data):
                                     )
         
     return one_plasmid_output_path, two_plasmid_output_path
-
-
 
 if __name__ == '__main__':
 

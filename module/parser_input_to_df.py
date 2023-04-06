@@ -176,7 +176,7 @@ def blast_search(input_file_path,genome,workdir):
 
     """
     blast_output_file_path=os.path.join(workdir,'blast_search.txt')
-    ref_lib=genome.split('/')[-1].split('.')[0]
+    ref_lib = genome.split('/')[-1].split('.')[0]
     input_fasta = os.path.join(workdir,'blast.fasta')
     fasta_length_dict = {}
     my_records = []

@@ -620,8 +620,6 @@ import zipfile
 import os
 def zip_ya(startdir, file_news,num=1):
 
-    
-
     z = zipfile.ZipFile(file_news, 'a', zipfile.ZIP_DEFLATED)
     for dirpath, dirnames, filenames in os.walk(startdir):
         fpath = dirpath.replace(startdir, '')  # 这一句很重要，不replace的话，就从根目录开始复制
@@ -633,3 +631,98 @@ def zip_ya(startdir, file_news,num=1):
             else:
                 fpath=startdir.split('/')[-2]+'/'
                 z.write(os.path.join(dirpath, filename), fpath + filename,zipfile.ZIP_DEFLATED)
+
+
+#
+def convert_twoColumns_to_oneColumns(df,id,name1,name2,name):
+    
+    temp1 = df[[id,name1]].rename(columns={name1:name})
+    temp1[id] = temp1[id] + f';{name1}'
+    temp2 = df[[id,name2]].rename(columns={name2:name})
+    temp2[id] = temp2[id] + f';{name2}'
+    temp = temp1.append(temp2)
+    
+    return temp   
+
+
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+
+def convert_df_to_fastaFile(df,id,name,input_fasta):
+      
+    my_records = []
+    fasta_length_dict = {}
+    for i,row in df.iterrows():
+        seqid = row[id]
+        seq = row[name]
+        rec = SeqRecord(Seq(seq),id=seqid)
+        fasta_length_dict[seqid] = len(seq)
+        my_records.append(rec)
+    SeqIO.write(my_records, input_fasta, "fasta")
+
+    return fasta_length_dict
+
+
+
+
+
+#Map the target sequence to the reference genome by Blast
+def blast_ha(ref_genome, blast_input_file_path, blast_output_file_path):  
+
+    ref_lib=ref_genome.split('/')[-1].split('.')[0]
+    seq_length=0
+    with open(blast_input_file_path,'r') as ifile:
+        for line in ifile:
+            if not line[0]=='>':
+                seq_length += len(line)-1
+                break
+    if seq_length > 550:
+        evalue='300'
+    else:
+        evalue=str(int((seq_length*0.5521-7.5856)*0.8))
+    os.system("makeblastdb -in "+ref_genome+" -dbtype nucl -parse_seqids -out "+ref_lib)
+    os.system("blastn -query "+blast_input_file_path+" -db "+ref_lib+" -outfmt 6 -out "+blast_output_file_path+" -evalue 1e-"+evalue+" -max_target_seqs 5 -num_threads 4")
+
+
+
+
+#Evaluate the feasibility of design with the mapping of the homologous arm to the reference genome
+def blast_output_evaluate(workdir, blast_input, blast_output):   
+    evaluate_output_file_path=workdir+'/Evaluation_result.txt'
+
+    with open(evaluate_output_file_path,'w') as evaluate_output:
+        evaluate_output.write("ID\tWarning\n")
+        dict_evaluate_output={}
+
+        with open(blast_output,'r') as evaluate_input:
+            dict_result_id = {}
+            for line_result in evaluate_input:
+                result_id=line_result.split('\t')[0]
+                dict_result_id[result_id] = dict_result_id.get(result_id,0) + 1
+            list_result_id_unmap=[]
+            with open(blast_input,'r') as blast_input:
+                for lines in blast_input:
+                    if lines[0] =='>':
+                        
+                        blast_input_id=lines[1:-1]
+                        blast_input_id = blast_input_id.split(' ')[0]
+                        if blast_input_id in dict_result_id:
+                            if dict_result_id[blast_input_id]>1:
+                                evaluate_output.write(blast_input_id+'\t'+'The target sequence can map to multiple positions in the reference genome. The genome editing may be mislocated.'+'\n')
+                            else:
+                                continue
+                        else:
+                            if blast_input_id in list_result_id_unmap:
+                                continue
+                            else:
+                                evaluate_output.write(blast_input_id+'\t'+'The target sequence can not map to the reference genome. Please check them.'+'\n')
+                                list_result_id_unmap.append(blast_input_id)
+        for key3 in dict_evaluate_output:
+            evaluate_output.write(key3+'\t'+dict_evaluate_output[key3]+'\n')
+    evaluate_output_dir=evaluate_output_file_path.replace('.txt','.xlsx')
+    pd.read_table(evaluate_output_file_path, index_col=0).to_excel(evaluate_output_dir)
+
+
+
+
+
