@@ -13,12 +13,16 @@ FEATURES             Location/Qualifiers
                      /note="DHA"
      primer_bind     20..41
                      /note="SEQUENCING_PRIMER_1"
+                     /primer="GGGAAGAGTTCTCCGAGTGGGG"
      primer_bind     complement(2283..2306)
                      /note="SEQUENCING_PRIMER_2"
+                     /primer="TGCGCATTCTTGATTACATCCCGC"
      primer_bind     616..637
                      /note="SEQUENCING_PRIMER_3"
+                     /primer="ACCCGTTCCCAGGACAACTTCC"
      primer_bind     1651..1670
                      /note="SEQUENCING_PRIMER_4"
+                     /primer="TCGCAACAACCCGGATCGCT"
 ORIGIN
         1 gatcgtggcc cagagtcatg ggaagagttc tccgagtggg gtccaaagct gcaggaagcg
        61 atggacagtg gtttcgcaca cggttgggga gatgcaacca actacctttc ttggactttc

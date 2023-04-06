@@ -616,10 +616,12 @@ def is_dna(sequence):
 
 
 # #打包文件为zip
-
-import zipfile
+import zipfile 
 import os
 def zip_ya(startdir, file_news,num=1):
+
+    
+
     z = zipfile.ZipFile(file_news, 'a', zipfile.ZIP_DEFLATED)
     for dirpath, dirnames, filenames in os.walk(startdir):
         fpath = dirpath.replace(startdir, '')  # 这一句很重要，不replace的话，就从根目录开始复制

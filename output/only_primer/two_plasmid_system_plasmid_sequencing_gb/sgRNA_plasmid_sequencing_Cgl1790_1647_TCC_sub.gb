@@ -11,6 +11,7 @@ FEATURES             Location/Qualifiers
                      /note="PROMOTER_N20_TERMINATOR"
      primer_bind     8544..8563
                      /note="SEQUENCING_PRIMER_1"
+                     /primer="TATGGTCAATGTCGCGGGGG"
 ORIGIN
         1 aattaagctt aaaggagttg agaatggata agaaatactc aataggctta gatatcggca
        61 caaatagcgt cggatgggcg gtgatcactg atgaatataa ggttccgtct aaaaagttca

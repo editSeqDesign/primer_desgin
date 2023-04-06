@@ -15,20 +15,28 @@ FEATURES             Location/Qualifiers
                      /note="PROMOTER_N20_TERMINATOR"
      primer_bind     14968..14987
                      /note="SEQUENCING_PRIMER_1"
+                     /primer="TTGCTCACCCAGAAACGCTG"
      primer_bind     complement(3809..3828)
                      /note="SEQUENCING_PRIMER_2"
+                     /primer="GAGCTGATACCGCTCGCCGC"
      primer_bind     501..520
                      /note="SEQUENCING_PRIMER_3"
+                     /primer="CACGAACCGAGCGACACCCT"
      primer_bind     1101..1120
                      /note="SEQUENCING_PRIMER_4"
+                     /primer="tgaaagacgttacgatcgcc"
      primer_bind     1699..1718
                      /note="SEQUENCING_PRIMER_5"
+                     /primer="cgcgcgtgactggttcctga"
      primer_bind     2293..2316
                      /note="SEQUENCING_PRIMER_6"
+                     /primer="actgctgtctaacttcttcgccca"
      primer_bind     2897..2916
                      /note="SEQUENCING_PRIMER_7"
+                     /primer="AGGGGTAAGTTCCTCCGCCA"
      primer_bind     7208..7227
                      /note="SEQUENCING_PRIMER_8"
+                     /primer="TATGGTCAATGTCGCGGGGG"
 ORIGIN
         1 aacccaaacc ctgcccgaag gaactcaacg cagaagcacc agcactagtt tcagcacgaa
        61 tattaatgag cgtcaacgcc atcgggaacg caaggggacc aagaccagac aacgtcgccc

@@ -9,9 +9,8 @@ SOURCE      .
 FEATURES             Location/Qualifiers
      cds             8644..9107
                      /note="PROMOTER_N20_TERMINATOR"
-     primer_bind     8544..8563
-                     /note="SEQUENCING_PRIMER_1"
-                     /primer="TATGGTCAATGTCGCGGGGG"
+     cds             8697..8716
+                     /note="N20"
 ORIGIN
         1 aattaagctt aaaggagttg agaatggata agaaatactc aataggctta gatatcggca
        61 caaatagcgt cggatgggcg gtgatcactg atgaatataa ggttccgtct aaaaagttca
@@ -157,8 +156,8 @@ ORIGIN
      8461 ggtgttcgcg ggtaatgagc agactattct tcgcacccac taaaagcggc ataaaccccg
      8521 ttcgatattt tgtgcgatga atttatggtc aatgtcgcgg gggcaaacta tgatgggtct
      8581 tgttgttggc gtcccggaaa acgattccga agcccaacct ttcatagaag gcggcggtgg
-     8641 aatttttctc cacataagct ggcaatgttg cgacgcaaca ggtacagtgt aattcagctt
-     8701 cccaggttac gcgcaggttt tagagctaga aatagcaagt taaaataagg ctagtccgtt
+     8641 aatttttctc cacataagct ggcaatgttg cgacgcaaca ggtacagtgt aattcagctg
+     8701 gcggattaac acaccggttt tagagctaga aatagcaagt taaaataagg ctagtccgtt
      8761 atcaacttga aaaagtggca ccgagtcggt gctttttttc caggcatcaa ataaaacgaa
      8821 aggctcagtc gaaagactgg gcctttcgtt ttatctgttg tttgtcggtg aacgctctcc
      8881 tgagtaggac aaatccgccg ggagcggatt tgaacgttgc gaagcaacgg cccggagggt

@@ -1071,18 +1071,18 @@ def create_gb_file(plasmid,primer_cor_dict):
                     start = plasmid_len - abs(start)
                     print('oooooooooooooooooooooo',start,end)
                     locations = [FeatureLocation(start, plasmid_len,+1), FeatureLocation(0, end,+1)]
-                    temp_feature =  SeqFeature(CompoundLocation(locations), type='primer_bind',strand=+1,qualifiers={"note":k})
+                    temp_feature =  SeqFeature(CompoundLocation(locations), type='primer_bind',strand=+1,qualifiers={"note":k,"primer": f"{seq}"})
                 else:
-                    temp_feature = SeqFeature(FeatureLocation(start, end), type="primer_bind",strand=+1,qualifiers={"note":k})
+                    temp_feature = SeqFeature(FeatureLocation(start, end), type="primer_bind",strand=+1,qualifiers={"note":k,"primer": f"{seq}"})
                 record.features.append(temp_feature)
             elif 'RIGHT' in k:
                 if end > plasmid_len:
                     end = end - plasmid_len
                     print('ppppppppppppp',start,end)
                     locations = [FeatureLocation(0, end,-1), FeatureLocation(start, plasmid_len,-1)]
-                    temp_feature = SeqFeature(CompoundLocation(locations), type='primer_bind',strand=-1,qualifiers={"note":k})
+                    temp_feature = SeqFeature(CompoundLocation(locations), type='primer_bind',strand=-1,qualifiers={"note":k,"primer": f"{seq}"})
                 else:
-                    temp_feature = SeqFeature(FeatureLocation(start, end), type="primer_bind",strand=-1,qualifiers={"note":k})
+                    temp_feature = SeqFeature(FeatureLocation(start, end), type="primer_bind",strand=-1,qualifiers={"note":k,"primer": f"{seq}"})
             
                 li_feature.append(temp_feature)
                 record.features.append(temp_feature)
@@ -1092,11 +1092,14 @@ def create_gb_file(plasmid,primer_cor_dict):
                 if 'SEQUENCING_PRIMER_2' == k or 'right' in k:
                     if 'right' in k:
                         k, right = k.split(';')
-                    temp_feature = SeqFeature(FeatureLocation(start, end), type="primer_bind",strand=-1,qualifiers={"note":k})
+                    temp_feature = SeqFeature(FeatureLocation(start, end), type="primer_bind",strand=-1,qualifiers={"note":k,"primer": f"{seq}"})
                 else:
-                    temp_feature = SeqFeature(FeatureLocation(start, end), type="primer_bind",strand=+1,qualifiers={"note":k})
+                    temp_feature = SeqFeature(FeatureLocation(start, end), type="primer_bind",strand=+1,qualifiers={"note":k,"primer": f"{seq}"})
                 li_feature.append(temp_feature)
                 record.features.append(temp_feature)
+
+
+
             elif 'UHA' in k:
                 temp_feature = SeqFeature(FeatureLocation(start, end), type="cds",strand=+1,qualifiers={"note":k})
                 li_feature.append(temp_feature)
@@ -1125,7 +1128,7 @@ def create_gb_file(plasmid,primer_cor_dict):
 #     SeqIO.write(record, "my_seq.gb", "genbank")
     return record
 
-
+   
 def add_sequencing_primer_to_gb(plasmid_sequencing_primer_df,temp_dict):
     plasmid = temp_dict.get('PLASMID')
     id = temp_dict.get('ID')
@@ -1252,7 +1255,7 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
             gb_record = create_gb_file(plasmid,primer_cor_dict)
             name=v['ID'].split(';')[0]
 
-            type = 'sgRNA'
+            type = 'sgRNA' 
             su.write_gb(gb_record, output_path = output, gb_name=type+'_'+name, gb_type='genbank')
 
             temp = pd.DataFrame(columns=['name',type+'_gb'],data=[[name, type+'_'+name+ '.gb']])
