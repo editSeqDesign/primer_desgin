@@ -107,10 +107,15 @@ def one_plasmid_system_pcr_design_primer(gb_path,
                                          enzyme_df,
                                          enzyme_name,
                                          plasmid_primer_desgin_type,
-                                         seq_json):
+                                         seq_json,
+                                         ccdb_label,
+                                         promoter_terminator_label,
+                                         n_20_label):
     
-    #创建新的质粒   
-    uha_dha_sgRNA_df, promoter_terminator_up_promoter_seq, promoter_terminator_down_terminator_seq, type_kind  = p_d_seq.create_new_plasmid(gb_path, uha_dha_sgRNA_df.copy(), ccdb_label='ccdB', promoter_terminator_label='gRNA', n_20_label='N20')
+    #创建新的质粒      
+    uha_dha_sgRNA_df,promoter_seq, promoter_terminator_up_promoter_seq, promoter_terminator_down_terminator_seq, type_kind  = p_d_seq.create_new_plasmid(gb_path, uha_dha_sgRNA_df.copy(), ccdb_label, promoter_terminator_label, n_20_label)
+    uha_dha_sgRNA_df['promoter_seq'] = promoter_seq
+
 
     #设计sgRNA、ccdb质粒引物
     n20up_primer_template = uha_dha_sgRNA_df[['Name','Region','n20_up_template','Target sequence','Rev Target sequence']]
@@ -140,15 +145,18 @@ def one_plasmid_system_pcr_design_primer(gb_path,
         n20down_primer_df = one_plasmid_system_design_by_user_primer(seq_json,primer_position_json,gb_path,plasmid_backbone,enzyme_df,enzyme_name)
 
 
-    seq_altered_primer_template = info_df[info_df.seq_altered.apply(lambda x:len(x)>120)][['Name','Region','seq_altered']]
-    seq_altered_primer_template['Region'] = seq_altered_primer_template['Name'] +';'+ seq_altered_primer_template['Region']
-    seq_altered_primer_df = p_d_seq.design_primer(seq_altered_primer_template,'Region','seq_altered',stype='seq_altered')
-
-    #给同源臂引物加接头:uha取promoter_terminator_down_terminator_seq尾部反义4bp，dha取头promoter_terminator_up_promoter_seq正义4bp
+     #给同源臂引物加接头:uha取promoter_terminator_down_terminator_seq尾部反义4bp，dha取头promoter_terminator_up_promoter_seq正义4bp
     uha_dha_primer_df = p_d_seq.add_joint_sgRNA_primer(uha_dha_info_primer_df,enzyme_df,enzyme_name,promoter_terminator_down_terminator_seq, promoter_terminator_up_promoter_seq, stype = 'u_d_primer_joint')
 
-    #seq_altered_primer加接头
-    seq_altered_primer_df = p_d_seq.add_joint_sgRNA_primer(seq_altered_primer_df,enzyme_df,enzyme_name,'',stype='seq_altered_primer_joint')
+    seq_altered_primer_template = info_df[info_df.seq_altered.apply(lambda x:len(x)>120)][['Name','Region','seq_altered']]
+
+    if len(seq_altered_primer_template)>0:
+        seq_altered_primer_template['Region'] = seq_altered_primer_template['Name'] +';'+ seq_altered_primer_template['Region']
+        seq_altered_primer_df = p_d_seq.design_primer(seq_altered_primer_template,'Region','seq_altered',stype='seq_altered')
+        #seq_altered_primer加接头
+        seq_altered_primer_df = p_d_seq.add_joint_sgRNA_primer(seq_altered_primer_df,enzyme_df,enzyme_name,'',stype='seq_altered_primer_joint')
+    else:
+        seq_altered_primer_df = pd.DataFrame()
 
     #分别提取，修饰后的uha、dha引物
     in_col = ['Name','Region',"primer_f_seq_(5'-3')_joint","primer_r_seq_(5'-3')_joint",'product_value_joint','product_size_joint']
@@ -157,9 +165,11 @@ def one_plasmid_system_pcr_design_primer(gb_path,
 
     n20down_primer_p_df = n20down_primer_df[["Region","primer_f_seq_(5'-3')_joint","primer_r_seq_(5'-3')_joint",'product_value_joint','product_size_joint']]
     n20up_primer_p_df = n20up_primer_df[["Region","primer_f_seq_(5'-3')_joint","primer_r_seq_(5'-3')_joint",'product_value_joint','product_size_joint']]
-    seq_altered_primer_df = seq_altered_primer_df[["Region","primer_f_seq_(5'-3')_joint","primer_r_seq_(5'-3')_joint",'product_value_joint','product_size_joint']]
 
-    return uha_dha_sgRNA_df,uha_primer_df, dha_primer_df, n20down_primer_p_df, n20up_primer_p_df, seq_altered_primer_df,type_kind  
+    if len(seq_altered_primer_df)>0:
+        seq_altered_primer_df = seq_altered_primer_df[["Region","primer_f_seq_(5'-3')_joint","primer_r_seq_(5'-3')_joint",'product_value_joint','product_size_joint']]
+
+    return uha_dha_sgRNA_df, uha_primer_df, dha_primer_df, n20down_primer_p_df, n20up_primer_p_df, seq_altered_primer_df, type_kind     
 
 #one plasmid sequencing primer  
 def one_plasmid_system_sequencing_design_primer(type_kind,uha_dha_sgRNA_df):
@@ -583,14 +593,30 @@ def genome_sequencing_design_primer(info_input_df, uha_dha_df):
     #编辑基因组测序
     info_input_df1 = info_input_df[['name','region','seq_uha_max_whole','seq_dha_max_whole','uha_upstream','dha_downstream']].rename(columns={'name':'Name','region':'Region'})
     UHA_DHA_df = pd.merge(info_input_df1,uha_dha_df)
-    UHA_DHA_df['sequencing_template'] = UHA_DHA_df['uha_upstream'] + UHA_DHA_df['seq_uha_max_whole']+UHA_DHA_df['seq_altered']+UHA_DHA_df['seq_dha_max_whole'] + UHA_DHA_df['dha_downstream'] 
-    UHA_DHA_df['sequencing_region'] = UHA_DHA_df['UHA']+UHA_DHA_df['seq_altered']+UHA_DHA_df['DHA']
+    def work1(uha_upstream, seq_uha_max_whole, seq_altered, seq_dha_max_whole, dha_downstream):
+        if seq_altered !='-':
+            sequencing_template = uha_upstream + seq_uha_max_whole + seq_altered + seq_dha_max_whole + dha_downstream
+        else:
+            sequencing_template = uha_upstream + seq_uha_max_whole  + seq_dha_max_whole + dha_downstream
+        return sequencing_template
+    UHA_DHA_df['sequencing_template'] = UHA_DHA_df.apply(lambda x: work1(x['uha_upstream'], x['seq_uha_max_whole'], x['seq_altered'], x['seq_dha_max_whole'], x['dha_downstream']), axis=1)
+    def work2(UHA, seq_altered, DHA):
+        if seq_altered != '-':
+            sequencing_region = UHA + seq_altered + DHA
+        else:
+            sequencing_region = UHA + DHA
+        return sequencing_region
+    UHA_DHA_df['sequencing_region'] = UHA_DHA_df.apply(lambda x: work2(x['UHA'], x['seq_altered'], x['DHA']), axis=1)
+    ###
     UHA_DHA_df['Region'] =  UHA_DHA_df['Name']+';'+UHA_DHA_df['Region']
     genome_sequencing_primer_df = p_d_seq.create_sequencing_primer(UHA_DHA_df,sr,'sequencing_template','sequencing_region',seq_type='genome_seq')
     #测序模板
     genome_sequencing_template = UHA_DHA_df[['Region','sequencing_template','UHA','seq_altered','DHA']]
 
     return genome_sequencing_primer_df, genome_sequencing_template
+
+
+
 
 #     
 def execute_one_plasmid_system(plasmid_primer_desgin_type,
@@ -605,7 +631,10 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                 uha_dha_primer_df,
                                 enzyme_df,  
                                 enzyme_name,
-                                output
+                                output,
+                                ccdb_label,
+                                promoter_terminator_label,
+                                n_20_label
                                 ):
     gb = SeqIO.read(gb_path, "genbank")
     gb_name = gb.name
@@ -622,8 +651,12 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                                                                                                                         enzyme_df,
                                                                                                                                         enzyme_name,
                                                                                                                                         plasmid_primer_desgin_type,
-                                                                                                                                        sgRNA_region_seq_json
+                                                                                                                                        sgRNA_region_seq_json,
+                                                                                                                                        ccdb_label,
+                                                                                                                                        promoter_terminator_label,
+                                                                                                                                        n_20_label
                                                                                                                                         )
+
         #修改 n20down_primer_p_df
         temp = n20down_primer_p_df.loc[:0]  
         temp.loc[0,'Region'] = 1
@@ -658,28 +691,33 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
 
     #设计质粒测序引物
     plasmid_sequencing_primer_df, sequencing_primer_template = one_plasmid_system_sequencing_design_primer(type_kind,uha_dha_sgRNA_df)
-
- 
+    
     #设计基因组测序引物
     genome_sequencing_primer_df, genome_sequencing_template = genome_sequencing_design_primer(info_input_df, uha_dha_df)
 
-    #标准化，重命名   
-    df_common_list = su.rename_common_primer_df(n20up_primer_p_df, n20down_primer_p_df, seq_altered_p_df)
-    n20up_primer_p_df, n20down_primer_p_df, seq_altered_p_df = df_common_list[0], df_common_list[1], df_common_list[2]
+    #标准化，重命名
+    if len(seq_altered_p_df)>0:
+        df_common_list = su.rename_common_primer_df(n20up_primer_p_df, n20down_primer_p_df, seq_altered_p_df)
+        n20up_primer_p_df, n20down_primer_p_df, seq_altered_p_df = df_common_list[0], df_common_list[1], df_common_list[2]
+        
+    else:
+        df_common_list = su.rename_common_primer_df(n20up_primer_p_df, n20down_primer_p_df)
+        n20up_primer_p_df, n20down_primer_p_df = df_common_list[0], df_common_list[1]
+    
     uha_primer_df, dha_primer_df = su.rename_u_d_primer_df(uha_primer_df, dha_primer_df)
     df_sequencing_list = su.rename_sequencing_primer_df(plasmid_sequencing_primer_df, genome_sequencing_primer_df)
     plasmid_sequencing_primer_df, genome_sequencing_primer_df = df_sequencing_list[0], df_sequencing_list[1]
 
 
-
     #----------------------------生成gb文件用于可视化展示-------------------------------------------------------------------
+
     plasmid_primer_featrue_df = su.create_plasmid_primer_featrue_df(sequencing_primer_template,
                                                                  uha_primer_df,
                                                                  seq_altered_p_df,
                                                                  dha_primer_df,   
                                                                  n20up_primer_p_df)
     plasmid_primer_featrue_df = plasmid_primer_featrue_df.fillna('')
-    joint_len, cut_seq_len = su.get_joint_by_enzyme(enzyme_df,enzyme_name)
+    joint_len, cut_seq_len = su.get_joint_by_enzyme(enzyme_df, enzyme_name)
 
     #为每个编辑区域创建gb文件
     pcr_gb_output = os.path.join(output,'one_plasmid_system_pcr_gb/')
@@ -688,7 +726,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     pcr_tsv_df = p_d_seq.create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_len, cut_seq_len, pcr_gb_output, type='sgRNA_ccdb')
 
 
-    #质粒测序引物模板  
+    #质粒测序引物模板
     plasmid_sequencing_template = sequencing_primer_template
     plasmid_sequencing_template.rename(columns={'Region':'ID','plasmid':'PLASMID','seq_altered':"SEQ_ALTERED",'promoter_N20_terminator':'PROMOTER_N20_TERMINATOR'},inplace=True)
     plasmid_seq_gb_output = os.path.join(output,'one_plasmid_system_plasmid_sequencing_gb/')
@@ -702,12 +740,14 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     if not exists(genome_seq_gb_output):
         os.makedirs(genome_seq_gb_output)
 
-    genome_seq_tsv_df = p_d_seq.create_gb_for_sequencing_region(genome_sequencing_template, genome_sequencing_primer_df, genome_seq_gb_output, type='genome_sequencing')
+    
+    genome_sequencing_primer_df_no_sequencing_target_length_df = genome_sequencing_primer_df[genome_sequencing_primer_df.columns[:-1]]
+    genome_seq_tsv_df = p_d_seq.create_gb_for_sequencing_region(genome_sequencing_template, genome_sequencing_primer_df_no_sequencing_target_length_df, genome_seq_gb_output, type='genome_sequencing')
 
     #合并三个df 
     tsv_df = pd.merge(pcr_tsv_df,plasmid_seq_tsv_df,on='name',how='inner').merge(genome_seq_tsv_df,on='name',how='inner')
     tsv_df.to_csv(os.path.join(output,'one_plasmid_system_gb_visualization.tsv'), index=False, sep='\t') 
-    #-----------------------------------------------------------------------------------------------------------------------   
+    #-----------------------------生成gb文件用于可视化展示------------------------------------------------------------------------------------------   
 
     parent_output  = output
     output = output+'/one_plasmid_system_result/'
@@ -727,7 +767,15 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     unique_all_primer_df = order.merge_primer(uha_primer_df, dha_primer_df, n20up_primer_p_df, n20down_primer_p_df, seq_altered_p_df, plasmid_sequencing_primer_df, genome_sequencing_primer_df)
     order.create_orders(unique_all_primer_df, orders_path = order_file)
 
-    #1：输出引物excel文件     
+
+    #1: 生成质粒合成订单
+    plasmid_order_df = create_plasmid_order(uha_dha_sgRNA_df)
+
+
+    #补充:
+    genome_sequencing_primer_df = add_WT_genome_sequencing_primer_df(uha_dha_sgRNA_df, genome_sequencing_primer_df)
+
+    #2：输出引物excel文件     
     with pd.ExcelWriter(xlsx_file) as writer:  
         uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
         dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
@@ -736,11 +784,13 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
         seq_altered_p_df.to_excel(writer,sheet_name = 'Seq_altered',index_label='No.')
         plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
         genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')
+        plasmid_order_df.to_excel(writer,sheet_name = 'Plasmid_synthesis_order',index_label='No.')
+
 
 
     #复制one_plasmid_system_pcr_gb到one_plasmid_system_result中
     os.system(f"cp -r {os.path.join(parent_output,'one_plasmid_system_pcr_gb')} {output}")
-    os.system(f"cp -r {os.path.join(parent_output,'blast/Evaluation_result.txt')} {output}")  
+    os.system(f"cp -r {os.path.join(parent_output,'blast/Evaluation_result.txt')} {output}")    
     #输出一个zip文件夹     
     su.zip_ya(output, os.path.join(parent_output,'one_plasmid_system_result.zip'),num=0)
 
@@ -768,8 +818,9 @@ def execute_two_plasmid_system(
                                  output
                                  ):                                     
 
-    no_ccdb_uha_dha_sgRNA_df, sgRNA_plasmid_backbone, promoter_seq, terminator_seq, sgRNA_promoter_terminator = p_d_seq.create_new_plasmid(no_ccdb_plasmid, uha_dha_sgRNA_df.copy(), ccdb_label, promoter_terminator_label, n_20_label)
+    no_ccdb_uha_dha_sgRNA_df,promoter_seq, sgRNA_plasmid_backbone, promoter_seq, terminator_seq, sgRNA_promoter_terminator = p_d_seq.create_new_plasmid(no_ccdb_plasmid, uha_dha_sgRNA_df.copy(), ccdb_label, promoter_terminator_label, n_20_label)
     no_sgRNA_uha_dha_ccdb_df, ccdB_plasmid_backbone, ccdB_promoter_terminator_up_seq = p_d_seq.create_new_plasmid(no_sgRNA_plasmid, uha_dha_sgRNA_df.copy(), ccdb_label, promoter_terminator_label, n_20_label)
+    no_ccdb_uha_dha_sgRNA_df['promoter_seq'] = promoter_seq
     #酶切退火方式
     
 
@@ -1000,6 +1051,10 @@ def execute_two_plasmid_system(
 
 
 
+    #1: 生成质粒合成订单
+    plasmid_order_df = create_plasmid_order(no_ccdb_uha_dha_sgRNA_df)
+
+
     parent_output  = output
     output = output+'/two_plasmid_system_result/'
     if not exists(output):
@@ -1032,6 +1087,7 @@ def execute_two_plasmid_system(
             sgRNA_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
             ccdb_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P2',index_label='No.')
             genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')
+            plasmid_order_df.to_excel(writer,sheet_name = 'Plasmid_synthesis_order',index_label='No.')
     else:
          with pd.ExcelWriter(xlsx_file) as writer:  
             uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
@@ -1051,17 +1107,27 @@ def execute_two_plasmid_system(
     su.zip_ya(output, os.path.join(parent_output,'two_plasmid_system_result.zip'),num=0)
 
     return os.path.join(parent_output,'two_plasmid_system_result.zip') 
-  
+
+
 def read_chopchopInput_add_uha_dha(genome_path,chopchop_input,uha_dha_params):
     max_left_arm_seq_length = uha_dha_params['max_left_arm_seq_length']
     max_right_arm_seq_length = uha_dha_params['max_right_arm_seq_length']
 
     info_input_df = su.del_Unnamed(pd.read_csv(chopchop_input))
 
+
+
     info_input_df.columns = [i.lower() for i in info_input_df.columns]
 
 
-    def work(mun_id,geneid, mutation_pos_index):
+    def work(mun_id, geneid, mutation_pos_index, ref):
+
+
+        gene_start = mutation_pos_index
+        gene_end = mutation_pos_index + len(ref)
+        print(gene_start,gene_end)
+
+        
         if mutation_pos_index - max_left_arm_seq_length < 0:
             error_message = "The length of upstream sequence of manipulation site of " + mun_id + " must be larger than sum of 'Max Length of UHA' and 'Max Length of UIS'."
             return error_message,error_message,error_message,error_message
@@ -1069,28 +1135,29 @@ def read_chopchopInput_add_uha_dha(genome_path,chopchop_input,uha_dha_params):
         record = su.extract_seq_from_genome(genome_path,geneid)
 
         seq_uha_max_whole = str(record[
-                        mutation_pos_index - max_left_arm_seq_length : mutation_pos_index
+                        gene_start - max_left_arm_seq_length : gene_start 
                         ])
         seq_dha_max_whole = str(record[
-                                mutation_pos_index : mutation_pos_index + max_right_arm_seq_length
+                                gene_end : gene_end + max_right_arm_seq_length
                                 ])
 
 
         uha_upstream = str(  
                         record[
-                            mutation_pos_index - max_left_arm_seq_length - 100 : mutation_pos_index - max_left_arm_seq_length
+                            gene_start - max_left_arm_seq_length - 200 : gene_start - max_left_arm_seq_length
                         ]
                     )
         dha_downstream=str(
                         record[
-                            mutation_pos_index + max_right_arm_seq_length  : mutation_pos_index + max_right_arm_seq_length  + 100
+                            gene_end + max_right_arm_seq_length  : gene_end + max_right_arm_seq_length  + 200
                         ]
                     )
         return  uha_upstream, dha_downstream, seq_uha_max_whole, seq_dha_max_whole
 
-    info_df = su.lambda2cols(info_input_df,lambdaf=work,in_coln=['name','geneid','mutation_pos_index'],to_colns=['uha_upstream','dha_downstream','seq_uha_max_whole','seq_dha_max_whole'])
+    info_df = su.lambda2cols(info_input_df,lambdaf=work,in_coln=['name','geneid','mutation_pos_index','ref'],to_colns=['uha_upstream','dha_downstream','seq_uha_max_whole','seq_dha_max_whole'])
 
-    return info_df  
+    return info_df    
+
 
 def check_quality_control(plasmid_backbone,seq_json):
     
@@ -1133,21 +1200,50 @@ def check_quality_control(plasmid_backbone,seq_json):
         
 
     return failture_seq_json
-   
+
+
+def check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label='gRNA'):
+    gb = SeqIO.read(gb_path, "genbank") 
+
+    selected_feature_labels = []
+    # selected_feature_type = 'misc_feature'
+    # selected_feature_key = 'gRNA'
+
+    for feature in gb.features:
+        if feature.type == selected_feature_type and 'label' in feature.qualifiers:
+            label_value = feature.qualifiers['label'][0]
+            if target_gene_label == label_value:
+                selected_feature_labels.append(label_value)
+
+    if len(selected_feature_labels) > 1:
+        raise ValueError(f"{target_gene_label}:There is duplication in your plasmid feature labels")
+    elif len(selected_feature_labels) == 0:
+        raise ValueError(f"{target_gene_label}:Your plasmid feature label does not exist")  
+
+
 def check_plasmid(gb_path, ccdb_label='', promoter_terminator_label='', n_20_label=''):
 
     gb = SeqIO.read(gb_path, "genbank")
     gb_seq = str(gb.seq)
     #get coordinate
-    ccdb_coordinate = su.get_feature_coordinate(ccdb_label,gb_path) 
+    ccdb_coordinate = su.get_feature_coordinate(ccdb_label,gb_path,selected_feature_type='misc_feature') 
     #N20
-    n20_coordinate = su.get_feature_coordinate(n_20_label,gb_path)
+    n20_coordinate = su.get_feature_coordinate(n_20_label,gb_path,selected_feature_type='misc_feature')
+
+    # #gRNA
+    # gRNA_coordinate = su.get_feature_coordinate(promoter_terminator_label,gb_path)
 
     if ccdb_coordinate != (-1,-1) and n20_coordinate !=(-1,-1):
+        check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label=ccdb_label)
+        check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label=promoter_terminator_label)
+        check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label=n_20_label)
         return 'one_plasmid_file_path'
     elif ccdb_coordinate==(-1,-1) and n20_coordinate !=(-1,-1):
+        check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label=promoter_terminator_label)
+        check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label=n_20_label)
         return 'no_ccdb_plasmid'
     elif ccdb_coordinate != (-1,-1) and n20_coordinate ==(-1,-1):
+        check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label=ccdb_label)
         return 'no_sgRNA_plasmid'
     else:
         raise ValueError('The plasmid you uploaded does not contain the necessary tags')
@@ -1202,10 +1298,47 @@ def blastEvaluate_uha_dha_in_genome(genome, uha_dha_df, workdir, id, name1, name
     su.blast_output_evaluate(workdir, blast_input = blast_input_file_path, blast_output= blast_output_file_path)
 
 
+def create_plasmid_order(uha_dha_sgRNA_df):
+        
+        plasmid_order_df =  uha_dha_sgRNA_df[['Name', 'Region', 'UHA', 'DHA', 'seq_altered', 'promoter_seq', 'plasmid', 'Target sequence']]
+        plasmid_order_df['NAME'] = plasmid_order_df['Name'] + ';' + plasmid_order_df['Region']
+        plasmid_order_df['SEQUENCE'] = plasmid_order_df['UHA'] + plasmid_order_df['DHA'] + plasmid_order_df['promoter_seq'] + plasmid_order_df['Target sequence']
+        plasmid_order_df['SEQUENCE SIZE(bp)'] = plasmid_order_df.SEQUENCE.apply(lambda x: len(x))
+        plasmid_order_df['IS OR NOT OPTIMIZED'] = 'NOT'
+        plasmid_order_df['PLASMID VECTOR'] = 'pMB1-sgRNA'
+        plasmid_order_df['PLASMID SEQUENCE'] = plasmid_order_df['plasmid']
+        plasmid_order_df['PLASMID SEQUENCE SIZE(bp)'] = plasmid_order_df['PLASMID SEQUENCE'].apply(lambda x: len(x))
+        plasmid_order_df = plasmid_order_df[['NAME','SEQUENCE','SEQUENCE SIZE(bp)','IS OR NOT OPTIMIZED', 'PLASMID VECTOR', 'PLASMID SEQUENCE','PLASMID SEQUENCE SIZE(bp)']]
+
+        return plasmid_order_df
 
 
 
+def add_WT_genome_sequencing_primer_df(uha_dha_sgRNA_df, genome_sequencing_primer_df):
 
+    temp =  uha_dha_sgRNA_df[['Name', 'Region', 'UHA', 'DHA', 'seq_altered', 'ref']]
+    temp['ID'] = temp['Name'] +';'+ temp['Region']
+    temp = temp[['ID', 'UHA', 'DHA', 'seq_altered', 'ref']]
+    genome_sequencing_primer_df = pd.merge(temp,genome_sequencing_primer_df)
+
+    def work(SEQUENCING_TARGET,UHA,ref):
+
+        
+        SEQUENCING_TARGET
+        start = SEQUENCING_TARGET.find(UHA)
+
+        before_target = SEQUENCING_TARGET[:start + len(UHA)]
+        after_target = SEQUENCING_TARGET[start + len(UHA):]
+        
+        if ref != '-':
+            WT = before_target + ref + after_target
+        else:
+            WT = SEQUENCING_TARGET
+        return WT
+    genome_sequencing_primer_df['WT_SEQUENCING_TARGET'] = genome_sequencing_primer_df.apply(lambda x: work(x['SEQUENCING_TARGET'], x['UHA'], x['ref']), axis=1)
+    genome_sequencing_primer_df['WT_SEQUENCING_TARGET_SIZE'] = genome_sequencing_primer_df.WT_SEQUENCING_TARGET.apply(lambda x: len(x))
+
+    return genome_sequencing_primer_df
 
 
 
@@ -1216,6 +1349,8 @@ def main(data):
     
     #uha_dha参数
     uha_dha_params = data['uha_dha_config']
+    config.UHA_DHA_CONFIG = uha_dha_params
+
     
     # enzyme_path = parent_base_path +'/'+ data['enzyme_path']
     sgRNA_result_path = data['sgRNA_result_path']
@@ -1236,6 +1371,7 @@ def main(data):
         errorMessage = 'There are duplicates in the three plasmid label you entered'
         raise ValueError(errorMessage)
   
+   
     one_plasmid_file_path=''
     no_ccdb_plasmid=''
     no_sgRNA_plasmid=''
@@ -1378,7 +1514,7 @@ def main(data):
         os.makedirs(output)
     scene = data['scene']  
 
-  
+    
     # 5.read 编辑序列信息,给chopchop输入加uha、dha信息
     info_input_df = read_chopchopInput_add_uha_dha(genome_path, chopchop_input, uha_dha_params)
 
@@ -1412,11 +1548,13 @@ def main(data):
 
     # 8.设计源生同源臂引物
     uha_dha_primer_df = extract_uha_dha_primer(info_input_df, sgRNA)   
+    # info_input_df.to_csv('info_input_df.csv',index=False)
 
     # 9.提取同源臂
     uha_dha_info_primer_df, uha_dha_df, uha_dha_sgRNA_df, info_df = extract_uha_dha(info_input_df, uha_dha_primer_df, sgRNA)
+    # uha_dha_df.to_csv('uha_dha_df.csv',index=False)
 
-
+   
     # 10.对同源臂在基因组上进行序列比对
     blastEvaluate_uha_dha_in_genome(genome_path, uha_dha_df, workdir=output, id='Name',name1='UHA',name2='DHA',name='seq')
     
@@ -1431,7 +1569,6 @@ def main(data):
         return '你选择这的双质粒系统，质粒没有上传完整!'
     
 
-    
     print('--1.执行单质粒系统,--2.执行双质粒系统,---0.执行单、双质粒系统都执行------现在正在执行的情况：',plasmid_system_type)    
 
     if plasmid_system_type == 1:
@@ -1463,8 +1600,12 @@ def main(data):
                                                                 uha_dha_primer_df,
                                                                 enzyme_df,
                                                                 enzyme_name,
-                                                                output
+                                                                output,
+                                                                ccdb_label,
+                                                                promoter_terminator_label,
+                                                                n_20_label
                                                                 )
+
         end_time = time.time()
         # 计算函数的执行时间
         exec_time = end_time - start_time
@@ -1596,10 +1737,10 @@ if __name__ == '__main__':
         "no_sgRNA_plasmid":"./input/no-sgRNA-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
         "scene":"only_primer",  
         "uha_dha_config": {
-            "max_right_arm_seq_length": 1050,  
-            "max_left_arm_seq_length": 1050,   
-            "min_left_arm_seq_length": 1000,   
-            "min_right_arm_seq_length": 1000     
+            "max_right_arm_seq_length": 300,  
+            "max_left_arm_seq_length": 300,   
+            "min_left_arm_seq_length": 290,   
+            "min_right_arm_seq_length": 290     
         },
 
         "plasmid_label":{
@@ -1801,7 +1942,111 @@ if __name__ == '__main__':
         }      
     }
 
-    main(data2)     
+
+
+    data3= {     
+        "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
+        "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
+        "edit_sequence_design_workdir":"./output/only_primer",
+        "ref_genome": "/home/yanghe/program/data_preprocessing/input/GCF_000005845.2_ASM584v2_genomic.fna",
+        "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/only_primer/pMB1-Red-sgRNA-sacB-2297.gb",   
+        "no_ccdb_plasmid":"",
+        "no_sgRNA_plasmid":"",
+        "scene":"both_sgRNA_primer",  
+        "uha_dha_config": {
+            "max_right_arm_seq_length": 145,  
+            "max_left_arm_seq_length": 145,   
+            "min_left_arm_seq_length": 145,   
+            "min_right_arm_seq_length": 145     
+        },   
+
+        "plasmid_label":{
+            "ccdb_label":"HR",  
+            "promoter_terminator_label":"gRNA",
+            "n_20_label":"N20"
+        },
+
+        "primer_json":{
+        
+        },
+        "region_label":"",       
+
+        "sgRNA_primer_json":{
+           
+        },
+        "ccdb_primer_json":{
+                
+        },   
+    
+        "sgRNA_region_label":"",
+        
+        "ccdb_region_label":"",   
+        
+        "enzyme":{
+            "enzyme_name":"BsaI",
+            "gap_sequence":"A",  
+            "protection_sequence":"CCA"   
+        },  
+          
+        "UHA_ARGS":{
+            "PRIMER_OPT_TM": 65,
+            "PRIMER_MIN_TM": 55,  
+            "PRIMER_MAX_TM": 75,    
+            "PRIMER_MIN_GC": 20,
+            "PRIMER_MAX_GC": 80
+        },
+        "SEQ_ALTERED_ARGS":{
+            "PRIMER_OPT_TM": 65,
+            "PRIMER_MIN_TM": 55,
+            "PRIMER_MAX_TM": 75,  
+            "PRIMER_MIN_GC": 20,
+            "PRIMER_MAX_GC": 80
+        },
+        "DHA_ARGS":{
+            "PRIMER_OPT_TM": 65,
+            "PRIMER_MIN_TM": 55,
+            "PRIMER_MAX_TM": 75,
+            "PRIMER_MIN_GC": 30,
+            "PRIMER_MAX_GC": 80
+        },
+         "UP_SGRNA_ARGS": {
+            "PRIMER_OPT_TM": 55,
+            "PRIMER_MIN_TM": 30,  
+            "PRIMER_MAX_TM": 75,    
+            "PRIMER_MIN_GC": 30,
+            "PRIMER_MAX_GC": 75
+        },
+        "DOWN_SGRNA_ARGS": {
+            "PRIMER_OPT_TM": 55,
+            "PRIMER_MIN_TM": 30,  
+            "PRIMER_MAX_TM": 75,    
+            "PRIMER_MIN_GC": 30,
+            "PRIMER_MAX_GC": 75
+        },
+
+        "PLASMID_Q_ARGS":{
+            "PRIMER_OPT_TM": 65,
+            "PRIMER_MIN_TM": 35,  
+            "PRIMER_MAX_TM": 75,    
+            "PRIMER_MIN_GC": 30,
+            "PRIMER_MAX_GC": 70
+        },
+        "GENOME_Q_ARGS":{
+            "PRIMER_OPT_TM": 65,
+            "PRIMER_MIN_TM": 35,  
+            "PRIMER_MAX_TM": 75,    
+            "PRIMER_MIN_GC": 20,
+            "PRIMER_MAX_GC": 80
+        },
+        'sgRNA_result':{
+            'b3956_del':'1',
+            'b1101_del':'1',
+            'b2297_del':'1',
+            'b2296_del':'1'
+        }      
+    }
+
+main(data3) 
 
   
 

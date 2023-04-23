@@ -65,16 +65,27 @@ def get_data_from_genebank(infile='icd-28a-new.gb',marker='KanR',target_gene='al
     marker_end=-1
 
     for ele in genebank_db.features:
+
+        #确保feature.qualifiers['label'][0]的有效性
+        
         if ele.type == "CDS" and marker in ele.qualifiers['label']:
+            if marker_start != -1:
+                continue
             marker_start = ele.location.start.position
             marker_end = ele.location.end.position
         elif ele.type == "CDS" and target_gene in ele.qualifiers['label']:
+            if target_gene_start != -1:
+                continue
             target_gene_start = ele.location.start.position
             target_gene_end = ele.location.end.position
         elif ele.type == "misc_feature" and target_gene in ele.qualifiers['label']:
+            if target_gene_start != -1:
+                continue
             target_gene_start = ele.location.start.position
             target_gene_end = ele.location.end.position
         elif ele.type == "misc_feature" and marker in ele.qualifiers['label']:   
+            if marker_start != -1:
+                continue
             marker_start = ele.location.start.position
             marker_end = ele.location.end.position
         elif ele.type == 'misc_feature' and target_gene in ele.qualifiers['label']:

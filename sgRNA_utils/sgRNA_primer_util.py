@@ -130,12 +130,14 @@ def columns_2_row_by_groupby(uha_dha_primer_df,in_col,ou_col,type='u_d'):
     UHA_DHA_df.reset_index(drop=True,inplace=True)
     return UHA_DHA_df   
 
+
 #读取质粒的特征坐标     
-def get_feature_coordinate(target_gene_label,gb_path):
-    gb = SeqIO.read(gb_path, "genbank")        
+def get_feature_coordinate(target_gene_label,gb_path, selected_feature_type='misc_feature'):
+    gb = SeqIO.read(gb_path, "genbank") 
+
     for ele in gb.features:
-        if ele.type == 'misc_feature':
-            if target_gene_label in ele.qualifiers.get('label'):
+        if ele.type == selected_feature_type:
+            if target_gene_label in ele.qualifiers.get('label'):  
                 target_gene_start = ele.location.start.position
                 target_gene_end = ele.location.end.position
                 print( target_gene_start,target_gene_end )
@@ -173,8 +175,13 @@ def primer_design(seqId,
         global_args = config.GLOBAL_ARGS
         if primer_type == 'uha':
             global_args.update(config.UHA_ARGS)
+            config.UHA_DHA_CONFIG['max_left_arm_seq_length'] == config.UHA_DHA_CONFIG['min_left_arm_seq_length']
+            stype = 'left_right'
         elif primer_type == 'dha':
             global_args.update(config.DHA_ARGS)
+            config.UHA_DHA_CONFIG['max_left_arm_seq_length'] == config.UHA_DHA_CONFIG['min_left_arm_seq_length']
+            stype = 'left_right'
+
         elif primer_type == 'plasmid':
             global_args.update(config.DOWN_SGRNA_ARGS)  
         elif primer_type == 'sgRNA':
@@ -570,13 +577,17 @@ def create_plasmid_primer_featrue_df(sequencing_primer_template,
     if 'promoter_N20_terminator' in sequencing_primer_template.columns:
         sequencing_plasmid = sequencing_primer_template[['Region','plasmid','UHA','DHA','promoter_N20_terminator']].rename(columns={'Region':'ID','plasmid':'PLASMID','promoter_N20_terminator':'PROMOTER_N20_TERMINATOR'})
     else:
-        sequencing_plasmid = sequencing_primer_template[['Region','plasmid','UHA','DHA','seq_altered']].rename(columns={'Region':'ID','plasmid':'PLASMID','seq_altered':'SEQ_ALTERED'})      
-    
+        if len(seq_altered_p_df)>0:
+            sequencing_plasmid = sequencing_primer_template[['Region','plasmid','UHA','DHA','seq_altered']].rename(columns={'Region':'ID','plasmid':'PLASMID','seq_altered':'SEQ_ALTERED'})  
+        else:
+            sequencing_plasmid = sequencing_primer_template[['Region','plasmid','UHA','DHA']].rename(columns={'Region':'ID','plasmid':'PLASMID'})     
+       
     uha_primer_df = uha_primer_df[['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE']]
     uha_primer_df.columns = ['ID','UHA_PRIMER_LEFT_WHOLE_SEQUENCE','UHA_PRIMER_RIGHT_WHOLE_SEQUENCE']  
     
-    seq_altered_p_df = seq_altered_p_df[['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE']]
-    seq_altered_p_df.columns = ['ID','SEQ_PRIMER_LEFT_WHOLE_SEQUENCE','SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE']
+    if len(seq_altered_p_df) > 0 :
+        seq_altered_p_df = seq_altered_p_df[['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE']]
+        seq_altered_p_df.columns = ['ID','SEQ_PRIMER_LEFT_WHOLE_SEQUENCE','SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE']
     
     dha_primer_df = dha_primer_df[['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE']]
     dha_primer_df.columns = ['ID','DHA_PRIMER_LEFT_WHOLE_SEQUENCE','DHA_PRIMER_RIGHT_WHOLE_SEQUENCE']
@@ -585,10 +596,13 @@ def create_plasmid_primer_featrue_df(sequencing_primer_template,
         n20up_primer_p_df = n20up_primer_p_df[['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE']]
         n20up_primer_p_df.columns = ['ID','N20UP_PRIMER_LEFT_WHOLE_SEQUENCE','N20UP_PRIMER_RIGHT_WHOLE_SEQUENCE']
         df = pd.merge(sequencing_plasmid,uha_primer_df).merge(dha_primer_df).merge(n20up_primer_p_df)
-        df = pd.merge(seq_altered_p_df,df,how='outer')
+
+        if len(seq_altered_p_df) > 0 :
+            df = pd.merge(seq_altered_p_df,df,how='outer')
     else:
         df = pd.merge(sequencing_plasmid,uha_primer_df).merge(dha_primer_df)
-        df = pd.merge(seq_altered_p_df,df,how='outer')    
+        if len(seq_altered_p_df) > 0 :
+            df = pd.merge(seq_altered_p_df,df,how='outer')    
     return df
 
 
@@ -664,8 +678,6 @@ def convert_df_to_fastaFile(df,id,name,input_fasta):
 
 
 
-
-
 #Map the target sequence to the reference genome by Blast
 def blast_ha(ref_genome, blast_input_file_path, blast_output_file_path):  
 
@@ -677,13 +689,12 @@ def blast_ha(ref_genome, blast_input_file_path, blast_output_file_path):
                 seq_length += len(line)-1
                 break
     if seq_length > 550:
-        evalue='300'
+            evalue='300'
     else:
-        evalue=str(int((seq_length*0.5521-7.5856)*0.8))
+            evalue=str(int((seq_length*0.5521-7.5856)*0.8))
     os.system("makeblastdb -in "+ref_genome+" -dbtype nucl -parse_seqids -out "+ref_lib)
     os.system("blastn -query "+blast_input_file_path+" -db "+ref_lib+" -outfmt 6 -out "+blast_output_file_path+" -evalue 1e-"+evalue+" -max_target_seqs 5 -num_threads 4")
-
-
+    os.system("rm %s.n*" % ref_lib)
 
 
 #Evaluate the feasibility of design with the mapping of the homologous arm to the reference genome

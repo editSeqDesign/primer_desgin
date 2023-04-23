@@ -294,7 +294,8 @@ def merge_primer(*li):
     #同源臂、sgRNA  
     u_primer = rename_primer_ID(uha_primer_df,in_col=['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE'],df_name='u',stype=1)
     d_primer = rename_primer_ID(dha_primer_df,in_col=['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE'],df_name='d',stype=1)
-    seq_altered_primer = rename_primer_ID(seq_altered_p_df,in_col=['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE'],df_name='s',stype=1)
+    if len(seq_altered_p_df)> 0:
+        seq_altered_primer = rename_primer_ID(seq_altered_p_df,in_col=['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE'],df_name='s',stype=1)
 
     #基因组测序
     genome_sequencing_primer_df_columns = [i for i in genome_sequencing_primer_df.columns if (i.split('_')[-1]).isdigit() ]
@@ -312,7 +313,12 @@ def merge_primer(*li):
         p_s_primer = rename_primer_ID(plasmid_sequencing_primer_df,in_col=plasmid_sequencing_primer_df_columns,df_name='p',stype=2)
 
         #合并引物
-        all_primer_df = pd.concat([u_primer,d_primer,sgRNA_primer,plasmid_backbone_primer,seq_altered_primer,p_s_primer,g_s_primer])
+        if len(seq_altered_p_df)> 0:
+            all_primer_df = pd.concat([u_primer,d_primer,sgRNA_primer,plasmid_backbone_primer,seq_altered_primer,p_s_primer,g_s_primer])
+        else:
+            all_primer_df = pd.concat([u_primer,d_primer, sgRNA_primer, plasmid_backbone_primer, p_s_primer, g_s_primer])
+
+        
     elif len(li)==8:
         if len(sgRNA_primer_df.columns) < 4:
             sgRNA_primer = rename_primer_ID(sgRNA_primer_df,in_col=['ID','Target sequence'],df_name='sgRNA',stype=1)
@@ -331,7 +337,10 @@ def merge_primer(*li):
         p2_s_primer = rename_primer_ID(ccdb_plasmid_sequencing_primer_df, in_col=ccdb_plasmid_sequencing_primer_df_columns, df_name='p2',stype=2)
 
         #合并引物   
-        all_primer_df = pd.concat([u_primer,d_primer,sgRNA_primer,ccdb_primer,seq_altered_primer,p1_s_primer,p2_s_primer,g_s_primer])
+        if len(seq_altered_p_df)> 0:
+            all_primer_df = pd.concat([u_primer,d_primer,sgRNA_primer,ccdb_primer,seq_altered_primer,p1_s_primer,p2_s_primer,g_s_primer])
+        else:
+            all_primer_df = pd.concat([u_primer,d_primer,sgRNA_primer,ccdb_primer,p1_s_primer,p2_s_primer,g_s_primer])
     
     all_primer_df = all_primer_df.drop_duplicates(keep='first', subset=[0])
     all_primer_df =  all_primer_df.dropna()

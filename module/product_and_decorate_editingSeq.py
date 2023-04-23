@@ -390,7 +390,7 @@ def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_
             type_kind = 3
 
 
-        return sgRNA_df, promoter_terminator_up_promoter_seq,promoter_terminator_down_terminator_seq,type_kind
+        return sgRNA_df, promoter_seq, promoter_terminator_up_promoter_seq, promoter_terminator_down_terminator_seq, type_kind
 
     elif ccdb_coordinate[0] == -1 and promoter_terminator_coordinate[0] != -1:
         #双质粒系统:无ccdb
@@ -416,7 +416,7 @@ def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_
             return plasmid, sgRNA_template, new_promoter_terminator, promoter_terminator_up_seq, promoter_terminator_down_seq
 
         sgRNA_df = su.lambda2cols(df=sgRNA_df, lambdaf=work, in_coln=['Target sequence','UHA','DHA','seq_altered','type'], to_colns=['plasmid','sgRNA_template','promoter_N20_terminator','promoter_N20_terminator_up','promoter_N20_terminator_down'])        
-        return sgRNA_df, plasmid_backbone, promoter_seq, terminator_seq, joint_need_seq
+        return sgRNA_df, promoter_seq, plasmid_backbone, promoter_seq, terminator_seq, joint_need_seq
 
     elif ccdb_coordinate[0] != -1 and promoter_terminator_coordinate[0]  == -1:
         #双质粒系统：无sgRNA
@@ -439,7 +439,19 @@ def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_
 
         sgRNA_df = su.lambda2cols(df=sgRNA_df, lambdaf=work, in_coln=['Target sequence','UHA','DHA','seq_altered','type'], to_colns=['plasmid','sgRNA_template','ccdb','ccdb_up','ccdb_down'])
         return sgRNA_df, plasmid_backbone, joint_need_seq
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
 def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_terminator_down_terminator_seq='',promoter_terminator_up_promoter_seq='',stype='sgRNA_joint'):
     
     sgRNA_enzyme_df = enzyme_df[enzyme_df['name']==enzyme_name]
@@ -738,6 +750,8 @@ def create_sequencing_primer(sgRNA_df,sequencing_primer,sequencing_template='pla
 
         #定义用于测序的数据结构  
         dict_plasmid_seq={}
+        # if seq_type == 'genome_seq':
+            
         dict_plasmid_seq['target_gene_down_seq']=target_gene_down_seq
         dict_plasmid_seq['target_gene_up_seq']=target_gene_up_seq
         dict_plasmid_seq['mute_after_target_gene_seq']=target_gene_seq     #用户指定测序序列的区域序列
@@ -1055,6 +1069,8 @@ def create_gb_file(plasmid,primer_cor_dict):
                    name="plasmid",
                    description="primer seq in plasmid")
     
+    print('3123uha检查',primer_cor_dict)
+
     for k,v in primer_cor_dict.items():
         print(k,v)
         cor = v.split(';')[0]
@@ -1188,6 +1204,7 @@ def add_sequencing_primer_to_gb(plasmid_sequencing_primer_df,temp_dict):
 
 
 def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_len, cut_seq_len, output, type='sgRNA_ccdb'):
+
    
     #处理特殊的质粒片段引物：不一定几对引
     
@@ -1281,6 +1298,7 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
             uha = v['UHA']
 
             uha_cor = su.create_primerCor_in_plasmid(plasmid, uha)
+
             uha_right_primer = v['UHA_PRIMER_RIGHT_WHOLE_SEQUENCE']
             uha_right_nojoint_primer = uha_right_primer[joint_len:].upper()
             uha_right_primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(uha_right_nojoint_primer))
@@ -1298,20 +1316,27 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
             dha_right_nojoint_primer = dha_right_primer[joint_len:].upper()
             dha_right_primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(dha_right_nojoint_primer))
             dha_right_primer_cor = dha_right_primer_cor[0] - joint_len, dha_right_primer_cor[1]
+            
+            if 'SEQ_PRIMER_LEFT_WHOLE_SEQUENCE' in plasmid_primer_featrue_df.columns:
 
-            seq_altered_left_primer = v['SEQ_PRIMER_LEFT_WHOLE_SEQUENCE']
-            seq_altered_left_primer_cor = ()
-            if seq_altered_left_primer != '':
-                seq_altered_left_nojoint_primer = seq_altered_left_primer[joint_len-cut_seq_len:].upper()
-                seq_altered_left_primer_cor = su.create_primerCor_in_plasmid(plasmid, seq_altered_left_nojoint_primer)
-                seq_altered_left_primer_cor = seq_altered_left_primer_cor[0] - (joint_len-cut_seq_len), seq_altered_left_primer_cor[1]
+                seq_altered_left_primer = v['SEQ_PRIMER_LEFT_WHOLE_SEQUENCE']
+                seq_altered_left_primer_cor = ()
+                if seq_altered_left_primer != '':
+                    seq_altered_left_nojoint_primer = seq_altered_left_primer[joint_len-cut_seq_len:].upper()
+                    seq_altered_left_primer_cor = su.create_primerCor_in_plasmid(plasmid, seq_altered_left_nojoint_primer)
+                    seq_altered_left_primer_cor = seq_altered_left_primer_cor[0] - (joint_len-cut_seq_len), seq_altered_left_primer_cor[1]
 
-            seq_altered_right_primer =  v['SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE']   
-            seq_altered_right_primer_cor = ()
-            if seq_altered_right_primer != '':   
-                seq_altered_right_nojoint_primer = seq_altered_right_primer[joint_len-cut_seq_len:].upper()
-                seq_altered_right_primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(seq_altered_right_nojoint_primer))
-                seq_altered_right_primer_cor = seq_altered_right_primer_cor[0], seq_altered_right_primer_cor[1] + (joint_len-cut_seq_len)
+                seq_altered_right_primer =  v['SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE']   
+                seq_altered_right_primer_cor = ()
+                if seq_altered_right_primer != '':   
+                    seq_altered_right_nojoint_primer = seq_altered_right_primer[joint_len-cut_seq_len:].upper()
+                    seq_altered_right_primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(seq_altered_right_nojoint_primer))
+                    seq_altered_right_primer_cor = seq_altered_right_primer_cor[0], seq_altered_right_primer_cor[1] + (joint_len-cut_seq_len)
+            else:
+                seq_altered_left_primer= ""
+                seq_altered_left_primer_cor=""
+                seq_altered_right_primer=""
+                seq_altered_right_primer_cor=""
 
             if type == 'sgRNA_ccdb':
                 n20up_left_primer = v['N20UP_PRIMER_LEFT_WHOLE_SEQUENCE']
@@ -1359,8 +1384,6 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
                     'UHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{uha_left_primer_cor};{uha_left_primer}',
                     'UHA':f'{uha_cor};{uha}',
                     'UHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{uha_right_primer_cor};{uha_right_primer}',
-                    'SEQ_PRIMER_LEFT_WHOLE_SEQUENCE':f'{seq_altered_left_primer_cor};{seq_altered_left_primer}',
-                    'SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{seq_altered_right_primer_cor};{seq_altered_right_primer}',
                     'DHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{dha_left_primer_cor};{dha_left_primer}',
                     'DHA':f'{dha_cor};{dha}',
                     'DHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{dha_right_primer_cor};{dha_right_primer}',
@@ -1374,20 +1397,29 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
                     'UHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{uha_left_primer_cor};{uha_left_primer}',
                     'UHA':f'{uha_cor};{uha}',
                     'UHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{uha_right_primer_cor};{uha_right_primer}',
-                    'SEQ_PRIMER_LEFT_WHOLE_SEQUENCE':f'{seq_altered_left_primer_cor};{seq_altered_left_primer}',
-                    'SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{seq_altered_right_primer_cor};{seq_altered_right_primer}',
                     'DHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{dha_left_primer_cor};{dha_left_primer}',
                     'DHA':f'{dha_cor};{dha}',
                     'DHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{dha_right_primer_cor};{dha_right_primer}'
                 }
-                primer_dict = {
-                    'UHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{uha_left_primer}',
-                    'UHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{uha_right_primer}',
-                    'SEQ_PRIMER_LEFT_WHOLE_SEQUENCE':f'{seq_altered_left_primer}',
-                    'SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{seq_altered_right_primer}',
-                    'DHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{dha_left_primer}',
-                    'DHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{dha_right_primer}'
-                }   
+                # primer_dict = {
+                #     'UHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{uha_left_primer}',
+                #     'UHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{uha_right_primer}',
+                #     'SEQ_PRIMER_LEFT_WHOLE_SEQUENCE':f'{seq_altered_left_primer}',
+                #     'SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{seq_altered_right_primer}',
+                #     'DHA_PRIMER_LEFT_WHOLE_SEQUENCE':f'{dha_left_primer}',
+                #     'DHA_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{dha_right_primer}'
+                # }
+            
+            if  seq_altered_left_primer != "":
+                primer_cor_dict.update(
+                    {
+                        'SEQ_PRIMER_LEFT_WHOLE_SEQUENCE':f'{seq_altered_left_primer_cor};{seq_altered_left_primer}',
+                        'SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{seq_altered_right_primer_cor};{seq_altered_right_primer}',
+                        'SEQ_PRIMER_LEFT_WHOLE_SEQUENCE':f'{seq_altered_left_primer_cor};{seq_altered_left_primer}',
+                        'SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE':f'{seq_altered_right_primer_cor};{seq_altered_right_primer}'  
+                    }
+
+                )
 
             #添加质粒片段引物
             print('---------------------------------------------------------------',n20down_primer_cor_dict)

@@ -9,14 +9,14 @@ class config:
         }     
 
     S_GLOBAL_ARGS = {
-            'PRIMER_OPT_SIZE': 20,   
-            'PRIMER_MIN_SIZE': 18,
+            'PRIMER_OPT_SIZE': 18,   
+            'PRIMER_MIN_SIZE': 15,
             'PRIMER_MAX_SIZE': 25,
-            'PRIMER_OPT_TM': 65.0,
-            'PRIMER_MIN_TM': 55.0,
-            'PRIMER_MAX_TM': 75.0,
-            'PRIMER_MIN_GC': 20.0,
-            'PRIMER_MAX_GC': 80.0,
+            'PRIMER_OPT_TM': 75.0,
+            'PRIMER_MIN_TM': 35.0,
+            'PRIMER_MAX_TM': 85.0,
+            'PRIMER_MIN_GC': 30.0,
+            'PRIMER_MAX_GC': 70.0,
     }
     UHA_ARGS = {
         'PRIMER_OPT_TM': 65.0,
@@ -56,9 +56,9 @@ class config:
 
     #测序引物设计的全局参数
     Q_ARGS = {
-                'PRIMER_OPT_SIZE': 20,
-                'PRIMER_MIN_SIZE': 18,   
-                'PRIMER_MAX_SIZE': 25,
+                'PRIMER_OPT_SIZE': 17,
+                'PRIMER_MIN_SIZE': 14,  
+                'PRIMER_MAX_SIZE': 24,
                 'PRIMER_OPT_TM': 65.0,
                 'PRIMER_MIN_TM': 55.0,  
                 'PRIMER_MAX_TM': 75.0,    
@@ -78,7 +78,15 @@ class config:
         'PRIMER_MIN_TM': 55.0,  
         'PRIMER_MAX_TM': 75.0,    
         'PRIMER_MIN_GC': 20.0,
-        'PRIMER_MAX_GC': 80.0,
+        'PRIMER_MAX_GC': 50.0,
+    }
+
+
+    UHA_DHA_CONFIG = {
+        "max_right_arm_seq_length": 0,  
+        "max_left_arm_seq_length": 150,   
+        "min_left_arm_seq_length": 1,   
+        "min_right_arm_seq_length": 150   
     }
 
 
