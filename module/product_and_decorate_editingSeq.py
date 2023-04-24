@@ -1175,31 +1175,32 @@ def add_sequencing_primer_to_gb(plasmid_sequencing_primer_df,temp_dict):
    
     k = 1
     for i in sequencing_primer_temp.columns:
-        if i =='ID' or 'TM' in i:
-            continue 
-        else:
-            if len(i.split('_')) == 3:           
-                arr1 = i.split('_')[0]
-                arr2 = i.split('_')[1]
-                arr3 = i.split('_')[2]
-                primer_seq = sequencing_primer_temp.loc[0,i]
-                if primer_seq == '':
-                    continue
-                key = '_'.join([arr1, arr2, str(k)])
-                #唯一一条负义链的引物
-                if arr3 == '2':
-                    primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(primer_seq))
-                    sequencing_primer_dict.update({key:f'{primer_cor};{primer_seq}'})     
-                else:
-                    primer_cor = su.create_primerCor_in_plasmid(plasmid, primer_seq)
-
-                    if primer_cor[0] == -1:  
+        if 'PRIMER' in i:
+            if i =='ID' or 'TM' in i:
+                continue 
+            else:
+                if len(i.split('_')) == 3:           
+                    arr1 = i.split('_')[0]
+                    arr2 = i.split('_')[1]
+                    arr3 = i.split('_')[2]
+                    primer_seq = sequencing_primer_temp.loc[0,i]
+                    if primer_seq == '':
+                        continue
+                    key = '_'.join([arr1, arr2, str(k)])
+                    #唯一一条负义链的引物
+                    if arr3 == '2':
                         primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(primer_seq))
-                        sequencing_primer_dict.update({key+';right':f'{primer_cor};{primer_seq}'})
+                        sequencing_primer_dict.update({key:f'{primer_cor};{primer_seq}'})     
                     else:
-                        sequencing_primer_dict.update({key:f'{primer_cor};{primer_seq}'})
+                        primer_cor = su.create_primerCor_in_plasmid(plasmid, primer_seq)
 
-                k = k + 1
+                        if primer_cor[0] == -1:  
+                            primer_cor = su.create_primerCor_in_plasmid(plasmid, su.revComp(primer_seq))
+                            sequencing_primer_dict.update({key+';right':f'{primer_cor};{primer_seq}'})
+                        else:
+                            sequencing_primer_dict.update({key:f'{primer_cor};{primer_seq}'})
+
+                    k = k + 1
     return  sequencing_primer_dict  
 
 

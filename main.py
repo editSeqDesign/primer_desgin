@@ -616,8 +616,6 @@ def genome_sequencing_design_primer(info_input_df, uha_dha_df):
     return genome_sequencing_primer_df, genome_sequencing_template
 
 
-
-
 #     
 def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                 sgRNA_region_seq_json,
@@ -1201,7 +1199,7 @@ def check_quality_control(plasmid_backbone,seq_json):
 
     return failture_seq_json
 
-
+  
 def check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label='gRNA'):
     gb = SeqIO.read(gb_path, "genbank") 
 
@@ -1674,7 +1672,10 @@ def main(data):
                                                                 uha_dha_primer_df,
                                                                 enzyme_df,
                                                                 enzyme_name,
-                                                                output
+                                                                output,
+                                                                ccdb_label,
+                                                                promoter_terminator_label,
+                                                                n_20_label
                                                                 )
 
         
@@ -1948,7 +1949,7 @@ if __name__ == '__main__':
         "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
         "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
         "edit_sequence_design_workdir":"./output/only_primer",
-        "ref_genome": "/home/yanghe/program/data_preprocessing/input/GCF_000005845.2_ASM584v2_genomic.fna",
+        "ref_genome": "/home/yanghe/tmp/data_preprocessing/output/GCF_000005845.2_ASM584v2_genomic.fna",
         "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/only_primer/pMB1-Red-sgRNA-sacB-2297.gb",   
         "no_ccdb_plasmid":"",
         "no_sgRNA_plasmid":"",
@@ -2046,7 +2047,7 @@ if __name__ == '__main__':
         }      
     }
 
-main(data3) 
+main(data2) 
 
   
 
