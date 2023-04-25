@@ -634,6 +634,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                 promoter_terminator_label,
                                 n_20_label
                                 ):
+    
     gb = SeqIO.read(gb_path, "genbank")
     gb_name = gb.name
     
@@ -1222,6 +1223,7 @@ def check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_ge
 def check_plasmid(gb_path, ccdb_label='', promoter_terminator_label='', n_20_label=''):
 
     gb = SeqIO.read(gb_path, "genbank")
+
     gb_seq = str(gb.seq)
     #get coordinate
     ccdb_coordinate = su.get_feature_coordinate(ccdb_label,gb_path,selected_feature_type='misc_feature') 
@@ -1556,7 +1558,8 @@ def main(data):
     # 10.对同源臂在基因组上进行序列比对
     blastEvaluate_uha_dha_in_genome(genome_path, uha_dha_df, workdir=output, id='Name',name1='UHA',name2='DHA',name='seq')
     
-    # 11.判断质粒的执行类型    
+    # 11.判断质粒的执行类型  
+    print('判断质粒的执行类型:',one_plasmid_file_path,no_ccdb_plasmid,no_sgRNA_plasmid)  
     if  one_plasmid_file_path != '' and no_ccdb_plasmid == '' and no_sgRNA_plasmid == '':
         plasmid_system_type = 1
     elif  one_plasmid_file_path =='' and no_ccdb_plasmid != '' and no_sgRNA_plasmid != '':
@@ -1564,7 +1567,8 @@ def main(data):
     elif  one_plasmid_file_path !='' and no_ccdb_plasmid !='' and no_sgRNA_plasmid !='':
         plasmid_system_type = 0
     else:
-        return '你选择这的双质粒系统，质粒没有上传完整!'
+        raise ValueError("你选择的双质粒系统，质粒没有上传完整!",one_plasmid_file_path,no_ccdb_plasmid,no_sgRNA_plasmid)
+        # return '你选择的双质粒系统，质粒没有上传完整!'
     
 
     print('--1.执行单质粒系统,--2.执行双质粒系统,---0.执行单、双质粒系统都执行------现在正在执行的情况：',plasmid_system_type)    
@@ -1951,6 +1955,7 @@ if __name__ == '__main__':
         "edit_sequence_design_workdir":"./output/only_primer",
         "ref_genome": "/home/yanghe/tmp/data_preprocessing/output/GCF_000005845.2_ASM584v2_genomic.fna",
         "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/only_primer/pMB1-Red-sgRNA-sacB-2297.gb",   
+        # "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/Plasmid.gb",  
         "no_ccdb_plasmid":"",
         "no_sgRNA_plasmid":"",
         "scene":"both_sgRNA_primer",  
@@ -2047,7 +2052,7 @@ if __name__ == '__main__':
         }      
     }
 
-    main(data2) 
+    main(data3) 
 
   
 
