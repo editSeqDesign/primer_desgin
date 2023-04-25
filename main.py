@@ -1222,8 +1222,10 @@ def check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_ge
 
 def check_plasmid(gb_path, ccdb_label='', promoter_terminator_label='', n_20_label=''):
 
-    gb = SeqIO.read(gb_path, "genbank")
-
+    try:
+        gb = SeqIO.read(gb_path, "genbank")
+    except Exception as e:
+        raise ValueError(f"There is a problem with your plasmid gb file and an error occurred during the parsing process:{e}")
     gb_seq = str(gb.seq)
     #get coordinate
     ccdb_coordinate = su.get_feature_coordinate(ccdb_label,gb_path,selected_feature_type='misc_feature') 
@@ -1340,7 +1342,7 @@ def add_WT_genome_sequencing_primer_df(uha_dha_sgRNA_df, genome_sequencing_prime
 
     return genome_sequencing_primer_df
 
-
+  
 
 def main(data):
       
@@ -1954,8 +1956,8 @@ if __name__ == '__main__':
         "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
         "edit_sequence_design_workdir":"./output/only_primer",
         "ref_genome": "/home/yanghe/tmp/data_preprocessing/output/GCF_000005845.2_ASM584v2_genomic.fna",
-        "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/only_primer/pMB1-Red-sgRNA-sacB-2297.gb",   
-        # "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/Plasmid.gb",  
+        # "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/only_primer/pMB1-Red-sgRNA-sacB-2297.gb",   
+        "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/Plasmid.gb",  
         "no_ccdb_plasmid":"",
         "no_sgRNA_plasmid":"",
         "scene":"both_sgRNA_primer",  

@@ -403,7 +403,7 @@ COMMENT             (CObjectList) (CObjectList))) (CObjectList)))
 COMMENT             (CSeqView 10 10 (CObjectList) (CObList) 1 (CObList)) (CObList) 0
 COMMENT             (CStringList) 10 2081718712 (CObList)))
 FEATURES             Location/Qualifiers
-     source          1..7711
+     source          1..7711   
                      /label="synthetic DNA construct"
                      /organism="synthetic DNA construct"
                      /mol_type="other DNA"
