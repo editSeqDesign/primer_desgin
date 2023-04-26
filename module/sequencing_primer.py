@@ -34,13 +34,13 @@ def design_sequencing_primers(dict_plasmid_id, dict_plasmid_seq,mute_position=0,
         sequencing_peimers_template = target_gene_down_seq[-temp_len:] + sequencing_peimers_template
     #设计引物 
     if mute_position ==0:
-        result = design_seq_primer(seq_id=dict_plasmid_id, seq_temp=sequencing_peimers_template, seq_target=target_gene_seq,seq_type=seq_type)
-        print(result)
+        result, failture_result = design_seq_primer(seq_id=dict_plasmid_id, seq_temp=sequencing_peimers_template, seq_target=target_gene_seq,seq_type=seq_type)
+        print(result, failture_result)
     else:
   
-        result = design_seq_primer(seq_id=dict_plasmid_id, seq_temp=sequencing_peimers_template, seq_target=target_gene_seq,mute_position=mute_position,seq_type=seq_type)
+         result, failture_result = design_seq_primer(seq_id=dict_plasmid_id, seq_temp=sequencing_peimers_template, seq_target=target_gene_seq,mute_position=mute_position,seq_type=seq_type)
          
-    return result
+    return result, failture_result
 
 #设计测序引物
 def design_seq_primer(seq_id, seq_temp, seq_target, mute_position=0,seq_type=''):
@@ -86,7 +86,7 @@ def design_seq_primer(seq_id, seq_temp, seq_target, mute_position=0,seq_type='')
                                 primer_name="SEQUENCING_PRIMER_2",
                                 type='RIGHT')
         
-        if len(dict_res_p2.keys()) > 10:
+        if len(dict_res_p2.keys()) > 10 and len(dict_res_p1.keys()) > 10:
             print( dict_res_p2['PRIMER_LEFT_0'][0], dict_res_p2['PRIMER_LEFT_0'][1])
             SEQUENCING_TARGET_END = site_target_temp + len_target + 80 + dict_res_p2['PRIMER_LEFT_0'][0] + dict_res_p2['PRIMER_LEFT_0'][1]
 
@@ -183,13 +183,13 @@ def judge_primer_is_or_not( seq_id, dict_res,primer_suc,primer_fail,primer_name,
 
 
     if len(list(dict_res.keys())) < 10:
-        primer_fail[f'{seq_id}:{primer_name}'] = dict_res   
-        # print(seq_id,primer_name, dict_res) 
-        primer_suc[primer_name] = {'failtrue':dict_res}  
-         
+        primer_fail[f'{seq_id}:{primer_name}'] = dict_res 
     else:
-        primer_suc[primer_name] = dict_res[f'PRIMER_{type}_0_SEQUENCE']
-        primer_suc[f'{primer_name}_TM'] =dict_res[f'PRIMER_{type}_0_TM']
+        if dict_res.get(f'PRIMER_{type}_0_SEQUENCE') == None:
+            primer_fail[f'{seq_id}:{primer_name}'] = dict_res 
+        else:
+            primer_suc[primer_name] = dict_res[f'PRIMER_{type}_0_SEQUENCE']
+            primer_suc[f'{primer_name}_TM'] =dict_res[f'PRIMER_{type}_0_TM']
         
 
 

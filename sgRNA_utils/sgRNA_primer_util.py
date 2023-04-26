@@ -96,21 +96,26 @@ def columns_2_row_from_one_df(sgRNA_df,in_col,to_col):
 
 #创建uha_dha
 def columns_2_row_by_groupby(uha_dha_primer_df,in_col,ou_col,type='u_d'):
-    print(uha_dha_primer_df.columns) 
+    print(uha_dha_primer_df.columns)
+    
     def work(x):
         uha = x[x['Type']=='uha'].reset_index(drop=True)
         dha = x[x['Type']=='dha'].reset_index(drop=True)
-        
+
         if type == 'u_d':
-            data = [[   uha.loc[0,in_col[0]],
-                         uha.loc[0,in_col[1]],
-                         uha.loc[0,in_col[2]],
-                         uha.loc[0,in_col[3]],
-                         dha.loc[0,in_col[2]], 
-                         dha.loc[0,in_col[3]]
-                    ]]
-            U_D_df = pd.DataFrame(columns=ou_col,data=data)
+            if len(uha)>0 and len(dha)>0:
+                data = [[   uha.loc[0,in_col[0]],
+                            uha.loc[0,in_col[1]],
+                            uha.loc[0,in_col[2]],
+                            uha.loc[0,in_col[3]],
+                            dha.loc[0,in_col[2]], 
+                            dha.loc[0,in_col[3]]
+                        ]]
+                U_D_df = pd.DataFrame(columns=ou_col,data=data)
+            else:
+                U_D_df = pd.DataFrame()  
             return U_D_df
+            
         elif type == 'primer':
             data = [[    uha.loc[0,in_col[0]], 
                          uha.loc[0,in_col[1]],
@@ -161,7 +166,7 @@ def replace_primer3Name_to_peopleReadName(df,type=''):
                         } )
     return df  
 
-#设计引物   
+#设计引物   primer_design(seqId = 'first_last', seqTemplate = plasmid_backbone, primer_type='plasmid',stype = 'left_right')
 def primer_design(seqId,
                   seqTemplate,
                   stype,
@@ -177,6 +182,7 @@ def primer_design(seqId,
             global_args.update(config.UHA_ARGS)
             config.UHA_DHA_CONFIG['max_left_arm_seq_length'] == config.UHA_DHA_CONFIG['min_left_arm_seq_length']
             stype = 'left_right'
+            print(global_args)
         elif primer_type == 'dha':
             global_args.update(config.DHA_ARGS)
             config.UHA_DHA_CONFIG['max_left_arm_seq_length'] == config.UHA_DHA_CONFIG['min_left_arm_seq_length']
@@ -237,21 +243,21 @@ def primer_design(seqId,
     #调用工具
     primer3_result = primer3.bindings.designPrimers(seq_args, global_args)
 
-    if primer3_result.get('PRIMER_LEFT_EXPLAIN') != None or primer3_result.get('PRIMER_RIGHT_EXPLAIN') != None:
+    # if primer3_result.get('PRIMER_LEFT_EXPLAIN') != None or primer3_result.get('PRIMER_RIGHT_EXPLAIN') != None:
 
-        errorMessage = f'{primer_type}: '
-        if primer3_result.get('PRIMER_LEFT_0_SEQUENCE') == None:
-            PRIMER_LEFT_EXPLAIN = primer3_result.get('PRIMER_LEFT_EXPLAIN')
-            errorMessage = errorMessage + f'PRIMER_LEFT_EXPLAIN:{PRIMER_LEFT_EXPLAIN}; '
+    #     errorMessage = f'{primer_type}: '
+    #     if primer3_result.get('PRIMER_LEFT_0_SEQUENCE') == None:
+    #         PRIMER_LEFT_EXPLAIN = primer3_result.get('PRIMER_LEFT_EXPLAIN')
+    #         errorMessage = errorMessage + f'PRIMER_LEFT_EXPLAIN:{PRIMER_LEFT_EXPLAIN}; '
 
-        if primer3_result.get('PRIMER_RIGHT_0_SEQUENCE') == None:  
-            PRIMER_RIGHT_EXPLAIN = primer3_result.get('PRIMER_RIGHT_EXPLAIN')
-            errorMessage = errorMessage + f'PRIMER_RIGHT_EXPLAIN:{PRIMER_RIGHT_EXPLAIN}'
-        if errorMessage !=  f'{primer_type}: ': 
-            print(errorMessage)
-            raise ValueError(errorMessage)  
+    #     if primer3_result.get('PRIMER_RIGHT_0_SEQUENCE') == None:  
+    #         PRIMER_RIGHT_EXPLAIN = primer3_result.get('PRIMER_RIGHT_EXPLAIN')
+    #         errorMessage = errorMessage + f'PRIMER_RIGHT_EXPLAIN:{PRIMER_RIGHT_EXPLAIN}'
+    #     if errorMessage !=  f'{primer_type}: ': 
+    #         print(errorMessage)
+    #         raise ValueError(errorMessage)  
 
-    return primer3_result
+    return primer3_result  
 
 #输出引物设计成功的
 def result_output_success_df(plasmid_name,primers_dict,type=''):

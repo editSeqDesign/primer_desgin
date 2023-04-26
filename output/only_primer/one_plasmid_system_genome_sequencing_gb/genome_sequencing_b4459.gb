@@ -1,0 +1,33 @@
+LOCUS       plasmid                  690 bp    DNA              UNK 01-JAN-1980
+DEFINITION  primer seq in plasmid.
+ACCESSION   plamid
+VERSION     plamid
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     cds             201..345
+                     /note="UHA"
+     cds             346..490
+                     /note="DHA"
+     primer_bind     100..119
+                     /note="SEQUENCING_PRIMER_1"
+                     /primer="CGACCATTGGTGAAGCGTTT"
+     primer_bind     complement(571..590)
+                     /note="SEQUENCING_PRIMER_2"
+                     /primer="TTATCCGGCGATCATAGCGG"
+ORIGIN
+        1 ccagtatccg taacagcggc aatcagcggc gatataaacg tgatgtgttg cgatatgttg
+       61 caattatcaa aattgctcag cgtattggca ttccgctggc gaccattggt gaagcgtttg
+      121 gcgtgttgcc cgaagggcat acgttaagtg cgaaagagtg gaaacagctt tcgtcccaat
+      181 ggcgagaaga gttggatcgg cgcattcata ccttagtggc gctgcgtgac gaactggacg
+      241 gatgtattgg ttgtggctgc ctttcgcgca gtgattgccc gttgcgtaac ccgggcgacc
+      301 gcttaggaga agaaggtacc ggcgcacgct tgctggaaga tgaacgcttt aattgtatgt
+      361 caccgacgtt tcttcgccag tgtaaaagta tactttttaa ccgcaatatt tttgtcatct
+      421 cagacgattt tttatcgcaa tcctgaacgg tatacggctc gataacgctg caatcttgcg
+      481 caccgacgat aacgtttgcg catcaattgc ctggtttttc atcgtcaaga caataaaaga
+      541 gaaaaaagca gcaaacttcg gttgaaaaag ccgctatgat cgccggataa tcgtttgctt
+      601 tttttaccac ccgttttgta tgcgcggagc taaacgtttg cttttttgcg acgcagcaaa
+      661 ttgtcgcaaa cctggagcag gaagataacg
+//

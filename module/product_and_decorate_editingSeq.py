@@ -40,14 +40,15 @@ def extract_sgRNA_from_chopchop(sgRNA_result_path, selected_sgRNA_result):
 def design_primer(primer_template,id_name,template_name,stype):
 
     result_list = []
+    failture_primer_df = pd.DataFrame() 
     for i,row in primer_template.iterrows():
         result_dict = {}
+        failture_dict= {}
         if stype == 'u_d':
             if row['type'] == 'uha':
                 primer_result = su.primer_design(row[id_name],row[template_name],'left',primer_type='uha')
             elif row['type'] == 'dha':
-                primer_result = su.primer_design(row[id_name],row[template_name],'right',primer_type='dha')
-                print(primer_result)    
+                primer_result = su.primer_design(row[id_name],row[template_name],'right',primer_type='dha')    
         elif stype == 'plasmid':
             primer_result = su.primer_design(row[id_name],row[template_name],'left_right',primer_type='plasmid')
         elif stype == 'sgRNA':
@@ -57,31 +58,31 @@ def design_primer(primer_template,id_name,template_name,stype):
 
         print(result_dict)      
 
-        result_dict['Region'] = row[id_name]
-        if primer_result.get('PRIMER_LEFT_0_SEQUENCE') == None:
-            result_dict["primer_f_seq_(5'-3')"] = primer_result['PRIMER_LEFT_EXPLAIN']
-            result_dict["primer_f_Tm"] = 0
+        if len(primer_result.keys())<10 :
+            #失败
+            failture_dict['ID'] = row[id_name]
+            if stype == 'u_d':
+                failture_dict['type'] = row['type']
+            failture_dict.update(primer_result)
+            
+            failture_primer_df = failture_primer_df.append([failture_dict])
         else:
+            #成功
+            result_dict['Region'] = row[id_name]
             result_dict["primer_f_seq_(5'-3')"] = primer_result['PRIMER_LEFT_0_SEQUENCE']
             result_dict["primer_f_Tm"] = primer_result['PRIMER_LEFT_0_TM']
-    
-        if  primer_result.get('PRIMER_RIGHT_0_SEQUENCE') == None:
-            result_dict["primer_r_seq_(5'-3')"] = primer_result['PRIMER_RIGHT_EXPLAIN']
-            result_dict["primer_r_Tm"] = 0
-        else:
+
             result_dict["primer_r_seq_(5'-3')"] = primer_result['PRIMER_RIGHT_0_SEQUENCE']
             result_dict["primer_r_Tm"] = primer_result['PRIMER_RIGHT_0_TM']
 
-        if primer_result.get('PRIMER_LEFT_0_SEQUENCE') == None or primer_result.get('PRIMER_RIGHT_0_SEQUENCE') == None:
-            result_dict['product_size'] = 0
-            result_dict['product_value'] = ''
-        else:
             result_dict['product_size'] = primer_result['PRIMER_PAIR_0_PRODUCT_SIZE']   
             result_dict['product_value'] = row[template_name][primer_result['PRIMER_LEFT_0'][0]:primer_result['PRIMER_RIGHT_0'][0]+1]
-
-        result_list.append(result_dict)
-    primer_df = pd.DataFrame(result_list)  
-    return primer_df
+            
+            result_list.append(result_dict)
+                
+    primer_df = pd.DataFrame(result_list)
+    
+    return primer_df, failture_primer_df
 
 def create_primer_template(info_input_df,sgRNA):
     sgRNA_df = pd.merge(info_input_df,sgRNA,left_on=['name','region'],right_on=['Name','Region'],how='inner')
@@ -190,6 +191,7 @@ def design_primer_by_region_in_plasmid(first_primer_start_position, plasmid_seq,
 
     sgRNA_plasmid_seq_len = len(plasmid_seq)
     primer_result_list = []
+    failture_result_list = []
     i=1
     relative_distance = ''
     primer_template_start = first_primer_start_position
@@ -211,8 +213,12 @@ def design_primer_by_region_in_plasmid(first_primer_start_position, plasmid_seq,
             template_seq = template_seq_1 + template_seq_2
             #这就可以设计引物
             primer_result = su.primer_design(k,template_seq, 'right',primer_type='plasmid')
-            if len(primer_result) < 10:
-                pass
+            if primer_result.get('PRIMER_LEFT_0_SEQUENCE') == None or primer_result.get('PRIMER_RIGHT_0_SEQUENCE') == None:
+                failture_dict = {}
+                failture_dict['ID'] = f"region:{i}"
+                failture_dict.update(primer_result)
+                failture_result_list.append(failture_dict)
+                return 'failture',failture_result_list
             else: 
                 dict_primer_result={
                    'Region':i,
@@ -227,13 +233,17 @@ def design_primer_by_region_in_plasmid(first_primer_start_position, plasmid_seq,
                 right_primer_end = (primer_template_start + primer_result['PRIMER_PAIR_0_PRODUCT_SIZE'])-sgRNA_plasmid_seq_len
                 primer_template_start = right_primer_end
                 relative_distance = len(template_seq) - primer_result['PRIMER_PAIR_0_PRODUCT_SIZE']
-                i = i + 1
+            i = i + 1
         else:
             template_seq = plasmid_seq[primer_template_start : primer_template_end]
             #设计引物
             primer_result = su.primer_design(k,template_seq, 'right',primer_type='plasmid')
-            if len(primer_result) < 10:
-                pass
+            if primer_result.get('PRIMER_LEFT_0_SEQUENCE') == None or primer_result.get('PRIMER_RIGHT_0_SEQUENCE') == None:
+                failture_dict = {}
+                failture_dict['ID'] = f"region:{i}"
+                failture_dict.update(primer_result)
+                failture_result_list.append(failture_dict)
+                return 'failture',failture_result_list
             else:
                 dict_primer_result={
                      'Region':i,
@@ -248,14 +258,12 @@ def design_primer_by_region_in_plasmid(first_primer_start_position, plasmid_seq,
                 right_primer_end = primer_template_start + primer_result['PRIMER_PAIR_0_PRODUCT_SIZE']
                 primer_template_start = right_primer_end
                 relative_distance = len(template_seq) - primer_result['PRIMER_PAIR_0_PRODUCT_SIZE']
-                i = i + 1
+            i = i + 1
 
     #处理设计最后一对引物
 
 
     #获取已经取到的最后一对引物
-
-
     last_primer_end = plasmid_seq.find(su.revComp(primer_result_list[-1]["primer_r_seq_(5'-3')"])) + len( su.revComp(primer_result_list[-1]["primer_r_seq_(5'-3')"]) )
    
     print(last_primer_end , first_primer_start_position, "hdsfjkgfhjgjghfj")
@@ -270,19 +278,26 @@ def design_primer_by_region_in_plasmid(first_primer_start_position, plasmid_seq,
         primer_template = plasmid_seq[last_primer_end:first_primer_start_position-temp_variable]
         primer_result = su.primer_design('last',primer_template, 'left_right', primer_type='plasmid')
     
-    last_num = i 
-    dict_primer_result={
-                        'Region':last_num,
-                        f"primer_f_seq_(5'-3')" : primer_result['PRIMER_LEFT_0_SEQUENCE'],
-                        f"primer_r_seq_(5'-3')" : primer_result['PRIMER_RIGHT_0_SEQUENCE'],
-                        f"primer_f_Tm":primer_result['PRIMER_LEFT_0_TM'],
-                        f"primer_r_Tm":primer_result['PRIMER_RIGHT_0_TM'],
-                        f'product_size' : primer_result['PRIMER_PAIR_0_PRODUCT_SIZE'],
-                        f'product_value' : template_seq[:primer_result['PRIMER_PAIR_0_PRODUCT_SIZE']],
-                    }
-    primer_result_list.append(dict_primer_result)
+    last_num = i
+    if primer_result.get('PRIMER_LEFT_0_SEQUENCE') == None or primer_result.get('PRIMER_RIGHT_0_SEQUENCE') == None:
+        failture_dict = {}
+        failture_dict['ID'] = f"region:{last_num}"
+        failture_dict.update(primer_result)
+        failture_result_list.append(failture_dict)
+        return 'failture',failture_result_list
+    else:
+        dict_primer_result={
+                            'Region':last_num,
+                            f"primer_f_seq_(5'-3')" : primer_result['PRIMER_LEFT_0_SEQUENCE'],
+                            f"primer_r_seq_(5'-3')" : primer_result['PRIMER_RIGHT_0_SEQUENCE'],
+                            f"primer_f_Tm":primer_result['PRIMER_LEFT_0_TM'],
+                            f"primer_r_Tm":primer_result['PRIMER_RIGHT_0_TM'],
+                            f'product_size' : primer_result['PRIMER_PAIR_0_PRODUCT_SIZE'],
+                            f'product_value' : template_seq[:primer_result['PRIMER_PAIR_0_PRODUCT_SIZE']],
+                        }
+        primer_result_list.append(dict_primer_result)
 
-    return primer_result_list
+    return 'success',primer_result_list
 
 
 def get_plasmid_backbone_by_labels(gb_path, ccdb_label='ccdB', promoter_terminator_label='gRNA', n_20_label='N20'):
@@ -439,17 +454,6 @@ def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_
 
         sgRNA_df = su.lambda2cols(df=sgRNA_df, lambdaf=work, in_coln=['Target sequence','UHA','DHA','seq_altered','type'], to_colns=['plasmid','sgRNA_template','ccdb','ccdb_up','ccdb_down'])
         return sgRNA_df, plasmid_backbone, joint_need_seq
-
-
-
-
-
-
-
-
-
-
-
 
 
 def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_terminator_down_terminator_seq='',promoter_terminator_up_promoter_seq='',stype='sgRNA_joint'):
@@ -734,6 +738,7 @@ def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_termin
 def create_sequencing_primer(sgRNA_df,sequencing_primer,sequencing_template='plasmid',sequencing_region='plasmid_sequencing_region',seq_type=''):
     
     sgRNA_plasmid_df = pd.DataFrame()
+    failture_sgRNA_plasmid_df = pd.DataFrame()
     for i,v in sgRNA_df.iterrows():
         sgRNA_plasmid_seq=v[sequencing_template]
         # sgRNA_plasmid_seq_len = len(sgRNA_plasmid_seq)
@@ -746,7 +751,7 @@ def create_sequencing_primer(sgRNA_df,sequencing_primer,sequencing_template='pla
         
         target_gene_seq = plasmid_sequencing_region
         target_gene_up_seq = sgRNA_plasmid_seq[0:start]
-        target_gene_down_seq =sgRNA_plasmid_seq[end:len(sgRNA_plasmid_seq)]
+        target_gene_down_seq =sgRNA_plasmid_seq[end:len(sgRNA_plasmid_seq)]  
 
         #定义用于测序的数据结构  
         dict_plasmid_seq={}
@@ -757,11 +762,27 @@ def create_sequencing_primer(sgRNA_df,sequencing_primer,sequencing_template='pla
         dict_plasmid_seq['mute_after_target_gene_seq']=target_gene_seq     #用户指定测序序列的区域序列
    
         #测序质粒的id
-        result = {'Region':v['Region']}
-        result.update(sequencing_primer.design_sequencing_primers(v['Region'], dict_plasmid_seq, seq_type=seq_type )[0])
-        sgRNA_plasmid_df = sgRNA_plasmid_df.append(pd.DataFrame([result]))
-    sgRNA_plasmid_df = su.make_id_in_first_columns(sgRNA_plasmid_df,id='Region',columns=sgRNA_plasmid_df.columns.tolist())
-    return sgRNA_plasmid_df
+        sucesse,failture = sequencing_primer.design_sequencing_primers(v['Region'], dict_plasmid_seq, seq_type=seq_type )
+
+        if sucesse != {}:
+            result = {'Region':v['Region']}
+            result.update(sucesse)
+            sgRNA_plasmid_df = sgRNA_plasmid_df.append(pd.DataFrame([result]))
+
+        if failture != {}:
+          
+            id = list(failture.keys())[0]
+            failture_result={'ID':id}
+            value = list(failture.values())[0]
+            failture_result.update(value)
+
+            # failture_result.update(failture)
+            failture_sgRNA_plasmid_df = failture_sgRNA_plasmid_df.append(pd.DataFrame([failture_result]))
+        
+    if len(sgRNA_plasmid_df) > 0: 
+        sgRNA_plasmid_df = su.make_id_in_first_columns(sgRNA_plasmid_df,id='Region',columns=sgRNA_plasmid_df.columns.tolist())
+
+    return sgRNA_plasmid_df, failture_sgRNA_plasmid_df
 
 #合并两个测序结果
 def merge_sequencing_result(plasmid_sequencing_primer_df1,plasmid_sequencing_primer_df2):
@@ -870,15 +891,20 @@ def check_locate_primer(sgRNA_plasmid_backbone, primer_json):
 def first_left_last_right_primer_design(gb_path, ccdb_label, promoter_terminator_label, n_20_label, last_primer_num, plasmid_backbone=''):
 
     primer_dict = {}
+    failture_primer_dict={}
 
     if plasmid_backbone != '':
-        primer_result = su.primer_design(seqId = 'fist_last', seqTemplate = plasmid_backbone, stype = 'left_right')
-        first_left_primer = primer_result["PRIMER_LEFT_0_SEQUENCE"]
-        last_right_primer = primer_result["PRIMER_RIGHT_0_SEQUENCE"]
-        primer_dict.update({f"primer_f_seq_(5'-3')_1":first_left_primer})
-        primer_dict.update({f"primer_r_seq_(5'-3')_{last_primer_num}":last_right_primer})
-        print('一个质粒系统应用场景')
-        return  primer_dict
+        primer_result = su.primer_design(seqId = 'first_last', seqTemplate = plasmid_backbone, primer_type='plasmid',stype = 'left_right')
+        if primer_result.get('PRIMER_LEFT_0_SEQUENCE')==None or primer_result.get('PRIMER_RIGHT_0_SEQUENCE')==None: 
+            failture_primer_dict['ID'] = 'plasmid_first_last'
+            failture_primer_dict.update(primer_result)
+        else:
+            first_left_primer = primer_result["PRIMER_LEFT_0_SEQUENCE"]
+            last_right_primer = primer_result["PRIMER_RIGHT_0_SEQUENCE"]
+            primer_dict.update({f"primer_f_seq_(5'-3')_1":first_left_primer})
+            primer_dict.update({f"primer_r_seq_(5'-3')_{last_primer_num}":last_right_primer})
+            print('一个质粒系统应用场景')
+        return  primer_dict, failture_primer_dict  
     
     else:
         before_processed_seq_dict, after_processed_seq_dict = fq.get_data_from_genebank(gb_path,marker=ccdb_label,target_gene=promoter_terminator_label)
@@ -947,6 +973,9 @@ def sort_compose_primer(sgRNA_promoter_terminator_start,
     primer_dict = {}
     i = 1
 
+
+    failture_primer_dict_df = pd.DataFrame()  
+
     if plasmid_type == 'two':
         first_last_primer_dict = first_left_last_right_primer_design(
                                             gb_path,
@@ -955,7 +984,7 @@ def sort_compose_primer(sgRNA_promoter_terminator_start,
                                             n_20_label,
                                             last_primer_num = int(primers_sum/2))
     else:
-        first_last_primer_dict = first_left_last_right_primer_design(
+        first_last_primer_dict, failture_first_last_primer_dict = first_left_last_right_primer_design(
                                             gb_path,
                                             ccdb_label,
                                             promoter_terminator_label,
@@ -965,6 +994,9 @@ def sort_compose_primer(sgRNA_promoter_terminator_start,
                                             )
 
       
+    if failture_first_last_primer_dict == {}:
+        failture_primer_dict_df =  pd.DataFrame([failture_first_last_primer_dict])
+        return 'failture', failture_primer_dict_df,0
 
     primer_dict.update(first_last_primer_dict)
     #在质粒上取引物,同时设计引物
@@ -974,18 +1006,22 @@ def sort_compose_primer(sgRNA_promoter_terminator_start,
             template = sgRNA_plasmid_backbone[-100:]+sgRNA_plasmid_backbone[:item]
         else:
             template = sgRNA_plasmid_backbone[:item]
-        primer_result =  su.primer_design(seqId=item,seqTemplate=template,stype='right')
-        if len(primer_result)<10:
-            pass
+        primer_result =  su.primer_design(seqId=item,seqTemplate=template, primer_type='plasmid',stype='right')
+        if primer_result.get('PRIMER_RIGHT_0_SEQUENCE')==None:
+            failture_dict = {}
+            failture_dict['ID'] = position_primer_json[item]
+            failture_dict.update(primer_result)
+            failture_primer_dict_df = pd.DataFrame([failture_dict]) 
+            return 'failture', failture_primer_dict_df,0
         else:
             right_primer = primer_result['PRIMER_RIGHT_0_SEQUENCE']
             primer_dict.update({f"primer_r_seq_(5'-3')_{i}":right_primer})
             i = i + 1
             primer_dict.update({f"primer_f_seq_(5'-3')_{i}":left_primer})
-    
+      
     primer_dict_df = pd.DataFrame([primer_dict])
     
-    return primer_dict_df,primers_sum
+    return 'success',primer_dict_df, primers_sum
 
 def plasmid_primer(sgRNA_plasmid_primer_joint_df):
     sgRNA_columns = [i for i in sgRNA_plasmid_primer_joint_df.columns if 'primer' in i]
@@ -1440,6 +1476,7 @@ def create_gb_for_region(plasmid_primer_featrue_df, n20down_primer_p_df, joint_l
 
    
 def create_gb_for_sequencing_region(plasmid_primer_featrue_df, plasmid_sequencing_primer_df, output, type='plasmid_sequencing'):
+
 
     df = pd.DataFrame()
     columns = list(plasmid_primer_featrue_df.columns)

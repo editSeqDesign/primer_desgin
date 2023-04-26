@@ -3,13 +3,13 @@ import os
 class config: 
     #单双点设计引物的全局参数  
     GLOBAL_ARGS = {
-                'PRIMER_PICK_ANYWAY':1,
+                'PRIMER_PICK_ANYWAY':0,
                 'PRIMER_PRODUCT_SIZE_RANGE': 0,
                 'PRIMER_NUM_RETURN':2
         }     
 
     S_GLOBAL_ARGS = {
-            'PRIMER_OPT_SIZE': 18,   
+            'PRIMER_OPT_SIZE': 2,   
             'PRIMER_MIN_SIZE': 15,
             'PRIMER_MAX_SIZE': 25,
             'PRIMER_OPT_TM': 75.0,
@@ -24,6 +24,8 @@ class config:
         'PRIMER_MAX_TM': 75.0,
         'PRIMER_MIN_GC': 20.0,
         'PRIMER_MAX_GC': 80.0,
+        'PRIMER_MIN_SIZE':18,
+        'PRIMER_MAX_SIZE':25
     }
     SEQ_ALTERED_ARGS = {
         'PRIMER_OPT_TM': 65.0,
@@ -31,6 +33,8 @@ class config:
         'PRIMER_MAX_TM': 75.0,
         'PRIMER_MIN_GC': 20.0,
         'PRIMER_MAX_GC': 80.0,
+        'PRIMER_MIN_SIZE':18,
+        'PRIMER_MAX_SIZE':25
     }
     DHA_ARGS = {
         'PRIMER_OPT_TM': 65.0,
@@ -38,6 +42,8 @@ class config:
         'PRIMER_MAX_TM': 75.0,
         'PRIMER_MIN_GC': 20.0,
         'PRIMER_MAX_GC': 80.0,
+        'PRIMER_MIN_SIZE':18,
+        'PRIMER_MAX_SIZE':25
     }
     UP_SGRNA_ARGS = {
         'PRIMER_OPT_TM': 65.0,
@@ -45,6 +51,8 @@ class config:
         'PRIMER_MAX_TM': 75.0,
         'PRIMER_MIN_GC': 20.0,
         'PRIMER_MAX_GC': 80.0,
+        'PRIMER_MIN_SIZE':18,
+        'PRIMER_MAX_SIZE':25
     }
     DOWN_SGRNA_ARGS = {
         'PRIMER_OPT_TM': 65.0,
@@ -52,6 +60,8 @@ class config:
         'PRIMER_MAX_TM': 75.0,
         'PRIMER_MIN_GC': 20.0,
         'PRIMER_MAX_GC': 80.0,
+        'PRIMER_MIN_SIZE':18,
+        'PRIMER_MAX_SIZE':25
     }
 
     #测序引物设计的全局参数
@@ -72,6 +82,8 @@ class config:
         'PRIMER_MAX_TM': 75.0,    
         'PRIMER_MIN_GC': 20.0,
         'PRIMER_MAX_GC': 80.0,
+        'PRIMER_MIN_SIZE': 14,  
+        'PRIMER_MAX_SIZE': 24,
     }
     GENOME_Q_ARGS = {
         'PRIMER_OPT_TM': 65.0,
@@ -79,6 +91,8 @@ class config:
         'PRIMER_MAX_TM': 75.0,    
         'PRIMER_MIN_GC': 20.0,
         'PRIMER_MAX_GC': 50.0,
+        'PRIMER_MIN_SIZE': 14,  
+        'PRIMER_MAX_SIZE': 24,
     }
 
 
