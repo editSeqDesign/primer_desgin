@@ -323,7 +323,7 @@ def get_plasmid_backbone_by_labels(gb_path, ccdb_label='ccdB', promoter_terminat
          #双质粒系统:无ccdb
         before_processed_seq_dict, after_processed_seq_dict = fq.get_data_from_genebank(gb_path,marker=ccdb_label, target_gene=n_20_label)
 
-        ccdb = before_processed_seq_dict['marker_seq']
+        # ccdb = before_processed_seq_dict['marker_seq']
         n_20 = before_processed_seq_dict['target_gene_seq']
         n20_up_seq = before_processed_seq_dict['target_gene_up_seq']
         n20_down_seq = before_processed_seq_dict['target_gene_down_seq']
@@ -926,23 +926,37 @@ def first_left_last_right_primer_design(gb_path, ccdb_label, promoter_terminator
             terminator_seq = promoter_terminator[promoter_terminator.find(promoter_seq) + len(promoter_seq) + 20 :]
             first_primer_template = terminator_seq + promoter_terminator_down_seq
             primer_result = su.primer_design(seqId = 'first', seqTemplate = first_primer_template, stype = 'right',primer_type='plasmid')
-            first_left_primer = primer_result["PRIMER_LEFT_0_SEQUENCE"]
-            primer_dict.update({f"primer_f_seq_(5'-3')_1":first_left_primer})
+
+            if primer_result.get('PRIMER_LEFT_0_SEQUENCE')==None or primer_result.get('PRIMER_RIGHT_0_SEQUENCE')==None: 
+                failture_primer_dict['ID'] = 'plasmid_first_left'
+                failture_primer_dict.update(primer_result)
+            else:
+                first_left_primer = primer_result["PRIMER_LEFT_0_SEQUENCE"]
+                primer_dict.update({f"primer_f_seq_(5'-3')_1":first_left_primer})
 
             #设计最一引物右引物
             last_primer_template = promoter_terminator_up_seq + promoter_seq
             primer_result = su.primer_design(seqId = 'last', seqTemplate = last_primer_template, stype = 'left',primer_type='plasmid')
-            last_right_primer = primer_result["PRIMER_RIGHT_0_SEQUENCE"]
-            primer_dict.update({f"primer_r_seq_(5'-3')_{last_primer_num}":last_right_primer})
+            if primer_result.get('PRIMER_LEFT_0_SEQUENCE')==None or primer_result.get('PRIMER_RIGHT_0_SEQUENCE')==None: 
+                failture_primer_dict['ID'] = 'plasmid_last_right'
+                failture_primer_dict.update(primer_result)
+            else:
+                last_right_primer = primer_result["PRIMER_RIGHT_0_SEQUENCE"]
+                primer_dict.update({f"primer_r_seq_(5'-3')_{last_primer_num}":last_right_primer})
         else:
             #有ccdb的情况
             ccdb_plasmid_backbone = promoter_terminator_down_seq + promoter_terminator_up_seq
             primer_result = su.primer_design(seqId = 'fist_last', seqTemplate = ccdb_plasmid_backbone, stype = 'left_right',primer_type='plasmid')
-            first_left_primer = primer_result["PRIMER_LEFT_0_SEQUENCE"]
-            last_right_primer = primer_result["PRIMER_RIGHT_0_SEQUENCE"]
-            primer_dict.update({f"primer_f_seq_(5'-3')_1":first_left_primer})
-            primer_dict.update({f"primer_r_seq_(5'-3')_{last_primer_num}":last_right_primer})
-        return primer_dict
+
+            if primer_result.get('PRIMER_LEFT_0_SEQUENCE')==None or primer_result.get('PRIMER_RIGHT_0_SEQUENCE')==None: 
+                failture_primer_dict['ID'] = 'plasmid_first_last'
+                failture_primer_dict.update(primer_result)
+            else:
+                first_left_primer = primer_result["PRIMER_LEFT_0_SEQUENCE"]
+                last_right_primer = primer_result["PRIMER_RIGHT_0_SEQUENCE"]
+                primer_dict.update({f"primer_f_seq_(5'-3')_1":first_left_primer})
+                primer_dict.update({f"primer_r_seq_(5'-3')_{last_primer_num}":last_right_primer})
+        return primer_dict, failture_primer_dict
 
 #对引物进行排序：
     #1.确定sgRNA_promoter_terminator_start的位置坐标
@@ -977,7 +991,7 @@ def sort_compose_primer(sgRNA_promoter_terminator_start,
     failture_primer_dict_df = pd.DataFrame()  
 
     if plasmid_type == 'two':
-        first_last_primer_dict = first_left_last_right_primer_design(
+        first_last_primer_dict, failture_first_last_primer_dict = first_left_last_right_primer_design(
                                             gb_path,
                                             ccdb_label,
                                             promoter_terminator_label,
@@ -994,7 +1008,7 @@ def sort_compose_primer(sgRNA_promoter_terminator_start,
                                             )
 
       
-    if failture_first_last_primer_dict == {}:
+    if failture_first_last_primer_dict != {}:
         failture_primer_dict_df =  pd.DataFrame([failture_first_last_primer_dict])
         return 'failture', failture_primer_dict_df,0
 

@@ -10,7 +10,6 @@ REFERENCE   1  (bases 1 to 7711)
   TITLE     Direct Submission
   JOURNAL   Exported Apr 20, 2023 from SnapGene 4.2.4
             http://www.snapgene.com
-BASE COUNT         2197 a         1842 c         1784 g         1887 t
 COMMENT             SECID/File created by SciEd Central, Scientific & Educational
 COMMENT             Software
 COMMENT             This file is created by Vector NTI
@@ -403,7 +402,7 @@ COMMENT             (CObjectList) (CObjectList))) (CObjectList)))
 COMMENT             (CSeqView 10 10 (CObjectList) (CObList) 1 (CObList)) (CObList) 0
 COMMENT             (CStringList) 10 2081718712 (CObList)))
 FEATURES             Location/Qualifiers
-     source          1..7711   
+     source          1..7711
                      /label="synthetic DNA construct"
                      /organism="synthetic DNA construct"
                      /mol_type="other DNA"

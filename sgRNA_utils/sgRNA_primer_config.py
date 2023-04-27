@@ -9,7 +9,7 @@ class config:
         }     
 
     S_GLOBAL_ARGS = {
-            'PRIMER_OPT_SIZE': 2,   
+            'PRIMER_OPT_SIZE': 20,   
             'PRIMER_MIN_SIZE': 15,
             'PRIMER_MAX_SIZE': 25,
             'PRIMER_OPT_TM': 75.0,

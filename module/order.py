@@ -225,9 +225,9 @@ def rename_primer_ID(temp_df,in_col,df_name,stype):
     temp_df = temp_df.drop(columns='ID')
     temp_v = pd.DataFrame(temp_df.unstack())
     if stype == 1:
-        temp_v.index = [i[1]+'|'+ df_name + '|'+ i[0][7]+'|' for i in temp_v.index]
+        temp_v.index = [str(i[1])+'|'+ df_name + '|'+ str(i[0][7])+'|' for i in temp_v.index]
     elif stype == 2:
-        temp_v.index = [i[1]+'|'+ df_name + '|'+ str(i[0].split('_')[-1]) +'|' for i in temp_v.index]
+        temp_v.index = [str(i[1])+'|'+ df_name + '|'+ str(i[0].split('_')[-1]) +'|' for i in temp_v.index]
     return temp_v
 
 # #引物重命名
@@ -345,17 +345,23 @@ def merge_primer(*li):
                 sgRNA_primer = rename_primer_ID(sgRNA_primer_df,in_col=['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE'],df_name='sgRNA',stype=1)
         if len(ccdb_primer_df) >0:
             ccdb_primer = rename_primer_ID(ccdb_primer_df,in_col=['ID','PRIMER_LEFT_WHOLE_SEQUENCE','PRIMER_RIGHT_WHOLE_SEQUENCE'],df_name='ccdb',stype=1)
+        else:
+            ccdb_primer = pd.DataFrame()
 
         #sgRNA质粒测序引物
         if len(sgRNA_plasmid_sequencing_primer_df) > 0 :
             sgRNA_plasmid_sequencing_primer_df_columns = [i for i in sgRNA_plasmid_sequencing_primer_df.columns if (i.split('_')[-1]).isdigit() ]
             sgRNA_plasmid_sequencing_primer_df_columns.append('ID')
             p1_s_primer = rename_primer_ID(sgRNA_plasmid_sequencing_primer_df, in_col=sgRNA_plasmid_sequencing_primer_df_columns, df_name='p1',stype=2)
+        else:
+            p1_s_primer = pd.DataFrame()
         #ccdb质粒测序引物
         if len(ccdb_plasmid_sequencing_primer_df):
             ccdb_plasmid_sequencing_primer_df_columns = [i for i in ccdb_plasmid_sequencing_primer_df.columns if (i.split('_')[-1]).isdigit() ]
             ccdb_plasmid_sequencing_primer_df_columns.append('ID')
             p2_s_primer = rename_primer_ID(ccdb_plasmid_sequencing_primer_df, in_col=ccdb_plasmid_sequencing_primer_df_columns, df_name='p2',stype=2)
+        else:
+            p2_s_primer = pd.DataFrame()  
 
         #合并引物   
         if len(seq_altered_p_df)> 0:

@@ -23,26 +23,20 @@ FEATURES             Location/Qualifiers
      primer_bind     complement(257..291)
                      /note="DHA_PRIMER_RIGHT_WHOLE_SEQUENCE"
                      /primer="GGTCCAGAGTCTAGATATCAGCCAGACAAAGCCGA"
-     primer_bind     282..316
+     primer_bind     282..313
                      /note="N20UP_PRIMER_LEFT_WHOLE_SEQUENCE"
-                     /primer="CCAGGTCTCACTAGGTTTATACATAGGCGAGTACT"
-     primer_bind     complement(318..371)
+                     /primer="CCAGGTCTCACTAGGTTTATACATAGGCGAGT"
+     primer_bind     complement(322..371)
                      /note="N20UP_PRIMER_RIGHT_WHOLE_SEQUENCE"
                      /primer="GGTCCAGAGTTTCGCCATTCCTGTAGAGGGCGCTTAAGATCTGACTCCAT
-                     AACA"
+                     "
      cds             292..544
                      /note="PROMOTER_N20_TERMINATOR"
-     primer_bind     352..386
+     primer_bind     348..385
                      /note="0_PRIMER_LEFT_WHOLE_SEQUENCE"
-                     /primer="CCAGGTCTCAGTTTTAGAGCTAGAAATAGCAAGTT"
-     primer_bind     complement(7581..7614)
-                     /note="0_PRIMER_RIGHT_WHOLE_SEQUENCE"
-                     /primer="GGTCCAGAGTATGCTTTGTGCATACAGCCCCTCG"
-     primer_bind     7591..7625
-                     /note="1_PRIMER_LEFT_WHOLE_SEQUENCE"
-                     /primer="CCAGGTCTCAGCATCTTCTGTTGAGTTAAGAACGA"
+                     /primer="CCAGGTCTCAGTTGGTTTTAGAGCTAGAAATAGCAAGT"
      primer_bind     complement(join(7693..7712,1..10))
-                     /note="1_PRIMER_RIGHT_WHOLE_SEQUENCE"
+                     /note="0_PRIMER_RIGHT_WHOLE_SEQUENCE"
                      /primer="GGTCCAGAGTACAGGCCCATGGATTCTTCG"
 ORIGIN
         1 caaacgtatg ggccacgcgg gtgccatcat tgccggtggg aaagggactg cggatgagaa
