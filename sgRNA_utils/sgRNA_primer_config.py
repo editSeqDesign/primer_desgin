@@ -3,11 +3,11 @@ import os
 class config: 
     #单双点设计引物的全局参数  
     GLOBAL_ARGS = {
-                'PRIMER_PICK_ANYWAY':0,
+                'PRIMER_PICK_ANYWAY':1,
                 'PRIMER_PRODUCT_SIZE_RANGE': 0,
                 'PRIMER_NUM_RETURN':2
         }     
-
+   
     S_GLOBAL_ARGS = {
             'PRIMER_OPT_SIZE': 20,   
             'PRIMER_MIN_SIZE': 15,
