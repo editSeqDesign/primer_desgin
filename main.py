@@ -882,13 +882,17 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     
     #3.输出失败引物excel文件
     #分离uha，dha
-    failture_uha_primer_df = failture_uha_dha_primer_df[failture_uha_dha_primer_df['type']=='uha']
-    failture_uha_primer_df = failture_uha_primer_df.drop(columns='type')
-    failture_uha_primer_df.reset_index(drop=True, inplace=True)
+    if len(failture_uha_dha_primer_df) >0 :
+        failture_uha_primer_df = failture_uha_dha_primer_df[failture_uha_dha_primer_df['type']=='uha']
+        failture_uha_primer_df = failture_uha_primer_df.drop(columns='type')
+        failture_uha_primer_df.reset_index(drop=True, inplace=True)
 
-    failture_dha_primer_df = failture_uha_dha_primer_df[failture_uha_dha_primer_df['type']=='dha']
-    failture_dha_primer_df = failture_dha_primer_df.drop(columns='type')
-    failture_dha_primer_df.reset_index(drop=True, inplace=True)
+        failture_dha_primer_df = failture_uha_dha_primer_df[failture_uha_dha_primer_df['type']=='dha']
+        failture_dha_primer_df = failture_dha_primer_df.drop(columns='type')
+        failture_dha_primer_df.reset_index(drop=True, inplace=True)
+    else:
+        failture_uha_primer_df = pd.DataFrame()
+        failture_dha_primer_df = pd.DataFrame()
 
     failture_plasmid_sequencing_primer_df.reset_index(drop=True, inplace=True)
     failture_genome_sequencing_primer_df.reset_index(drop=True, inplace=True)
@@ -1301,13 +1305,17 @@ def execute_two_plasmid_system(
 
      #3.输出失败引物excel文件
     #分离uha，dha
-    failture_uha_primer_df = failture_uha_dha_primer_df[failture_uha_dha_primer_df['type']=='uha']
-    failture_uha_primer_df = failture_uha_primer_df.drop(columns='type')
-    failture_uha_primer_df.reset_index(drop=True, inplace=True)
+    if len(failture_uha_dha_primer_df) > 0:
+        failture_uha_primer_df = failture_uha_dha_primer_df[failture_uha_dha_primer_df['type']=='uha']
+        failture_uha_primer_df = failture_uha_primer_df.drop(columns='type')
+        failture_uha_primer_df.reset_index(drop=True, inplace=True)
 
-    failture_dha_primer_df = failture_uha_dha_primer_df[failture_uha_dha_primer_df['type']=='dha']
-    failture_dha_primer_df = failture_dha_primer_df.drop(columns='type')
-    failture_dha_primer_df.reset_index(drop=True, inplace=True)
+        failture_dha_primer_df = failture_uha_dha_primer_df[failture_uha_dha_primer_df['type']=='dha']
+        failture_dha_primer_df = failture_dha_primer_df.drop(columns='type')
+        failture_dha_primer_df.reset_index(drop=True, inplace=True)
+    else:
+        failture_uha_primer_df = pd.DataFrame()
+        failture_dha_primer_df = pd.DataFrame()
 
     failture_sgRNA_plasmid_sequencing_primer_df.reset_index(drop=True, inplace=True)
     failture_ccdb_plasmid_sequencing_primer_df.reset_index(drop=True, inplace=True)

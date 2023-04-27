@@ -9,9 +9,9 @@ SOURCE      .
 FEATURES             Location/Qualifiers
      cds             8644..9107
                      /note="PROMOTER_N20_TERMINATOR"
-     primer_bind     8706..8741
+     primer_bind     8706..8740
                      /note="0_PRIMER_LEFT_WHOLE_SEQUENCE"
-                     /primer="CCAGGTCTCAAGTTTTAGAGCTAGAAATAGCAAGTT"
+                     /primer="CCAGGTCTCAAGTTTTAGAGCTAGAAATAGCAAGT"
      primer_bind     complement(8673..8727)
                      /note="0_PRIMER_RIGHT_WHOLE_SEQUENCE"
                      /primer="GGTCCAGAGTTCGGTGTGTTAATCCGCCAGCTGAATTACACTGTACCTGT

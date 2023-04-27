@@ -15,9 +15,9 @@ FEATURES             Location/Qualifiers
      primer_bind     complement(276..315)
                      /note="UHA_PRIMER_RIGHT_WHOLE_SEQUENCE"
                      /primer="GGTCCAGAGTTTCATGAACGAGTATTTGTATTTCAATGTC"
-     primer_bind     769..806
+     primer_bind     769..808
                      /note="DHA_PRIMER_LEFT_WHOLE_SEQUENCE"
-                     /primer="CCAGGTCTCAAGTAACTTTTAAGTTTTCTCGGTGATCC"
+                     /primer="CCAGGTCTCAAGTAACTTTTAAGTTTTCTCGGTGATCCGT"
      cds             784..1083
                      /note="DHA"
      primer_bind     complement(1048..1079)
@@ -26,15 +26,15 @@ FEATURES             Location/Qualifiers
      primer_bind     290..325
                      /note="SEQ_PRIMER_LEFT_WHOLE_SEQUENCE"
                      /primer="CCAGGTCTCAAATGAACAAGGTTGCTCAATATTACC"
-     primer_bind     complement(767..794)
+     primer_bind     complement(763..794)
                      /note="SEQ_PRIMER_RIGHT_WHOLE_SEQUENCE"
-                     /primer="GGTCCAGAGTTTTACGGCTCAAACGGGC"
+                     /primer="GGTCCAGAGTTTTACGGCTCAAACGGGCGTCT"
      primer_bind     1073..1104
                      /note="0_PRIMER_LEFT_WHOLE_SEQUENCE"
                      /primer="CCAGGTCTCAATGAGAGTTTTCGCCCCGAAGA"
-     primer_bind     complement(join(11945..11965,1..11))
+     primer_bind     complement(join(11941..11965,1..11))
                      /note="0_PRIMER_RIGHT_WHOLE_SEQUENCE"
-                     /primer="GGTCCAGAGTTAGGATCTTACCGCTGTTGAGA"
+                     /primer="GGTCCAGAGTTAGGATCTTACCGCTGTTGAGATCCA"
 ORIGIN
         1 gtgaagccga aacctgcact catctccacc ccgacgatga cacctatctc acggctgaat
        61 ccgttgctca attgggtacg aagctgaagt ctgcgtagtt gttaggagcc accacagacc

@@ -7,9 +7,9 @@ SOURCE      .
   ORGANISM  .
             .
 FEATURES             Location/Qualifiers
-     primer_bind     join(11532..11546,1..17)
+     primer_bind     join(11532..11546,1..22)
                      /note="UHA_PRIMER_LEFT_WHOLE_SEQUENCE"
-                     /primer="CCAGGTCTCAATCCTGGTGGCTTGGTGATCAC"
+                     /primer="CCAGGTCTCAATCCTGGTGGCTTGGTGATCACCTTGG"
      cds             1..300
                      /note="UHA"
      primer_bind     complement(281..343)
@@ -28,9 +28,9 @@ FEATURES             Location/Qualifiers
      primer_bind     654..685
                      /note="0_PRIMER_LEFT_WHOLE_SEQUENCE"
                      /primer="CCAGGTCTCAATGAGAGTTTTCGCCCCGAAGA"
-     primer_bind     complement(join(11526..11546,1..11))
+     primer_bind     complement(join(11522..11546,1..11))
                      /note="0_PRIMER_RIGHT_WHOLE_SEQUENCE"
-                     /primer="GGTCCAGAGTTAGGATCTTACCGCTGTTGAGA"
+                     /primer="GGTCCAGAGTTAGGATCTTACCGCTGTTGAGATCCA"
 ORIGIN
         1 ggtggcttgg tgatcacctt ggcctctgcg ctgctgtgtg ctgtgatcgg catgtgggta
        61 ctcaggttga ggtgggatga agccatgggt gttgccgctg gcaccaccac aaatcctgca
