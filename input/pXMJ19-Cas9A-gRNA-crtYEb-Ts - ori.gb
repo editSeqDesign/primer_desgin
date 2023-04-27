@@ -133,7 +133,6 @@ FEATURES             Location/Qualifiers
      gene            complement(10333..11304)
                      /gene="lacIq"
                      /label=lacIq
-BASE COUNT         3276 a         2473 c         2834 g         3068 t
 ORIGIN
         1 aattaagctt aaaggagttg agaatggata agaaatactc aataggctta gatatcggca
        61 caaatagcgt cggatgggcg gtgatcactg atgaatataa ggttccgtct aaaaagttca

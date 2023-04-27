@@ -167,9 +167,12 @@ def one_plasmid_system_pcr_design_primer(gb_path,
 
     if len(seq_altered_primer_template)>0:
         seq_altered_primer_template['Region'] = seq_altered_primer_template['Name'] +';'+ seq_altered_primer_template['Region']
-        seq_altered_primer_df = p_d_seq.design_primer(seq_altered_primer_template,'Region','seq_altered',stype='seq_altered')
+        seq_altered_primer_df, failture_seq_altered_primer_df  = p_d_seq.design_primer(seq_altered_primer_template,'Region','seq_altered',stype='seq_altered')
         #seq_altered_primer加接头
-        seq_altered_primer_df = p_d_seq.add_joint_sgRNA_primer(seq_altered_primer_df,enzyme_df,enzyme_name,'',stype='seq_altered_primer_joint')
+        if len(seq_altered_primer_df) > 0:
+            seq_altered_primer_df = p_d_seq.add_joint_sgRNA_primer(seq_altered_primer_df,enzyme_df,enzyme_name,'',stype='seq_altered_primer_joint')
+        else:
+            seq_altered_primer_df = pd.DataFrame()
     else:
         seq_altered_primer_df = pd.DataFrame()
 
@@ -213,12 +216,21 @@ def one_plasmid_system_sequencing_design_primer(type_kind,uha_dha_sgRNA_df):
         sequencing_primer_df['plasmid_sequencing_region'] = sequencing_primer_df['UHA'] + sequencing_primer_df['seq_altered'] + sequencing_primer_df['DHA']
         sequencing_primer_df['Region'] = sequencing_primer_df['Name']+';'+sequencing_primer_df['Region']
         sequencing_primer_template = sequencing_primer_df[['Name','Region','plasmid_sequencing_region','plasmid']]
-        plasmid_sequencing_primer_df1 = p_d_seq.create_sequencing_primer(sequencing_primer_template,sr,'plasmid','plasmid_sequencing_region',seq_type='plasmid_seq')
+        plasmid_sequencing_primer_df1, failture_plasmid_sequencing_primer_df1 = p_d_seq.create_sequencing_primer(sequencing_primer_template,sr,'plasmid','plasmid_sequencing_region',seq_type='plasmid_seq')
         #promoter_N20_terminator测序
         sequencing_primer_df['plasmid_sequencing_region'] = sequencing_primer_df['promoter_N20_terminator']
         sequencing_primer_template = sequencing_primer_df[['Name','Region','plasmid_sequencing_region','plasmid']]
-        plasmid_sequencing_primer_df2 = p_d_seq.create_sequencing_primer(sequencing_primer_template,sr,'plasmid','plasmid_sequencing_region',seq_type='plasmid_seq')
-        plasmid_sequencing_primer_df = p_d_seq.merge_sequencing_result(plasmid_sequencing_primer_df1, plasmid_sequencing_primer_df2)  
+        plasmid_sequencing_primer_df2, failture_plasmid_sequencing_primer_df2 = p_d_seq.create_sequencing_primer(sequencing_primer_template,sr,'plasmid','plasmid_sequencing_region',seq_type='plasmid_seq')
+        
+        if len(plasmid_sequencing_primer_df1) >0 and len(plasmid_sequencing_primer_df2)>0:
+            plasmid_sequencing_primer_df = p_d_seq.merge_sequencing_result(plasmid_sequencing_primer_df1, plasmid_sequencing_primer_df2)
+        elif len(plasmid_sequencing_primer_df1) > 0 and len(plasmid_sequencing_primer_df2)==0: 
+            plasmid_sequencing_primer_df = plasmid_sequencing_primer_df1
+        elif len(plasmid_sequencing_primer_df2) > 0 and len(plasmid_sequencing_primer_df1) == 0:
+            plasmid_sequencing_primer_df = plasmid_sequencing_primer_df2
+        
+        failture_plasmid_sequencing_primer_df = failture_plasmid_sequencing_primer_df1.append(failture_plasmid_sequencing_primer_df2) 
+
     elif type_kind == 2:  
         #载体测序  
         #uha_dha测序
@@ -1080,6 +1092,8 @@ def execute_two_plasmid_system(
 
     elif  method == 'PCR' and len(sgRNA_plasmid_primer_df) == 0:
         sgRNA_plasmid_p_df = sgRNA_plasmid_primer_df
+
+    
    
     if len(ccdb_plasmid_primer_df) > 0:
         ccdb_plasmid_p_df = ccdb_plasmid_primer_df[['Region',r"primer_f_seq_(5'-3')_joint",r"primer_r_seq_(5'-3')_joint","product_value_joint","product_size_joint"]]
@@ -1151,24 +1165,33 @@ def execute_two_plasmid_system(
     #------------------------------------------生成gb文件用于引物的可视化展示-------------------------------------------------------------
     #--------------------------PCR----------------------生成sgRNA_gb文件-------------------------------------------------------------------
 
-    if len(sgRNA_plasmid_p_df) > 0:
-        sgRNA_plasmid_sequencing_primer_template = sgRNA_plasmid_sequencing_primer_template[['Region','plasmid','promoter_N20_terminator']].rename(columns={'Region':'ID','plasmid':"PLASMID","promoter_N20_terminator":"PROMOTER_N20_TERMINATOR"})
-        if method == 'PCR':
-            sgRNA_plasmid_primer = sgRNA_plasmid_p_df[['ID', 'PRIMER_LEFT_WHOLE_SEQUENCE', 'PRIMER_RIGHT_WHOLE_SEQUENCE']]
-        else:
-            sgRNA_plasmid_primer = enzymeCutSeq_and_N20_df[['ID','Target sequence']]
-        joint_len, cut_seq_len = su.get_joint_by_enzyme(enzyme_df,enzyme_name)
-        
-        #为每个编辑区域创建gb文件
+    if len(sgRNA_plasmid_sequencing_primer_template) > 0:
+         #为每个编辑区域创建gb文件
         gb_output = os.path.join(output,'two_plasmid_system_pcr_gb/')
         if not exists(gb_output):
             os.makedirs(gb_output)   
+
+        joint_len, cut_seq_len = su.get_joint_by_enzyme(enzyme_df,enzyme_name)
+
+        sgRNA_plasmid_sequencing_primer_template = sgRNA_plasmid_sequencing_primer_template[['Region','plasmid','promoter_N20_terminator']].rename(columns={'Region':'ID','plasmid':"PLASMID","promoter_N20_terminator":"PROMOTER_N20_TERMINATOR"})
         if method == 'PCR':
-            type = 'sgRNA'
-            sgRNA_pcr_tsv_df = p_d_seq.create_gb_for_region(sgRNA_plasmid_sequencing_primer_template, sgRNA_plasmid_primer, joint_len, cut_seq_len, gb_output,type)
+            if len(sgRNA_plasmid_p_df) >0 :
+                sgRNA_plasmid_primer = sgRNA_plasmid_p_df[['ID', 'PRIMER_LEFT_WHOLE_SEQUENCE', 'PRIMER_RIGHT_WHOLE_SEQUENCE']]
+                type = 'sgRNA'
+                sgRNA_pcr_tsv_df = p_d_seq.create_gb_for_region(sgRNA_plasmid_sequencing_primer_template, sgRNA_plasmid_primer, joint_len, cut_seq_len, gb_output,type)
         elif method == 'OLIGO':
+            sgRNA_plasmid_primer = enzymeCutSeq_and_N20_df[['ID','Target sequence']]
             type = 'enzyme_cut'
             sgRNA_pcr_tsv_df = p_d_seq.create_gb_for_region(sgRNA_plasmid_sequencing_primer_template, sgRNA_plasmid_primer, joint_len, cut_seq_len, gb_output,type)
+        
+       
+        # if method == 'PCR':
+        #     type = 'sgRNA'
+        #     if len(sgRNA_plasmid_primer)>0:
+        #         sgRNA_pcr_tsv_df = p_d_seq.create_gb_for_region(sgRNA_plasmid_sequencing_primer_template, sgRNA_plasmid_primer, joint_len, cut_seq_len, gb_output,type)
+        # elif method == 'OLIGO':
+        #     type = 'enzyme_cut'
+        #     sgRNA_pcr_tsv_df = p_d_seq.create_gb_for_region(sgRNA_plasmid_sequencing_primer_template, sgRNA_plasmid_primer, joint_len, cut_seq_len, gb_output,type)
     else:
         sgRNA_pcr_tsv_df = pd.DataFrame(columns=['name'])
 
@@ -1288,18 +1311,9 @@ def execute_two_plasmid_system(
 
     failture_sgRNA_plasmid_sequencing_primer_df.reset_index(drop=True, inplace=True)
     failture_ccdb_plasmid_sequencing_primer_df.reset_index(drop=True, inplace=True)
-
-    with pd.ExcelWriter(xlsx_F_file) as writer: 
-        failture_uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
-        failture_dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
-        # seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
-        failture_sgRNA_plasmid_primer_df.to_excel(writer,sheet_name = 'SgRNA_plasmid_fragment',index_label='No.')
-        failture_ccdb_plasmid_primer_df.to_excel(writer,sheet_name = 'Hr_plasmid',index_label='No.')
-        failture_sgRNA_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
-        failture_ccdb_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P2',index_label='No.')
-        failture_genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')   
     
     if method == 'PCR':
+        #成功
         with pd.ExcelWriter(xlsx_file) as writer:  
             uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
             dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
@@ -1311,7 +1325,19 @@ def execute_two_plasmid_system(
             genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')
             ccdb_plasmid_order_df.to_excel(writer,sheet_name = 'HR_Plasmid_synthesis_order',index_label='No.')
             sgRNA_plasmid_order_df.to_excel(writer,sheet_name = 'SgRNA_Plasmid_synthesis_order',index_label='No.') 
+
+        #失败
+        with pd.ExcelWriter(xlsx_F_file) as writer: 
+            failture_uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
+            failture_dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
+            # seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
+            failture_sgRNA_plasmid_primer_df.to_excel(writer,sheet_name = 'SgRNA_plasmid_fragment',index_label='No.')
+            failture_ccdb_plasmid_primer_df.to_excel(writer,sheet_name = 'Hr_plasmid',index_label='No.')
+            failture_sgRNA_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
+            failture_ccdb_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P2',index_label='No.')
+            failture_genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.') 
     else:
+        #成功
         with pd.ExcelWriter(xlsx_file) as writer:  
             uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
             dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
@@ -1948,7 +1974,8 @@ def main(data):
                                                                 output,
                                                                 ccdb_label,
                                                                 promoter_terminator_label,
-                                                                n_20_label
+                                                                n_20_label,
+                                                                failture_uha_dha_primer_df
                                                                 )
 
         
@@ -1983,7 +2010,8 @@ def main(data):
                                     ccdb_label,  
                                     promoter_terminator_label,
                                     n_20_label,
-                                    output
+                                    output,
+                                    failture_uha_dha_primer_df
                                     )
         
     return one_plasmid_output_path, two_plasmid_output_path
@@ -2220,10 +2248,10 @@ if __name__ == '__main__':
         "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
         "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
         "edit_sequence_design_workdir":"./output/only_primer",
-        "ref_genome": "/home/yanghe/tmp/data_preprocessing/output/GCF_000005845.2_ASM584v2_genomic.fna",
+        "ref_genome": "/home/yanghe/tmp/data_preprocessing/output/参考基因组eco.fna",
         # "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/only_primer/pMB1-Red-sgRNA-sacB-2297.gb",   
-        "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/Plasmid.gb",
-        # "one_plasmid_file_path":"",
+        # "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/Plasmid.gb",
+        "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
         "no_ccdb_plasmid":"",
         "no_sgRNA_plasmid":"",
         "scene":"both_sgRNA_primer",    
@@ -2235,7 +2263,7 @@ if __name__ == '__main__':
         },   
 
         "plasmid_label":{
-            "ccdb_label":"HR",  
+            "ccdb_label":"ccdB",  
             "promoter_terminator_label":"gRNA",
             "n_20_label":"N20"
         },
@@ -2268,8 +2296,8 @@ if __name__ == '__main__':
             "PRIMER_MAX_TM": 65,    
             "PRIMER_MIN_GC": 30,
             "PRIMER_MAX_GC": 70,
-            # 'PRIMER_MIN_SIZE':15,
-            # 'PRIMER_MAX_SIZE':25,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
             # 'PRIMER_OPT_SIZE':20,   
         },   
         "SEQ_ALTERED_ARGS":{
@@ -2278,8 +2306,8 @@ if __name__ == '__main__':
             "PRIMER_MAX_TM": 65,    
             "PRIMER_MIN_GC": 30,
             "PRIMER_MAX_GC": 70,
-            # 'PRIMER_MIN_SIZE':15,
-            # 'PRIMER_MAX_SIZE':25,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
             # 'PRIMER_OPT_SIZE':20,   
         },
         "DHA_ARGS":{
@@ -2288,8 +2316,8 @@ if __name__ == '__main__':
             "PRIMER_MAX_TM": 65,    
             "PRIMER_MIN_GC": 30,
             "PRIMER_MAX_GC": 70,
-            # 'PRIMER_MIN_SIZE':15,
-            # 'PRIMER_MAX_SIZE':25,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
             # 'PRIMER_OPT_SIZE':20,   
         },
          "UP_SGRNA_ARGS": {
@@ -2298,8 +2326,8 @@ if __name__ == '__main__':
             "PRIMER_MAX_TM": 70,    
             "PRIMER_MIN_GC": 30,
             "PRIMER_MAX_GC": 70,
-            # 'PRIMER_MIN_SIZE':14,
-            # 'PRIMER_MAX_SIZE':23,
+            'PRIMER_MIN_SIZE':14,
+            'PRIMER_MAX_SIZE':23,
             # 'PRIMER_OPT_SIZE':18 
         },
         "DOWN_SGRNA_ARGS": {
@@ -2308,8 +2336,8 @@ if __name__ == '__main__':
             "PRIMER_MAX_TM": 70,    
             "PRIMER_MIN_GC": 30,
             "PRIMER_MAX_GC": 70,
-            # 'PRIMER_MIN_SIZE':14,
-            # 'PRIMER_MAX_SIZE':23,
+            'PRIMER_MIN_SIZE':14,
+            'PRIMER_MAX_SIZE':23,
             # 'PRIMER_OPT_SIZE':18,   
         },
 
@@ -2329,8 +2357,8 @@ if __name__ == '__main__':
             "PRIMER_MAX_TM": 10,    
             "PRIMER_MIN_GC": 10,
             "PRIMER_MAX_GC": 10,
-            # 'PRIMER_MIN_SIZE':15,
-            # 'PRIMER_MAX_SIZE':25,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
             # 'PRIMER_OPT_SIZE':20,   
         },
         'sgRNA_result':{
@@ -2434,7 +2462,7 @@ if __name__ == '__main__':
             'b4625':"1"
         }      
     }
-    main(data3)   
+    main(data1)   
 
 
 

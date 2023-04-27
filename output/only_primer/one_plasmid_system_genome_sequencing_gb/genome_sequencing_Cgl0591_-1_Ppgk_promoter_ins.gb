@@ -1,0 +1,39 @@
+LOCUS       plasmid                 1064 bp    DNA              UNK 01-JAN-1980
+DEFINITION  primer seq in plasmid.
+ACCESSION   plamid
+VERSION     plamid
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     cds             201..500
+                     /note="UHA"
+     cds             565..864
+                     /note="DHA"
+     primer_bind     102..118
+                     /note="SEQUENCING_PRIMER_1"
+                     /primer="ACCTTGGGCCTGGCGCT"
+     primer_bind     complement(949..970)
+                     /note="SEQUENCING_PRIMER_2"
+                     /primer="AGGTTCCACTGATTCACACCCA"
+ORIGIN
+        1 ttggtggcgg cccgattatt gccggcctga ttttgggagc actcaagcac acaggaccgc
+       61 tgacgtggca gatgccgttc cacgccaacc gcacgatctc caccttgggc ctggcgctgt
+      121 ttttggctgg tgtgggtacc tctgcaggtg caggatttag agctgcgctt accgattcct
+      181 cctccttgat ctacatggcc ggtggcttgg tgatcacctt ggcctctgcg ctgctgtgtg
+      241 ctgtgatcgg catgtgggta ctcaggttga ggtgggatga agccatgggt gttgccgctg
+      301 gcaccaccac aaatcctgca attatttcct atctgaatgg gcaaaccgga acggatcttg
+      361 ccaacagggg atatgccact gtgtacccca cggcgatgat cggtaaaatc ctcggcgcgc
+      421 agatattgtt cttgctgctc taaggtgatt tttgggcagt ggtgggggtg gtgtccaccc
+      481 ctgcgcgtaa cctgggaagc ttaatcaata caattgaata ccggtgccag cgccacacaa
+      541 tgtgtagtca ggcaatctgg gacatgacta aaacacttgg ttcccttcag ctggaagaaa
+      601 tcacgctgac cctccctctg actgaagatg tggccgatga acgcaccatt gatgtgttcg
+      661 cacgcattgc cacacgcgtc ggtggggaag accttccata tttagtattc ctgcagggtg
+      721 ggcctggcaa tgaagctcca cgtccaagcc ttaatcccct caaccccaat tggttgggcg
+      781 tggccttgga ggaataccgc gtggtcatgt tggatcaacg tggcaccggc cgttccaccc
+      841 cagtgggtaa tgatattttg gaaaaaccca cagcagaagt agtggagtac ttatcccacc
+      901 tgcgcgcaga tggcattgtg cgagatgctg aagccctgcg taagcatttg ggtgtgaatc
+      961 agtggaacct tttaggccag tccttcggag gtttcaccac cctgcattac ttgtcccggc
+     1021 acgccgattc cttggacaac gtgtttatta ccggcggtct cagc
+//

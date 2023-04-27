@@ -1,5 +1,1 @@
 ID	Warning
-b4425;UHA	The target sequence can map to multiple positions in the reference genome. The genome editing may be mislocated.
-b4440;UHA	The target sequence can map to multiple positions in the reference genome. The genome editing may be mislocated.
-b4425;DHA	The target sequence can map to multiple positions in the reference genome. The genome editing may be mislocated.
-b4454;DHA	The target sequence can map to multiple positions in the reference genome. The genome editing may be mislocated.
