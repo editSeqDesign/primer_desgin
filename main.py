@@ -375,15 +375,17 @@ def two_plasmid_system_design_by_sgRNA_no_user(no_ccdb_uha_dha_sgRNA_df, uha_dha
         #执行用户什么都不指定，设计sgRNA质粒引物
         sgRNA_primer_template_df = no_ccdb_uha_dha_sgRNA_df[['Name','Region','sgRNA_template','Rev Target sequence']]
         sgRNA_primer_template_df['Region'] = sgRNA_primer_template_df['Name'] +';'+ sgRNA_primer_template_df['Region']
-        sgRNA_plasmid_primer_df = p_d_seq.design_primer(sgRNA_primer_template_df,'Region','sgRNA_template','sgRNA')
-        uha_dha_sgRNA_df['Region'] = uha_dha_sgRNA_df['Name'] + ';' + uha_dha_sgRNA_df['Region']
-        #sgRNA质粒引物加接头
-        sgRNA_plasmid_primer_df = pd.merge(uha_dha_sgRNA_df[['Region','Target sequence','Rev Target sequence']],sgRNA_plasmid_primer_df,on=['Region'],how='inner')
-        sgRNA_plasmid_primer_df = p_d_seq.add_joint_sgRNA_primer(sgRNA_plasmid_primer_df,enzyme_df,enzyme_name,stype='sgRNA_plasmid_primer_joint')
-        #提取关键信息
-        sgRNA_plasmid_primer_df = sgRNA_plasmid_primer_df[['Region',r"primer_f_seq_(5'-3')_joint",r"primer_r_seq_(5'-3')_joint","product_value_joint","product_size_joint"]]
+        sgRNA_plasmid_primer_df, failture_sgRNA_plasmid_primer_df  = p_d_seq.design_primer(sgRNA_primer_template_df,'Region','sgRNA_template','sgRNA')
+        if len(sgRNA_plasmid_primer_df) > 0:
 
-        return sgRNA_plasmid_primer_df
+            uha_dha_sgRNA_df['Region'] = uha_dha_sgRNA_df['Name'] + ';' + uha_dha_sgRNA_df['Region']
+            #sgRNA质粒引物加接头
+            sgRNA_plasmid_primer_df = pd.merge(uha_dha_sgRNA_df[['Region','Target sequence','Rev Target sequence']],sgRNA_plasmid_primer_df,on=['Region'],how='inner')
+            sgRNA_plasmid_primer_df = p_d_seq.add_joint_sgRNA_primer(sgRNA_plasmid_primer_df,enzyme_df,enzyme_name,stype='sgRNA_plasmid_primer_joint')
+            #提取关键信息
+            sgRNA_plasmid_primer_df = sgRNA_plasmid_primer_df[['Region',r"primer_f_seq_(5'-3')_joint",r"primer_r_seq_(5'-3')_joint","product_value_joint","product_size_joint"]]
+
+        return sgRNA_plasmid_primer_df, failture_sgRNA_plasmid_primer_df
 
 def two_plasmid_system_design_by_user_sgRNA_region(uha_dha_sgRNA_df,sgRNA_plasmid_seq,sgRNA_plasmid_region_seq,sgRNA_region_json,no_ccdb_plasmid,enzyme_df,enzyme_name):
         
@@ -580,18 +582,20 @@ def two_plasmid_system_design_by_user_primer(
 
     if sgRNA_primer_json !={}:
         sgRNA_primer_position_json, sgRNA_failture_primer = p_d_seq.check_locate_primer(sgRNA_plasmid_backbone, sgRNA_primer_json)
+        if sgRNA_failture_primer != {}:
+            raise ValueError("primer error:", sgRNA_failture_primer)
     else:
-        sgRNA_plasmid_primer_df = two_plasmid_system_design_by_sgRNA_no_user(no_ccdb_uha_dha_sgRNA_df, uha_dha_sgRNA_df, enzyme_df, enzyme_name)
+        sgRNA_plasmid_primer_df,failture_sgRNA_plasmid_primer_df = two_plasmid_system_design_by_sgRNA_no_user(no_ccdb_uha_dha_sgRNA_df, uha_dha_sgRNA_df, enzyme_df, enzyme_name)
         
     if ccdb_primer_json !={}:  
         ccdb_primer_position_json, ccdb_failture_primer = p_d_seq.check_locate_primer(ccdB_plasmid_backbone, ccdb_primer_json)
+        if ccdb_failture_primer != {}:
+            raise ValueError("primer error:", ccdb_failture_primer)
     else:
-        ccdb_plasmid_primer_df = two_plasmid_system_design_by_ccdb_no_user(ccdB_plasmid_backbone,enzyme_df,enzyme_name)
-
-
+        ccdb_plasmid_primer_df, failture_ccdb_plasmid_primer_df = two_plasmid_system_design_by_ccdb_no_user(ccdB_plasmid_backbone,enzyme_df,enzyme_name)
 
     if  sgRNA_primer_position_json == {} and sgRNA_primer_json !={}:
-        return sgRNA_failture_primer
+        raise ValueError("primer error:", sgRNA_primer_json)
     elif sgRNA_primer_position_json !={} and sgRNA_primer_json != {}:
         #设计sgRNA primer
         sgRNA_plasmid_primer_df, failture_sgRNA_plasmid_primer_df = two_plasmid_system_design_by_user_primer_sgRNA( 
@@ -608,7 +612,7 @@ def two_plasmid_system_design_by_user_primer(
                                                                                 promoter_terminator_label)
     
     if  ccdb_primer_position_json == {} and ccdb_primer_json !={}:
-        return ccdb_failture_primer
+        raise ValueError("primer error:", ccdb_primer_json)
     elif ccdb_primer_position_json != {} and ccdb_primer_json != {}:
         #设计ccdb primer
         ccdb_plasmid_primer_df, failture_ccdb_plasmid_primer_df = two_plasmid_system_design_by_user_primer_ccdb(ccdB_plasmid_backbone,
@@ -620,8 +624,8 @@ def two_plasmid_system_design_by_user_primer(
                                                                                 n_20_label,
                                                                                 ccdb_label,
                                                                                 promoter_terminator_label)
-              
-    return sgRNA_plasmid_primer_df, ccdb_plasmid_primer_df,failture_sgRNA_plasmid_primer_df,failture_ccdb_plasmid_primer_df
+                 
+    return sgRNA_plasmid_primer_df, ccdb_plasmid_primer_df, failture_sgRNA_plasmid_primer_df, failture_ccdb_plasmid_primer_df
 
 def two_plasmid_system_sequencing_design_primer(no_ccdb_uha_dha_sgRNA_df, no_sgRNA_uha_dha_ccdb_df):
 
@@ -2065,10 +2069,11 @@ if __name__ == '__main__':
         "region_label":"",       
 
         "sgRNA_primer_json":{
-           
+            "primer1":'ttgggtgcacgagtgggttacatcgaactggatctcaacagcggtaag'
         },
+
         "ccdb_primer_json":{
-                
+               
         },   
     
         "sgRNA_region_label":"",
@@ -2470,6 +2475,7 @@ if __name__ == '__main__':
             'b4625':"1"
         }      
     }
+    
     main(data1)   
 
 
