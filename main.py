@@ -2069,16 +2069,16 @@ if __name__ == '__main__':
         "region_label":"",       
 
         "sgRNA_primer_json":{
-            "primer1":'ttgggtgcacgagtgggttacatcgaactggatctcaacagcggtaag'
+
         },
 
         "ccdb_primer_json":{
                
         },   
     
-        "sgRNA_region_label":"",
+        "sgRNA_region_label":"psiGA1",
         
-        "ccdb_region_label":"",   
+        "ccdb_region_label":"psiGA1",   
         
         "enzyme":{
             "enzyme_name":"BsaI",
@@ -2245,15 +2245,15 @@ if __name__ == '__main__':
             "PRIMER_MAX_GC": ""
         },
         'sgRNA_result':{
-            "Cgl0006_1176_G_A_sub":"1",
-            "Cgl2342_213_GCA_ins":"1",
-            "Cgl1436_1113_CAA_del":"1",
-            "Cgl1790_1647_TCC_sub":"1",
-            "Cgl1386_327_18to15_sub":"1",
-            "Cgl0591_-1_Ppgk_promoter_ins":"1",
-            "Cgl0141_cds_del":"1",
-            "153019_ecoil_ybeL_ins":"1",
-            "Cgl0851_ecoli_pgi_sub":"1"
+            # "Cgl0006_1176_G_A_sub":"1",
+            # "Cgl2342_213_GCA_ins":"1",
+            # "Cgl1436_1113_CAA_del":"1",
+            # "Cgl1790_1647_TCC_sub":"1",
+            # "Cgl1386_327_18to15_sub":"1",
+            # "Cgl0591_-1_Ppgk_promoter_ins":"1",
+            # "Cgl0141_cds_del":"1",
+            # "153019_ecoil_ybeL_ins":"1",
+            # "Cgl0851_ecoli_pgi_sub":"1"
         }      
     }
 
@@ -2476,7 +2476,7 @@ if __name__ == '__main__':
         }      
     }
     
-    main(data1)   
+    main(data2)   
 
 
 
