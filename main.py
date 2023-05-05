@@ -877,12 +877,12 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     with pd.ExcelWriter(xlsx_file) as writer:  
         uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
         dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
-        n20up_primer_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')  
-        n20down_primer_p_df.to_excel(writer,sheet_name = 'Primer_plasmid',index_label='No.')
-        seq_altered_p_df.to_excel(writer,sheet_name = 'Seq_altered',index_label='No.')
+        seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+        n20up_primer_p_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')  
+        n20down_primer_p_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')
         plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
         genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')
-        plasmid_order_df.to_excel(writer,sheet_name = 'Plasmid_synthesis_order',index_label='No.')
+        # plasmid_order_df.to_excel(writer,sheet_name = 'Plasmid_synthesis_order',index_label='No.')
     
     #3.输出失败引物excel文件
     #分离uha，dha
@@ -1329,14 +1329,16 @@ def execute_two_plasmid_system(
         with pd.ExcelWriter(xlsx_file) as writer:  
             uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
             dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
-            sgRNA_plasmid_p_df.to_excel(writer,sheet_name = 'SgRNA_plasmid_fragment',index_label='No.')  
-            ccdb_plasmid_p_df.to_excel(writer,sheet_name = 'Hr_plasmid',index_label='No.')
-            seq_altered_p_df.to_excel(writer,sheet_name = 'Seq_altered',index_label='No.')
+            seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+            sgRNA_plasmid_p_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')  
+            ccdb_plasmid_p_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')
+           
             sgRNA_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
             ccdb_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P2',index_label='No.')
             genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')
-            ccdb_plasmid_order_df.to_excel(writer,sheet_name = 'HR_Plasmid_synthesis_order',index_label='No.')
-            sgRNA_plasmid_order_df.to_excel(writer,sheet_name = 'SgRNA_Plasmid_synthesis_order',index_label='No.') 
+
+            # ccdb_plasmid_order_df.to_excel(writer,sheet_name = 'HR_Plasmid_synthesis_order',index_label='No.')
+            # sgRNA_plasmid_order_df.to_excel(writer,sheet_name = 'SgRNA_Plasmid_synthesis_order',index_label='No.') 
 
         #失败
         with pd.ExcelWriter(xlsx_F_file) as writer: 
@@ -1353,9 +1355,10 @@ def execute_two_plasmid_system(
         with pd.ExcelWriter(xlsx_file) as writer:  
             uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
             dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
-            enzymeCutSeq_and_N20_df.to_excel(writer,sheet_name = 'sgRNA_plasmid_fragment',index_label='No.')  
-            ccdb_plasmid_p_df.to_excel(writer,sheet_name = 'uha_dha_plasmid',index_label='No.')
-            seq_altered_p_df.to_excel(writer,sheet_name = 'Seq_altered',index_label='No.')
+            seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+            enzymeCutSeq_and_N20_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')  
+            ccdb_plasmid_p_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')
+            
             sgRNA_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
             ccdb_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P2',index_label='No.')
             genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')
@@ -2522,21 +2525,30 @@ if __name__ == '__main__':
             "PRIMER_MIN_TM": 55,  
             "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
-            "PRIMER_MAX_GC": 80
+            "PRIMER_MAX_GC": 80,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
+            'PRIMER_OPT_SIZE':18, 
         },
         "SEQ_ALTERED_ARGS":{
             "PRIMER_OPT_TM": 65,
             "PRIMER_MIN_TM": 55,  
             "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
-            "PRIMER_MAX_GC": 80
+            "PRIMER_MAX_GC": 80,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
+            'PRIMER_OPT_SIZE':18, 
         },
         "DHA_ARGS":{
             "PRIMER_OPT_TM": 65,
             "PRIMER_MIN_TM": 55,
             "PRIMER_MAX_TM": 75,
             "PRIMER_MIN_GC": 20,
-            "PRIMER_MAX_GC": 80
+            "PRIMER_MAX_GC": 80,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
+            'PRIMER_OPT_SIZE':18, 
         },
 
         "PLASMID_Q_ARGS":{
@@ -2544,28 +2556,40 @@ if __name__ == '__main__':
             "PRIMER_MIN_TM": 55,  
             "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
-            "PRIMER_MAX_GC": 80
+            "PRIMER_MAX_GC": 80,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
+            'PRIMER_OPT_SIZE':18, 
         },    
         "GENOME_Q_ARGS":{
             "PRIMER_OPT_TM": 65,
             "PRIMER_MIN_TM": 55,     
             "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
-            "PRIMER_MAX_GC": 80
+            "PRIMER_MAX_GC": 80,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
+            'PRIMER_OPT_SIZE':18, 
         },  
         "UP_SGRNA_ARGS": {
             "PRIMER_OPT_TM": 65,
             "PRIMER_MIN_TM": 55,  
             "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
-            "PRIMER_MAX_GC": 80
+            "PRIMER_MAX_GC": 80,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
+            'PRIMER_OPT_SIZE':18, 
         },
         "DOWN_SGRNA_ARGS": {
             "PRIMER_OPT_TM": 65,
             "PRIMER_MIN_TM": 55,  
             "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
-            "PRIMER_MAX_GC": 80
+            "PRIMER_MAX_GC": 80,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
+            'PRIMER_OPT_SIZE':18, 
         },
     }
 
@@ -2625,35 +2649,50 @@ if __name__ == '__main__':
             "PRIMER_MIN_TM": 55,  
             "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
-            "PRIMER_MAX_GC": 80
+            "PRIMER_MAX_GC": 80,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
+            'PRIMER_OPT_SIZE':18
         },
         "SEQ_ALTERED_ARGS":{
             "PRIMER_OPT_TM": 65,
             "PRIMER_MIN_TM": 55,
             "PRIMER_MAX_TM": 75,  
             "PRIMER_MIN_GC": 20,
-            "PRIMER_MAX_GC": 80
+            "PRIMER_MAX_GC": 80,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
+            'PRIMER_OPT_SIZE':18
         },
         "DHA_ARGS":{
             "PRIMER_OPT_TM": 65,
             "PRIMER_MIN_TM": 55,
             "PRIMER_MAX_TM": 75,
             "PRIMER_MIN_GC": 20,
-            "PRIMER_MAX_GC": 80
+            "PRIMER_MAX_GC": 80,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
+            'PRIMER_OPT_SIZE':18 
         },
          "UP_SGRNA_ARGS": {
             "PRIMER_OPT_TM": 65,
             "PRIMER_MIN_TM": 55,  
             "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
-            "PRIMER_MAX_GC": 80
+            "PRIMER_MAX_GC": 80,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
+            'PRIMER_OPT_SIZE':18
         },
         "DOWN_SGRNA_ARGS": {
             "PRIMER_OPT_TM": 65,
             "PRIMER_MIN_TM": 55,  
             "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
-            "PRIMER_MAX_GC": 80
+            "PRIMER_MAX_GC": 80,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
+            'PRIMER_OPT_SIZE':18
         },
 
         "PLASMID_Q_ARGS":{
@@ -2661,14 +2700,21 @@ if __name__ == '__main__':
             "PRIMER_MIN_TM": 55,  
             "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
-            "PRIMER_MAX_GC": 80
+            "PRIMER_MAX_GC": 80,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
+            'PRIMER_OPT_SIZE':18
         },
         "GENOME_Q_ARGS":{
             "PRIMER_OPT_TM": 65,
             "PRIMER_MIN_TM": 55,     
             "PRIMER_MAX_TM": 75,    
             "PRIMER_MIN_GC": 20,
-            "PRIMER_MAX_GC": 80
+            "PRIMER_MAX_GC": 80,
+            'PRIMER_MIN_SIZE':15,
+            'PRIMER_MAX_SIZE':25,
+            'PRIMER_OPT_SIZE':18
+            
         },
         'sgRNA_result':{
             "Cgl0006_1176_G_A_sub":"1",
@@ -2683,9 +2729,9 @@ if __name__ == '__main__':
         }      
     }
 
-    a=main(data1)     
+    a=main(data2)     
 
-    print(a)
+    print(a)  
 
 
 
