@@ -6,10 +6,11 @@ This project is used for primer design and plasmid map generation to complete bi
 
     i.only_primer
     data1 = {     
-        "chopchop_input": ".input/info_input.csv",   
+        "chopchop_input": "/home/XXX/tmp/data_preprocessing/output/info_input.csv",   
         "sgRNA_result_path": "",
         "edit_sequence_design_workdir":"/home/XXX/tmp/edit_sequence_design/output/",
-        "ref_genome":"./input/xxx.fna",
+        "ref_genome":"/home/yanghe/tmp/data_preprocessing/output/xxx.fna",
+        
         "one_plasmid_file_path":"./input/pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",   
         "no_ccdb_plasmid":"./input/no-ccdb-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
         "no_sgRNA_plasmid":"./input/no-sgRNA-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
@@ -94,7 +95,7 @@ This project is used for primer design and plasmid map generation to complete bi
             "PRIMER_MAX_GC": ""
         },      
     }
-    output:('/home/yanghe/tmp/edit_sequence_design/output/one_plasmid_system_result.zip', '/home/yanghe/tmp/edit_sequence_design/output/two_plasmid_system_result.zip')
+    output:('/home/XXX/tmp/edit_sequence_design/output/one_plasmid_system_result.zip', '/home/XXX/tmp/edit_sequence_design/output/two_plasmid_system_result.zip')
 
 
     ii.both_sgRNA_primer
@@ -208,7 +209,7 @@ This project is used for primer design and plasmid map generation to complete bi
             "Cgl0851_ecoli_pgi_sub":"1"
         }      
     }
-    output:('/home/yanghe/tmp/edit_sequence_design/output/one_plasmid_system_result.zip', '/home/yanghe/tmp/edit_sequence_design/output/two_plasmid_system_result.zip')
+    output:('/home/XXX/tmp/edit_sequence_design/output/one_plasmid_system_result.zip', '/home/XXX/tmp/edit_sequence_design/output/two_plasmid_system_result.zip')
 
 ## Installation
 
