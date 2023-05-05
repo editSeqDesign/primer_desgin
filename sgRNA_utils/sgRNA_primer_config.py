@@ -9,106 +9,106 @@ class config:
         }     
    
     S_GLOBAL_ARGS = {
-            'PRIMER_OPT_SIZE': 18,   
-            'PRIMER_MIN_SIZE': 15,
+            'PRIMER_OPT_SIZE': 20,   
+            'PRIMER_MIN_SIZE': 18,
             'PRIMER_MAX_SIZE': 25,
-            'PRIMER_OPT_TM': 75.0,
+            'PRIMER_OPT_TM': 60.0,
             'PRIMER_MIN_TM': 35.0,
             'PRIMER_MAX_TM': 85.0,
             'PRIMER_MIN_GC': 30.0,
-            'PRIMER_OPT_GC':65,
+            'PRIMER_OPT_GC':55,
             'PRIMER_MAX_GC': 70.0,
     }
     UHA_ARGS = {
-        'PRIMER_OPT_TM': 65.0,
+        'PRIMER_OPT_TM': 60.0,
         'PRIMER_MIN_TM': 55.0,
         'PRIMER_MAX_TM': 75.0,
         'PRIMER_MIN_GC': 20.0,
-        'PRIMER_OPT_GC':65,
+        'PRIMER_OPT_GC':55,
         'PRIMER_MAX_GC': 80.0,
-        'PRIMER_MIN_SIZE':15,
+        'PRIMER_MIN_SIZE':18,
         'PRIMER_MAX_SIZE':25,
-        'PRIMER_OPT_SIZE': 18
+        'PRIMER_OPT_SIZE': 20
     }
     SEQ_ALTERED_ARGS = {
-        'PRIMER_OPT_TM': 65.0,
+        'PRIMER_OPT_TM': 60.0,
         'PRIMER_MIN_TM': 55.0,
         'PRIMER_MAX_TM': 75.0,
         'PRIMER_MIN_GC': 20.0,
-        'PRIMER_OPT_GC':65,
+        'PRIMER_OPT_GC':55,
         'PRIMER_MAX_GC': 80.0,
-        'PRIMER_MIN_SIZE':15,
+        'PRIMER_MIN_SIZE':18,
         'PRIMER_MAX_SIZE':25,
-        'PRIMER_OPT_SIZE': 18
+        'PRIMER_OPT_SIZE': 20
     }
     DHA_ARGS = {
-        'PRIMER_OPT_TM': 65.0,
+        'PRIMER_OPT_TM': 60.0,
         'PRIMER_MIN_TM': 55.0,
         'PRIMER_MAX_TM': 75.0,
         'PRIMER_MIN_GC': 20.0,
-        'PRIMER_OPT_GC':65,
+        'PRIMER_OPT_GC':55,
         'PRIMER_MAX_GC': 80.0,
-        'PRIMER_MIN_SIZE':15,
+        'PRIMER_MIN_SIZE':18,
         'PRIMER_MAX_SIZE':25,
-        'PRIMER_OPT_SIZE': 18
+        'PRIMER_OPT_SIZE': 20
     }
     UP_SGRNA_ARGS = {
-        'PRIMER_OPT_TM': 65.0,
+        'PRIMER_OPT_TM': 60.0,
         'PRIMER_MIN_TM': 55.0,
         'PRIMER_MAX_TM': 75.0,
         'PRIMER_MIN_GC': 20.0,
-        'PRIMER_OPT_GC':65,
+        'PRIMER_OPT_GC':55,
         'PRIMER_MAX_GC': 80.0,
-        'PRIMER_MIN_SIZE':15,
+        'PRIMER_MIN_SIZE':18,
         'PRIMER_MAX_SIZE':25,
-        'PRIMER_OPT_SIZE': 18
+        'PRIMER_OPT_SIZE': 20
     }
     DOWN_SGRNA_ARGS = {
-        'PRIMER_OPT_TM': 65.0,
+        'PRIMER_OPT_TM': 60.0,
         'PRIMER_MIN_TM': 55.0,
         'PRIMER_MAX_TM': 75.0,
         'PRIMER_MIN_GC': 20.0,
-        'PRIMER_OPT_GC':65,
+        'PRIMER_OPT_GC':55,
         'PRIMER_MAX_GC': 80.0,
-        'PRIMER_MIN_SIZE':15,
+        'PRIMER_MIN_SIZE':18,
         'PRIMER_MAX_SIZE':25,
-        'PRIMER_OPT_SIZE': 18
+        'PRIMER_OPT_SIZE': 20
     }
 
     #测序引物设计的全局参数
     Q_ARGS = {
-                'PRIMER_OPT_SIZE': 18,
-                'PRIMER_MIN_SIZE': 15,  
+                'PRIMER_OPT_SIZE': 20,
+                'PRIMER_MIN_SIZE': 18,  
                 'PRIMER_MAX_SIZE': 25,
-                'PRIMER_OPT_TM': 65.0,
+                'PRIMER_OPT_TM': 60.0,
                 'PRIMER_MIN_TM': 55.0,  
                 'PRIMER_MAX_TM': 75.0,    
                 'PRIMER_MIN_GC': 20.0,
-                'PRIMER_OPT_GC':65,
+                'PRIMER_OPT_GC':55,
                 'PRIMER_MAX_GC': 80.0,
     }
 
     PLASMID_Q_ARGS = {
-        'PRIMER_OPT_TM': 65.0,
+        'PRIMER_OPT_TM': 60.0,
         'PRIMER_MIN_TM': 55.0,  
         'PRIMER_MAX_TM': 75.0,    
         'PRIMER_MIN_GC': 20.0,
-        'PRIMER_OPT_GC':65,
+        'PRIMER_OPT_GC':55,
         'PRIMER_MAX_GC': 80.0,
-        'PRIMER_MIN_SIZE': 15,  
+        'PRIMER_MIN_SIZE': 18,  
         'PRIMER_MAX_SIZE': 25,
-        'PRIMER_OPT_SIZE': 18
+        'PRIMER_OPT_SIZE': 20
     }
     GENOME_Q_ARGS = {
-        'PRIMER_OPT_TM': 65.0,
+        'PRIMER_OPT_TM': 60.0,
         'PRIMER_MIN_TM': 55.0,  
         'PRIMER_MAX_TM': 75.0,    
         'PRIMER_MIN_GC': 20.0,
-        'PRIMER_OPT_GC':65,
+        'PRIMER_OPT_GC':55,
         'PRIMER_MAX_GC': 50.0,
-        'PRIMER_MIN_SIZE': 15,  
+        'PRIMER_MIN_SIZE': 18,  
         'PRIMER_MAX_SIZE': 25,
-        'PRIMER_OPT_SIZE': 18
+        'PRIMER_OPT_SIZE': 20
 
     }
 
