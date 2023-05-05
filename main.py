@@ -774,6 +774,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     else:
         df_common_list = su.rename_common_primer_df(n20up_primer_p_df, n20down_primer_p_df)
         n20up_primer_p_df, n20down_primer_p_df = df_common_list[0], df_common_list[1]
+        seq_altered_p_df = pd.DataFrame()
     
     uha_primer_df, dha_primer_df = su.rename_u_d_primer_df(uha_primer_df, dha_primer_df)
     df_sequencing_list = su.rename_sequencing_primer_df(plasmid_sequencing_primer_df, genome_sequencing_primer_df)
@@ -910,8 +911,9 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
         failture_uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
         failture_dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
         # seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
-        failture_n20up_primer_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
-        failture_n20down_primer_df.to_excel(writer,sheet_name = 'Primer_plasmid',index_label='No.')
+        seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+        failture_n20up_primer_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')
+        failture_n20down_primer_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')
         failture_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
         failture_genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')   
 
@@ -1344,9 +1346,11 @@ def execute_two_plasmid_system(
         with pd.ExcelWriter(xlsx_F_file) as writer: 
             failture_uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
             failture_dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
-            # seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
-            failture_sgRNA_plasmid_primer_df.to_excel(writer,sheet_name = 'SgRNA_plasmid_fragment',index_label='No.')
-            failture_ccdb_plasmid_primer_df.to_excel(writer,sheet_name = 'Hr_plasmid',index_label='No.')
+            seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+
+            failture_sgRNA_plasmid_primer_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')
+            failture_ccdb_plasmid_primer_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')
+
             failture_sgRNA_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
             failture_ccdb_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P2',index_label='No.')
             failture_genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.') 
@@ -1356,8 +1360,9 @@ def execute_two_plasmid_system(
             uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
             dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
             seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+
             enzymeCutSeq_and_N20_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')  
-            ccdb_plasmid_p_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')
+            ccdb_plasmid_p_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')  
             
             sgRNA_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
             ccdb_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P2',index_label='No.')
@@ -2735,7 +2740,15 @@ if __name__ == '__main__':
 
 
 
-  
+
+
+
+
+
+
+
+
+
 
 
           
