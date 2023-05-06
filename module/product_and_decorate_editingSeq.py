@@ -385,9 +385,12 @@ def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_
         def work(target_seq,uha,dha,seq_altered):
                 
                 new_promoter_terminator = promoter_terminator[:start] + target_seq + terminator_seq
-                promoter_up_promoter = promoter_terminator_up_seq +  promoter_seq
+                promoter_up_promoter = promoter_terminator_up_seq +  promoter_seq  
                 terminator_terminator_down = terminator_seq + promoter_terminator_down_seq
-                plasmid = uha + seq_altered + dha + promoter_terminator_up_seq +  new_promoter_terminator + promoter_terminator_down_seq
+                if seq_altered == '-':
+                    plasmid = uha + dha + promoter_terminator_up_seq +  new_promoter_terminator + promoter_terminator_down_seq
+                else:
+                    plasmid = uha + seq_altered + dha + promoter_terminator_up_seq +  new_promoter_terminator + promoter_terminator_down_seq
 
                 return plasmid, promoter_up_promoter, terminator_terminator_down, new_promoter_terminator, promoter_terminator_up_seq, promoter_terminator_down_seq       
 
@@ -446,7 +449,10 @@ def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_
         def work(target_seq, uha,dha, seq_altered, type):
             
             if type == 'insertion' or type == 'substitution':
-                plasmid = uha + seq_altered + dha + ccdb_down_seq + ccdb_up_seq
+                if seq_altered == '-':
+                    plasmid = uha + dha + ccdb_down_seq + ccdb_up_seq  
+                else:
+                    plasmid = uha + seq_altered + dha + ccdb_down_seq + ccdb_up_seq
             elif type == 'deletion':
                 plasmid = uha + dha + ccdb_down_seq + ccdb_up_seq
             

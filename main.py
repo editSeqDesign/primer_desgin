@@ -691,7 +691,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                 uha_dha_df,
                                 uha_dha_sgRNA_df,
                                 uha_dha_info_primer_df,
-                                uha_dha_primer_df,
+                                uha_dha_primer_df,    
                                 enzyme_df,  
                                 enzyme_name,
                                 output,
@@ -874,11 +874,12 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     if len(uha_dha_sgRNA_df) > 0 and len(genome_sequencing_primer_df) > 0:
         genome_sequencing_primer_df = add_WT_genome_sequencing_primer_df(uha_dha_sgRNA_df, genome_sequencing_primer_df)
 
-    #2：输出成功引物excel文件     
+    #2：输出成功引物excel文件
+    failture_seq_altered_p_df = pd.DataFrame()
     with pd.ExcelWriter(xlsx_file) as writer:  
         uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
         dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
-        seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+        failture_seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
         n20up_primer_p_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')  
         n20down_primer_p_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')
         plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
@@ -890,12 +891,11 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     if len(failture_uha_dha_primer_df) >0 :
         failture_uha_primer_df = failture_uha_dha_primer_df[failture_uha_dha_primer_df['type']=='uha']
         failture_uha_primer_df = failture_uha_primer_df.drop(columns='type')
-        failture_uha_primer_df.reset_index(drop=True, inplace=True)
-
+        failture_uha_primer_df.reset_index(drop=True, inplace=True) 
         failture_dha_primer_df = failture_uha_dha_primer_df[failture_uha_dha_primer_df['type']=='dha']
         failture_dha_primer_df = failture_dha_primer_df.drop(columns='type')
         failture_dha_primer_df.reset_index(drop=True, inplace=True)
-    else:
+    else:   
         failture_uha_primer_df = pd.DataFrame()
         failture_dha_primer_df = pd.DataFrame()
 
@@ -904,14 +904,12 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     
 
 
-
-
     with pd.ExcelWriter(xlsx_F_file) as writer: 
 
         failture_uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
         failture_dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
         # seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
-        seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+        failture_seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
         failture_n20up_primer_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')
         failture_n20down_primer_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')
         failture_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
@@ -1252,7 +1250,7 @@ def execute_two_plasmid_system(
     else:
         ccdb_plasmid_sequencing_tsv_df = pd.DataFrame(columns=['name'])
     
-
+   
     #-------------------genome----------SEQUENCING------------------------------------------------------------------
     gb_output = os.path.join(output,'two_plasmid_system_genome_sequencing_gb/')
     if not exists(gb_output):
@@ -1281,7 +1279,7 @@ def execute_two_plasmid_system(
     ccdb_plasmid_order_df = create_plasmid_order(no_sgRNA_uha_dha_ccdb_df, name='ccdb_plasmid', plasmid_type='ccdb')
     sgRNA_plasmid_order_df = create_plasmid_order(no_ccdb_uha_dha_sgRNA_df, name='sgRNA_plasmid', plasmid_type='sgRNA')
 
-    parent_output  = output
+    parent_output  = output   
     output = output+'/two_plasmid_system_result/'
     if not exists(output):
         os.makedirs(output)
@@ -1326,12 +1324,13 @@ def execute_two_plasmid_system(
     failture_sgRNA_plasmid_sequencing_primer_df.reset_index(drop=True, inplace=True)
     failture_ccdb_plasmid_sequencing_primer_df.reset_index(drop=True, inplace=True)
     
+    failture_seq_altered_p_df = pd.DataFrame()
     if method == 'PCR':
         #成功
         with pd.ExcelWriter(xlsx_file) as writer:  
             uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
             dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
-            seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+            failture_seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
             sgRNA_plasmid_p_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')  
             ccdb_plasmid_p_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')
            
@@ -1346,7 +1345,7 @@ def execute_two_plasmid_system(
         with pd.ExcelWriter(xlsx_F_file) as writer: 
             failture_uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
             failture_dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
-            seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+            failture_seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
 
             failture_sgRNA_plasmid_primer_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')
             failture_ccdb_plasmid_primer_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')
@@ -1359,7 +1358,7 @@ def execute_two_plasmid_system(
         with pd.ExcelWriter(xlsx_file) as writer:  
             uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
             dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
-            seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+            failture_seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
 
             enzymeCutSeq_and_N20_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')  
             ccdb_plasmid_p_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')  
@@ -2488,7 +2487,7 @@ if __name__ == '__main__':
         "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
         "sgRNA_result_path": "",
         "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
-        "ref_genome":"/home/yanghe/tmp/data_preprocessing/output/xxx.fna",
+        "ref_genome":"/home/yanghe/tmp/data_preprocessing/output/eco.fna",
 
         "one_plasmid_file_path":"./input/pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",   
         "no_ccdb_plasmid":"./input/no-ccdb-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
@@ -2499,10 +2498,10 @@ if __name__ == '__main__':
         'sgRNA_result':{}, 
 
         "uha_dha_config": {
-            "max_right_arm_seq_length": 1050,  
-            "max_left_arm_seq_length": 1050,     
-            "min_left_arm_seq_length": 1000,   
-            "min_right_arm_seq_length": 1000     
+            "max_right_arm_seq_length": 145,  
+            "max_left_arm_seq_length": 145,     
+            "min_left_arm_seq_length": 145,   
+            "min_right_arm_seq_length": 145     
         },
         "plasmid_label":{
             "ccdb_label":"ccdB",  
@@ -2512,7 +2511,7 @@ if __name__ == '__main__':
         
         "primer_json":{},
         "region_label":"", 
-
+   
         "sgRNA_primer_json":{},
         "ccdb_primer_json":{},   
         "sgRNA_region_label":"",
@@ -2604,9 +2603,6 @@ if __name__ == '__main__':
             'PRIMER_OPT_SIZE':18, 
         },
     }
-
-
-
 
     data2 = {     
         "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
@@ -2748,7 +2744,7 @@ if __name__ == '__main__':
         }      
     }
 
-    a=main(data2)     
+    a=main(data1)     
 
     print(a) 
 
