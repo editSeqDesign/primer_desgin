@@ -111,7 +111,7 @@ def one_plasmid_system_design_by_user_region(uha_dha_sgRNA_df,sgRNA_region_seq_j
 
     return plasmid_primer_df, failture_plasmid_primer_df
 
-#one plasmid pcr primer     
+#one plasmid pcr primer    
 def one_plasmid_system_pcr_design_primer(gb_path,
                                          info_df,
                                          uha_dha_sgRNA_df,
@@ -175,6 +175,7 @@ def one_plasmid_system_pcr_design_primer(gb_path,
             seq_altered_primer_df = pd.DataFrame()
     else:
         seq_altered_primer_df = pd.DataFrame()
+        failture_seq_altered_primer_df = pd.DataFrame()
 
     #分别提取，修饰后的uha、dha引物
     in_col = ['Name','Region',"primer_f_seq_(5'-3')_joint","primer_r_seq_(5'-3')_joint",'product_value_joint','product_size_joint']
@@ -191,8 +192,8 @@ def one_plasmid_system_pcr_design_primer(gb_path,
     if len(seq_altered_primer_df)>0:
         seq_altered_primer_df = seq_altered_primer_df[["Region","primer_f_seq_(5'-3')_joint","primer_r_seq_(5'-3')_joint",'product_value_joint','product_size_joint']]
 
-    return uha_dha_sgRNA_df, uha_primer_df, dha_primer_df, n20down_primer_p_df, n20up_primer_p_df, seq_altered_primer_df, type_kind, failture_n20up_primer_df, failture_n20down_primer_df
-
+    return uha_dha_sgRNA_df, uha_primer_df, dha_primer_df, n20down_primer_p_df, n20up_primer_p_df, seq_altered_primer_df,failture_seq_altered_primer_df, type_kind, failture_n20up_primer_df, failture_n20down_primer_df
+   
 #one plasmid sequencing primer  
 def one_plasmid_system_sequencing_design_primer(type_kind,uha_dha_sgRNA_df):
     print(type_kind,"1:代表启动子上游的序列大于600bp,同时终止子下游大于600bp","2:代表启动子上游的序列小于600bp","3:代表终止子上游序列小于600bp")  
@@ -455,7 +456,6 @@ def two_plasmid_system_design_by_user_ccdb_region(uha_dha_sgRNA_df,no_sgRNA_plas
         return ccdb_plasmid_primer_df, failture_ccdb_plasmid_primer_df
 
 
-
 def two_plasmid_system_design_by_no_user(no_ccdb_uha_dha_sgRNA_df,ccdB_plasmid_backbone,enzyme_df,enzyme_name):
     #设计sgRNA质粒引物
     no_ccdb_primer_template_df = no_ccdb_uha_dha_sgRNA_df[['Name','Region','sgRNA_template','Rev Target sequence']]
@@ -681,7 +681,7 @@ def genome_sequencing_design_primer(info_input_df, uha_dha_df):
     return genome_sequencing_primer_df, genome_sequencing_template, failture_genome_sequencing_primer_df
 
 
-#     
+#       
 def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                 sgRNA_region_seq_json,
                                 sgRNA_primer_json,
@@ -707,7 +707,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
     #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物  
     if plasmid_primer_desgin_type == 2:    
         #无需用户指定范围
-        uha_dha_sgRNA_df,uha_primer_df,dha_primer_df,n20down_primer_p_df,n20up_primer_p_df, seq_altered_p_df,type_kind,failture_n20up_primer_df, failture_n20down_primer_df = one_plasmid_system_pcr_design_primer(                                                                                                                            
+        uha_dha_sgRNA_df,uha_primer_df,dha_primer_df,n20down_primer_p_df,n20up_primer_p_df, seq_altered_p_df,failture_seq_altered_primer_df,type_kind,failture_n20up_primer_df, failture_n20down_primer_df = one_plasmid_system_pcr_design_primer(                                                                                                                            
                                                                                                                                         gb_path,
                                                                                                                                         info_df,
                                                                                                                                         uha_dha_sgRNA_df,
@@ -729,7 +729,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
 
     elif plasmid_primer_desgin_type == 1:
         #用户指定范围
-        uha_dha_sgRNA_df,uha_primer_df,dha_primer_df,n20down_primer_p_df,n20up_primer_p_df, seq_altered_p_df,type_kind,failture_n20up_primer_df, failture_n20down_primer_df = one_plasmid_system_pcr_design_primer(                                                                                                                            
+        uha_dha_sgRNA_df,uha_primer_df,dha_primer_df,n20down_primer_p_df,n20up_primer_p_df, seq_altered_p_df,failture_seq_altered_primer_df,type_kind,failture_n20up_primer_df, failture_n20down_primer_df = one_plasmid_system_pcr_design_primer(                                                                                                                            
                                                                                                                                         gb_path,
                                                                                                                                         info_df,
                                                                                                                                         uha_dha_sgRNA_df,
@@ -745,7 +745,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                                                                                                                         )
     elif plasmid_primer_desgin_type == 3:
          #用户指定额外引物  
-        uha_dha_sgRNA_df,uha_primer_df,dha_primer_df,n20down_primer_p_df,n20up_primer_p_df, seq_altered_p_df,type_kind,failture_n20up_primer_df, failture_n20down_primer_df = one_plasmid_system_pcr_design_primer(                                                                                                                            
+        uha_dha_sgRNA_df,uha_primer_df,dha_primer_df,n20down_primer_p_df,n20up_primer_p_df, seq_altered_p_df,failture_seq_altered_primer_df,type_kind,failture_n20up_primer_df, failture_n20down_primer_df = one_plasmid_system_pcr_design_primer(                                                                                                                            
                                                                                                                                         gb_path,
                                                                                                                                         info_df,
                                                                                                                                         uha_dha_sgRNA_df,
@@ -875,11 +875,10 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
         genome_sequencing_primer_df = add_WT_genome_sequencing_primer_df(uha_dha_sgRNA_df, genome_sequencing_primer_df)
 
     #2：输出成功引物excel文件
-    failture_seq_altered_p_df = pd.DataFrame()
     with pd.ExcelWriter(xlsx_file) as writer:  
         uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
         dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
-        failture_seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+        seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
         n20up_primer_p_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')  
         n20down_primer_p_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')
         plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
@@ -908,8 +907,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
 
         failture_uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
         failture_dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
-        # seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
-        failture_seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+        failture_seq_altered_primer_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
         failture_n20up_primer_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')
         failture_n20down_primer_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')
         failture_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
@@ -1083,6 +1081,7 @@ def execute_two_plasmid_system(
     else:
         seq_altered_primer_df = pd.DataFrame()
         seq_altered_p_df = seq_altered_primer_df
+        failture_seq_altered_primer_df = pd.DataFrame()
 
     #给引物加接头
     #给同源臂引物加接头
@@ -1324,13 +1323,12 @@ def execute_two_plasmid_system(
     failture_sgRNA_plasmid_sequencing_primer_df.reset_index(drop=True, inplace=True)
     failture_ccdb_plasmid_sequencing_primer_df.reset_index(drop=True, inplace=True)
     
-    failture_seq_altered_p_df = pd.DataFrame()
     if method == 'PCR':
         #成功
         with pd.ExcelWriter(xlsx_file) as writer:  
             uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
             dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
-            failture_seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+            seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
             sgRNA_plasmid_p_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')  
             ccdb_plasmid_p_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')
            
@@ -1345,7 +1343,7 @@ def execute_two_plasmid_system(
         with pd.ExcelWriter(xlsx_F_file) as writer: 
             failture_uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
             failture_dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
-            failture_seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+            failture_seq_altered_primer_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
 
             failture_sgRNA_plasmid_primer_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')
             failture_ccdb_plasmid_primer_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')
@@ -1358,14 +1356,30 @@ def execute_two_plasmid_system(
         with pd.ExcelWriter(xlsx_file) as writer:  
             uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
             dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
-            failture_seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
-
+            seq_altered_p_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
             enzymeCutSeq_and_N20_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')  
             ccdb_plasmid_p_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')  
-            
             sgRNA_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
             ccdb_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P2',index_label='No.')
             genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')
+
+        
+         #失败
+        with pd.ExcelWriter(xlsx_F_file) as writer: 
+            failture_uha_primer_df.to_excel(writer,sheet_name = 'Primer_UHA',index_label='No.')
+            failture_dha_primer_df.to_excel(writer,sheet_name = 'Primer_DHA',index_label='No.')
+            failture_seq_altered_primer_df.to_excel(writer,sheet_name = 'Primer_inserted_fragment',index_label='No.')
+
+            failture_sgRNA_plasmid_primer_df.to_excel(writer,sheet_name = 'Primer_sgRNA_fragment',index_label='No.')
+            failture_ccdb_plasmid_primer_df.to_excel(writer,sheet_name = 'Primer_plasmid_backbone',index_label='No.')
+
+            failture_sgRNA_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')
+            failture_ccdb_plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P2',index_label='No.')
+            failture_genome_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_G',index_label='No.')  
+
+        
+
+
 
 
     #复制one_plasmid_system_pcr_gb到one_plasmid_system_result中
@@ -1595,7 +1609,6 @@ def create_plasmid_order(uha_dha_sgRNA_df, name, plasmid_type):
         return plasmid_order_df
 
 
-
 def add_WT_genome_sequencing_primer_df(uha_dha_sgRNA_df, genome_sequencing_primer_df):
 
     temp =  uha_dha_sgRNA_df[['Name', 'Region', 'UHA', 'DHA', 'seq_altered', 'ref']]
@@ -1642,7 +1655,6 @@ def clean_noUsefulContent(path_1, noUsefulContent ='BASE COUNT'):
             f_w.write(line)
 
     print(path_1,'过滤完毕！')
-
 
 
 def main(data):
@@ -2746,19 +2758,4 @@ if __name__ == '__main__':
 
     a=main(data1)     
 
-    print(a) 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-          
+    print(a)           
