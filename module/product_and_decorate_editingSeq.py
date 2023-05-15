@@ -344,7 +344,7 @@ def get_plasmid_backbone_by_labels(gb_path, ccdb_label='ccdB', promoter_terminat
     return  plasmid_backbone
 
 
-def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_label='gRNA', n_20_label='N20'):
+def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_label='gRNA', n_20_label='N20', promoter_label='promoter'):
     gb = SeqIO.read(gb_path, "genbank")
     gb_seq = str(gb.seq)
     #get coordinate
@@ -352,13 +352,14 @@ def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_
     promoter_terminator_coordinate = su.get_feature_coordinate(promoter_terminator_label,gb_path)  
     #N20
     n20_coordinate = su.get_feature_coordinate(n_20_label,gb_path)
+
+
      
     #判断单、双质粒系统
     #type_kind=1:sgRNA启动子序列上游长度>600bp，type_kind=2:sgRNA启动子序列上游长度<600bp，type_kind=3:双质粒系统无ccdb，type_kind=4:双质粒系统无sgRNA
     if ccdb_coordinate[0] !=-1 and promoter_terminator_coordinate[0] != -1:
         #单质粒系统
             #对质粒划分
-      
         before_processed_seq_dict, after_processed_seq_dict = fq.get_data_from_genebank(gb_path,marker=ccdb_label,target_gene=promoter_terminator_label)
 
         ccdb = after_processed_seq_dict['marker_seq']
@@ -382,8 +383,15 @@ def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_
         # type_kind = 1                       
         plasmid_backbone = terminator_seq + promoter_terminator_down_seq
 
-        def work(target_seq,uha,dha,seq_altered):
+        real_promoter = su.get_sequence_by_feature_label(gb_path, feature_label = promoter_label)
+        if real_promoter == None:
+            raise ValueError('There is a problem with the label you provided')
+
+        def work(target_seq, uha, dha, seq_altered):
                 
+                if real_promoter.upper() != promoter_terminator[:start].upper():
+                    target_seq = su.revComp(target_seq)
+
                 new_promoter_terminator = promoter_terminator[:start] + target_seq + terminator_seq
                 promoter_up_promoter = promoter_terminator_up_seq +  promoter_seq  
                 terminator_terminator_down = terminator_seq + promoter_terminator_down_seq
@@ -423,10 +431,18 @@ def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_
         promoter_seq = promoter_terminator[:start]
 
         
+        
         joint_need_seq = promoter_terminator
         plasmid_backbone = promoter_terminator_up_seq + promoter_terminator + promoter_terminator_down_seq
-
+        
+        real_promoter = su.get_sequence_by_feature_label(gb_path, feature_label = promoter_label)
+        if real_promoter == None:
+            raise ValueError('There is a problem with the label you provided')
         def work(target_seq, uha,dha, seq_altered, type):
+
+            if real_promoter.upper() != promoter_terminator[:start].upper():  
+                    target_seq = su.revComp(target_seq)
+
             new_promoter_terminator = promoter_terminator[:start] + target_seq + terminator_seq
             plasmid = promoter_terminator_up_seq + new_promoter_terminator + promoter_terminator_down_seq
             sgRNA_template = terminator_seq + promoter_seq

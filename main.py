@@ -123,10 +123,11 @@ def one_plasmid_system_pcr_design_primer(gb_path,
                                          seq_json,
                                          ccdb_label,
                                          promoter_terminator_label,
-                                         n_20_label):
+                                         n_20_label,
+                                         promoter_label):
     
     #创建新的质粒      
-    uha_dha_sgRNA_df,promoter_seq, promoter_terminator_up_promoter_seq, promoter_terminator_down_terminator_seq, type_kind  = p_d_seq.create_new_plasmid(gb_path, uha_dha_sgRNA_df.copy(), ccdb_label, promoter_terminator_label, n_20_label)
+    uha_dha_sgRNA_df,promoter_seq, promoter_terminator_up_promoter_seq, promoter_terminator_down_terminator_seq, type_kind  = p_d_seq.create_new_plasmid(gb_path, uha_dha_sgRNA_df.copy(), ccdb_label, promoter_terminator_label, n_20_label, promoter_label)
     uha_dha_sgRNA_df['promoter_seq'] = promoter_seq
 
 
@@ -698,6 +699,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                 ccdb_label,
                                 promoter_terminator_label,
                                 n_20_label,
+                                promoter_label,
                                 failture_uha_dha_primer_df
                                 ):
     
@@ -719,7 +721,8 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                                                                                                                         sgRNA_region_seq_json,
                                                                                                                                         ccdb_label,
                                                                                                                                         promoter_terminator_label,
-                                                                                                                                        n_20_label
+                                                                                                                                        n_20_label,
+                                                                                                                                        promoter_label,
                                                                                                                                         )
 
         #修改 n20down_primer_p_df
@@ -741,6 +744,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                                                                                                                         sgRNA_region_seq_json,
                                                                                                                                         ccdb_label,
                                                                                                                                         promoter_terminator_label,
+                                                                                                                                        promoter_label,
                                                                                                                                         n_20_label
                                                                                                                                         )
     elif plasmid_primer_desgin_type == 3:
@@ -757,6 +761,7 @@ def execute_one_plasmid_system(plasmid_primer_desgin_type,
                                                                                                                                         sgRNA_primer_json,
                                                                                                                                         ccdb_label,
                                                                                                                                         promoter_terminator_label,
+                                                                                                                                        promoter_label,
                                                                                                                                         n_20_label
                                                                                                                                         )
 
@@ -942,14 +947,15 @@ def execute_two_plasmid_system(
                                  ccdb_label,
                                  promoter_terminator_label,
                                  n_20_label,
+                                 promoter_label,
                                  output,
                                  failture_uha_dha_primer_df
                                  ):                                     
 
-    no_ccdb_uha_dha_sgRNA_df,promoter_seq, sgRNA_plasmid_backbone, promoter_seq, terminator_seq, sgRNA_promoter_terminator = p_d_seq.create_new_plasmid(no_ccdb_plasmid, uha_dha_sgRNA_df.copy(), ccdb_label, promoter_terminator_label, n_20_label)
+    no_ccdb_uha_dha_sgRNA_df,promoter_seq, sgRNA_plasmid_backbone, promoter_seq, terminator_seq, sgRNA_promoter_terminator = p_d_seq.create_new_plasmid(no_ccdb_plasmid, uha_dha_sgRNA_df.copy(), ccdb_label, promoter_terminator_label, n_20_label, promoter_label)
     no_sgRNA_uha_dha_ccdb_df, ccdB_plasmid_backbone, ccdB_promoter_terminator_up_seq = p_d_seq.create_new_plasmid(no_sgRNA_plasmid, uha_dha_sgRNA_df.copy(), ccdb_label, promoter_terminator_label, n_20_label)
     no_ccdb_uha_dha_sgRNA_df['promoter_seq'] = promoter_seq
-    #酶切退火方式
+    #酶切退火方式  
     
 
     #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物, 
@@ -1676,7 +1682,8 @@ def main(data):
     #plasmid label
     ccdb_label = data['plasmid_label']['ccdb_label']
     promoter_terminator_label = data['plasmid_label']['promoter_terminator_label']
-    n_20_label = data['plasmid_label']['n_20_label'] 
+    n_20_label = data['plasmid_label']['n_20_label']
+    promoter_label = data['plasmid_label']['promoter_label']
 
     #检查质粒标签
     if ccdb_label == promoter_terminator_label or ccdb_label == n_20_label:
@@ -1930,6 +1937,7 @@ def main(data):
                                                                 ccdb_label,
                                                                 promoter_terminator_label,
                                                                 n_20_label,
+                                                                promoter_label,
                                                                 failture_uha_dha_primer_df
                                                                 )
 
@@ -1971,6 +1979,7 @@ def main(data):
                                     ccdb_label,  
                                     promoter_terminator_label,
                                     n_20_label,
+                                    promoter_label,
                                     output,
                                     failture_uha_dha_primer_df
                                     )
@@ -2006,6 +2015,7 @@ def main(data):
                                                                 ccdb_label,
                                                                 promoter_terminator_label,
                                                                 n_20_label,
+                                                                promoter_label,
                                                                 failture_uha_dha_primer_df
                                                                 )
 
@@ -2041,11 +2051,13 @@ def main(data):
                                     ccdb_label,  
                                     promoter_terminator_label,
                                     n_20_label,
+                                    promoter_label,
                                     output,
                                     failture_uha_dha_primer_df
                                     )
         
     return one_plasmid_output_path, two_plasmid_output_path
+
 
 if __name__ == '__main__':
 
@@ -2501,9 +2513,9 @@ if __name__ == '__main__':
         "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
         "ref_genome":"/home/yanghe/tmp/data_preprocessing/output/eco.fna",
 
-        "one_plasmid_file_path":"./input/pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",   
-        "no_ccdb_plasmid":"./input/no-ccdb-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
-        "no_sgRNA_plasmid":"./input/no-sgRNA-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
+        "one_plasmid_file_path":"./input/only_primer/大肠图谱-gRNA反向1-.gb",  
+        "no_ccdb_plasmid":"",  
+        "no_sgRNA_plasmid":"",
 
         "scene":"only_primer",
 
@@ -2516,9 +2528,10 @@ if __name__ == '__main__':
             "min_right_arm_seq_length": 145     
         },
         "plasmid_label":{
-            "ccdb_label":"ccdB",  
+            "ccdb_label":"HR",  
             "promoter_terminator_label":"gRNA",
-            "n_20_label":"N20"
+            "n_20_label":"N20",
+            "promoter_label":"promoter"
         },
         
         "primer_json":{},
@@ -2638,7 +2651,8 @@ if __name__ == '__main__':
         "plasmid_label":{
             "ccdb_label":"ccdB",  
             "promoter_terminator_label":"gRNA",
-            "n_20_label":"N20"
+            "n_20_label":"N20",
+            "promoter_label":"promoter"
         },
 
         "primer_json":{
@@ -2758,4 +2772,4 @@ if __name__ == '__main__':
 
     a=main(data1)     
 
-    print(a)           
+    print(a) 

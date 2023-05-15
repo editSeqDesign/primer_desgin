@@ -1,4 +1,4 @@
-LOCUS       Exported               11652 bp ds-DNA     circular SYN 08-DEC-2022
+LOCUS       Exported               11652 bp ds-DNA     circular SYN 09-MAY-2023
 DEFINITION  Shuttle vector pXMJ19 (Corynebacterium glutamicum / E. coli).
 ACCESSION   AJ133195
 VERSION     .
@@ -18,7 +18,7 @@ REFERENCE   2  (bases 1 to 11652)
 REFERENCE   3  (bases 1 to 11652)
   AUTHORS   .
   TITLE     Direct Submission
-  JOURNAL   Exported Dec 8, 2022 from SnapGene 4.2.4
+  JOURNAL   Exported May 9, 2023 from SnapGene 4.2.4
             http://www.snapgene.com
 COMMENT     This file is created by Vector NTI
             http://www.invitrogen.com/
@@ -52,14 +52,12 @@ FEATURES             Location/Qualifiers
      misc_feature    5058..5363
                      /label=ccdB
      rep_origin      5582..6154
-                     /direction=RIGHT
                      /gene="ori pUC"
                      /label=ori pUC
      gene            5582..6154
                      /gene="ori pUC"
                      /label=ori pUC
      rep_origin      6339..8893
-                     /direction=RIGHT
                      /gene="ori pBL1"
                      /label=ori pBL1
      gene            6339..8893
@@ -67,11 +65,13 @@ FEATURES             Location/Qualifiers
                      /label=ori pBL1
      misc_feature    7742
                      /label=?????C-T
-                     /label=    ?    C  T
+                     /label=? C T
      primer_bind     8787..8806
                      /label=9sgcx-F
      misc_feature    8950..9413
                      /label=gRNA
+     misc_feature    8950..9002
+                     /label=promoter
      primer_bind     complement(8983..9002)
                      /label=73-R
      misc_feature    8999..9002
@@ -90,7 +90,6 @@ FEATURES             Location/Qualifiers
                      /label=11C3-F
      CDS             complement(9461..10120)
                      /codon_start=1
-                     /transl_table=11
                      /gene="cat"
                      /product="chloramphenicol acetyl transferase"
                      /label=cat
@@ -118,7 +117,6 @@ FEATURES             Location/Qualifiers
                      /label=psiGA1
      CDS             complement(10333..11304)
                      /codon_start=1
-                     /transl_table=11
                      /gene="lacIq"
                      /product="LacIq protein"
                      /label=lacIq

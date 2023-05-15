@@ -1,4 +1,4 @@
-LOCUS       Exported               11346 bp ds-DNA     circular SYN 29-DEC-2022
+LOCUS       Exported               11346 bp ds-DNA     circular SYN 09-MAY-2023
 DEFINITION  Shuttle vector pXMJ19 (Corynebacterium glutamicum / E. coli).
 ACCESSION   AJ133195
 VERSION     .
@@ -18,7 +18,7 @@ REFERENCE   2  (bases 1 to 11346)
 REFERENCE   3  (bases 1 to 11346)
   AUTHORS   .
   TITLE     Direct Submission
-  JOURNAL   Exported Dec 29, 2022 from SnapGene 4.2.4
+  JOURNAL   Exported May 9, 2023 from SnapGene 4.2.4
             http://www.snapgene.com
 COMMENT     This file is created by Vector NTI
             http://www.invitrogen.com/
@@ -63,6 +63,8 @@ FEATURES             Location/Qualifiers
                      /label=9sgcx-F
      misc_feature    8644..9107
                      /label=gRNA
+     misc_feature    8644..8696
+                     /label=promoter
      primer_bind     complement(8677..8696)
                      /label=73-R
      misc_feature    8693..8696
