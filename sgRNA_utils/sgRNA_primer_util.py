@@ -243,19 +243,7 @@ def primer_design(seqId,
     #调用工具
     primer3_result = primer3.bindings.designPrimers(seq_args, global_args)
 
-    # if primer3_result.get('PRIMER_LEFT_EXPLAIN') != None or primer3_result.get('PRIMER_RIGHT_EXPLAIN') != None:
 
-    #     errorMessage = f'{primer_type}: '
-    #     if primer3_result.get('PRIMER_LEFT_0_SEQUENCE') == None:
-    #         PRIMER_LEFT_EXPLAIN = primer3_result.get('PRIMER_LEFT_EXPLAIN')
-    #         errorMessage = errorMessage + f'PRIMER_LEFT_EXPLAIN:{PRIMER_LEFT_EXPLAIN}; '
-
-    #     if primer3_result.get('PRIMER_RIGHT_0_SEQUENCE') == None:  
-    #         PRIMER_RIGHT_EXPLAIN = primer3_result.get('PRIMER_RIGHT_EXPLAIN')
-    #         errorMessage = errorMessage + f'PRIMER_RIGHT_EXPLAIN:{PRIMER_RIGHT_EXPLAIN}'
-    #     if errorMessage !=  f'{primer_type}: ': 
-    #         print(errorMessage)
-    #         raise ValueError(errorMessage)  
 
     return primer3_result  
 
@@ -740,6 +728,180 @@ def blast_output_evaluate(workdir, blast_input, blast_output):
     pd.read_table(evaluate_output_file_path, index_col=0).to_excel(evaluate_output_dir)
 
 
+def fa2df(alignedfastap,ids2cols=False):
+    dtmp=pd.read_csv(alignedfastap,names=["c"],keep_default_na=False)
+    dtmp=dtmp.iloc[::2].reset_index(drop=True).join(dtmp.iloc[1::2].reset_index(drop=True),rsuffix='r')
+    dtmp.columns=['id','sequence']
+    dtmp=dtmp.set_index('id')
+    dtmp.index=[i[1:] for i in dtmp.index]
+    dtmp.index.name='id'
+    if ids2cols:
+        for i in dtmp.index:
+            seqid,contig,strand,start,end=i.split('|')
+            dtmp.loc[i,'seqid']=seqid
+            dtmp.loc[i,'contig']=contig
+            dtmp.loc[i,'strand']=strand
+            dtmp.loc[i,'start']=start
+            dtmp.loc[i,'end']=end
+    return dtmp
 
 
+
+import random
+
+def generate_random_SNP(genome, num_snps):
+    """
+    生成随机的单核苷酸变异（SNP）
+    参数：
+    genome: 大肠杆菌基因组序列（字符串）
+    num_snps: 要生成的SNP数量
+    返回值：
+    变异后的基因组序列（字符串）
+    """
+    genome_list = list(genome)
+    genome_len = len(genome)
+
+    mute_list=[]
+    
+    for _ in range(num_snps):
+
+        position = random.randint(0, genome_len-1)  # 随机选择变异位置
+        old_base = genome[position:position+1]
+        new_base = random.choice(['A', 'T', 'C', 'G'])  # 随机选择新的碱基
+        genome_list[position] = new_base  # 替换基因组中的碱基
+        gene_mute = { 
+                    'Manipulation type': 'substitution',
+                    'position':position,
+                    'Reference sequence':old_base,
+                    'Inserted sequence':new_base
+                     }
+        mute_list.append( gene_mute )
+
+    mutated_genome = ''.join(genome_list)
+
+    return mutated_genome, mute_list
+
+
+def generate_random_indel(genome, num_indels):
+    """
+    生成随机的插入/缺失变异
+    参数：
+    genome: 大肠杆菌基因组序列（字符串）
+    num_indels: 要生成的插入/缺失数量
+    返回值：
+    变异后的基因组序列（字符串）
+    """
+    genome_list = list(genome)
+    genome_len = len(genome)
+
+    mute_list=[]
+    
+    for _ in range(num_indels):
+        position = random.randint(0, genome_len-1)  # 随机选择变异位置
+        mutation_type = random.choice(['insertion', 'deletion'])  # 随机选择插入或缺失
+        old_base = genome[position:position+1]
+
+        if mutation_type == 'insertion':
+            new_base = random.choice(['A', 'T', 'C', 'G'])  # 随机选择插入的新碱基
+            genome_list.insert(position, new_base)  # 在指定位置插入新碱基
+        else:
+            new_base = '-'
+            genome_list.pop(position)  # 在指定位置删除碱基
+
+        gene_mute = { 
+                    'Manipulation type': mutation_type,
+                    'position':position,
+                    'Reference sequence':old_base,
+                    'Inserted sequence':new_base
+                     }
+        mute_list.append( gene_mute )
+
+    mutated_genome = ''.join(genome_list)
+
+    return mutated_genome, mute_list
+
+import random
+
+def generate_mutated_genome(genome, mutation_rate):
+    mutated_genome = list(genome)
+
+    mute_list=[]
+
+    for _ in range(int(mutation_rate * len(mutated_genome))):
+        mutation_type = random.choice(['deletion', 'insertion', 'substitution'])
+        mutation_index = random.randint(0, len(mutated_genome) - 1)
+
+        if mutation_type == 'deletion':
+            deletion_length = random.randint(1, 10)  # 调整删除片段的长度范围
+            new_base = '-'
+            old_base = genome[mutation_index:mutation_index + deletion_length]
+
+            del mutated_genome[mutation_index:mutation_index + deletion_length]
+
+        elif mutation_type == 'insertion':
+            insertion_length = random.randint(1, 10)  # 调整插入片段的长度范围
+            insertion = generate_random_sequence(insertion_length)
+            new_base = insertion
+            old_base = genome[mutation_index:mutation_index]
+            mutated_genome[mutation_index:mutation_index] = insertion
+
+        elif mutation_type == 'substitution':
+            replacement_length = random.randint(1, 10)  # 调整替换片段的长度范围
+            replacement = generate_random_sequence(replacement_length)
+            new_base = replacement
+            old_base = genome[mutation_index: mutation_index + replacement_length]
+            mutated_genome[mutation_index:mutation_index + replacement_length] = replacement
+
+
+        
+        position = mutation_index, mutation_index + deletion_length
+
+
+        gene_mute = { 
+                    'Manipulation type': mutation_type,
+                    'position':position,
+                    'Reference sequence':old_base,
+                    'Inserted sequence':new_base
+                     }
+        mute_list.append(gene_mute)
+
+    return ''.join(mutated_genome), gene_mute
+
+
+def generate_random_sequence(length):
+    bases = ['A', 'T', 'C', 'G']
+    sequence = [random.choice(bases) for _ in range(length)]
+    return ''.join(sequence)
+
+
+
+def df2info(df,col_searches=None):
+    if len(df.columns)>5:
+        print('**COLS**: ',df.columns.tolist())
+    print('**HEAD**: ',df.loc[:,df.columns[:5]].head())
+    print('**SHAPE**: ',df.shape)
+    if not col_searches is None:
+        cols_searched=[c2 for c1 in col_searches for c2 in df if c1 in c2]
+        print('**SEARCHEDCOLS**:\n',cols_searched)
+        print('**HEAD**: ',df.loc[:,cols_searched].head())
+
+
+
+def set_index(data,col_index):
+    """
+    Sets the index if the index is not present
+
+    :param data: pandas table 
+    :param col_index: column name which will be assigned as a index
+    """
+    if col_index in data:
+        data=data.reset_index().set_index(col_index)
+        if 'index' in data:
+            del data['index']
+        return data
+    elif data.index.name==col_index:
+        return data
+    else:
+        # logging.error("something's wrong with the df")
+        df2info(data)
 

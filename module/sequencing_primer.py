@@ -59,13 +59,14 @@ def design_seq_primer(seq_id, seq_temp, seq_target, mute_position=0,seq_type='')
                                     )
    
     #第一条引物
-    judge_primer_is_or_not( seq_id,dict_res_p1,
+    judge_primer_is_or_not( seq_id,dict_res_p1,   
                             dict_seq_primer,
                             dict_seq_primer_failtrue,
                             primer_name="SEQUENCING_PRIMER_1",
                             type='LEFT')
     
-    if len(dict_res_p1.keys()) > 10: 
+    if dict_res_p1.get('PRIMER_LEFT_0') != None: 
+        print(   '--------------------------',dict_res_p1.get('PRIMER_LEFT_0') )
         SEQUENCING_TARGET_START = site_target_temp - 120 + dict_res_p1['PRIMER_LEFT_0'][0]
     
     # if 600 < len_target <= 1200:
@@ -86,7 +87,8 @@ def design_seq_primer(seq_id, seq_temp, seq_target, mute_position=0,seq_type='')
                                 primer_name="SEQUENCING_PRIMER_2",
                                 type='RIGHT')
         
-        if len(dict_res_p2.keys()) > 10 and len(dict_res_p1.keys()) > 10:
+        if dict_res_p2.get('PRIMER_LEFT_0') != None and dict_res_p1.get('PRIMER_LEFT_0') != None:
+            
             print( dict_res_p2['PRIMER_LEFT_0'][0], dict_res_p2['PRIMER_LEFT_0'][1])
             SEQUENCING_TARGET_END = site_target_temp + len_target + 80 + dict_res_p2['PRIMER_LEFT_0'][0] + dict_res_p2['PRIMER_LEFT_0'][1]
 
