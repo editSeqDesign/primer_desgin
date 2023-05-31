@@ -993,6 +993,8 @@ def execute_one_plasmid_system_synthesis(   genome_path,
     intersected_df =pd.merge(uha_dha_sgRNA_df, temp_df)
     uha_dha_sgRNA_df = pd.concat([uha_dha_sgRNA_df, intersected_df]).drop_duplicates(keep=False)
     
+    if len(uha_dha_sgRNA_df) == 0:
+        raise ValueError('UHA and DHA are all off target!')  
 
 
     #2. 读取gb文件
@@ -2471,81 +2473,81 @@ def main(data):
                 return two_plasmid_output_path
 
 
-    elif plasmid_system_type == 0:
+    # elif plasmid_system_type == 0:
 
-            #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物
-            if region_seq_json == {} and  primer_json == {}:
-                plasmid_primer_desgin_type = 2
-            elif region_seq_json != {} and primer_json == {}:
-                plasmid_primer_desgin_type = 1
-            elif primer_json != {} and region_seq_json == {}:  
-                plasmid_primer_desgin_type = 3
-            elif primer_json != {} and region_seq_json != {}:
-                plasmid_primer_desgin_type = 1
-            print('--1.用户指定范围---2.无需用户指定范围---3.用户指定额外引物------现在正在执行的情况：',plasmid_primer_desgin_type)
+    #         #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物
+    #         if region_seq_json == {} and  primer_json == {}:
+    #             plasmid_primer_desgin_type = 2
+    #         elif region_seq_json != {} and primer_json == {}:
+    #             plasmid_primer_desgin_type = 1
+    #         elif primer_json != {} and region_seq_json == {}:  
+    #             plasmid_primer_desgin_type = 3
+    #         elif primer_json != {} and region_seq_json != {}:
+    #             plasmid_primer_desgin_type = 1
+    #         print('--1.用户指定范围---2.无需用户指定范围---3.用户指定额外引物------现在正在执行的情况：',plasmid_primer_desgin_type)
 
-            one_plasmid_output_path = execute_one_plasmid_system_pcr(   
-                                                                    genome_path,
-                                                                    plasmid_primer_desgin_type,
-                                                                    region_seq_json,
-                                                                    primer_json,
-                                                                    one_plasmid_file_path,
-                                                                    info_df,
-                                                                    info_input_df,
-                                                                    uha_dha_df,
-                                                                    uha_dha_sgRNA_df,
-                                                                    uha_dha_info_primer_df,
-                                                                    uha_dha_primer_df,
-                                                                    enzyme_df,
-                                                                    enzyme_name,
-                                                                    output,
-                                                                    ccdb_label,
-                                                                    promoter_terminator_label,
-                                                                    n_20_label,
-                                                                    promoter_label,
-                                                                    failture_uha_dha_primer_df,
-                                                                    blast_result_df
-                                                                    )
+    #         one_plasmid_output_path = execute_one_plasmid_system_pcr(   
+    #                                                                 genome_path,
+    #                                                                 plasmid_primer_desgin_type,
+    #                                                                 region_seq_json,
+    #                                                                 primer_json,
+    #                                                                 one_plasmid_file_path,
+    #                                                                 info_df,
+    #                                                                 info_input_df,
+    #                                                                 uha_dha_df,
+    #                                                                 uha_dha_sgRNA_df,
+    #                                                                 uha_dha_info_primer_df,
+    #                                                                 uha_dha_primer_df,
+    #                                                                 enzyme_df,
+    #                                                                 enzyme_name,
+    #                                                                 output,
+    #                                                                 ccdb_label,
+    #                                                                 promoter_terminator_label,
+    #                                                                 n_20_label,
+    #                                                                 promoter_label,
+    #                                                                 failture_uha_dha_primer_df,
+    #                                                                 blast_result_df
+    #                                                                 )
 
             
-            # 7.执行双质粒系统
-            #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物
+    #         # 7.执行双质粒系统
+    #         #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物
         
-            if sgRNA_primer_json !={} or ccdb_primer_json !={}:
-                plasmid_primer_desgin_type = 3
-            elif sgRNA_region_seq_json !={} or ccdb_region_seq_json !={}:
-                plasmid_primer_desgin_type = 1
-            elif sgRNA_primer_json == {} and ccdb_primer_json == {} and sgRNA_region_seq_json == {} and ccdb_region_seq_json == {}:
-                plasmid_primer_desgin_type = 2
+    #         if sgRNA_primer_json !={} or ccdb_primer_json !={}:
+    #             plasmid_primer_desgin_type = 3
+    #         elif sgRNA_region_seq_json !={} or ccdb_region_seq_json !={}:
+    #             plasmid_primer_desgin_type = 1
+    #         elif sgRNA_primer_json == {} and ccdb_primer_json == {} and sgRNA_region_seq_json == {} and ccdb_region_seq_json == {}:
+    #             plasmid_primer_desgin_type = 2
 
-            print('--------------------------------------现在执行的情况：',plasmid_primer_desgin_type) 
+    #         print('--------------------------------------现在执行的情况：',plasmid_primer_desgin_type) 
 
-            two_plasmid_output_path = execute_two_plasmid_system(
-                                        genome_path,
-                                        method,
-                                        info_df,
-                                        uha_dha_info_primer_df,
-                                        uha_dha_df,
-                                        info_input_df,
-                                        no_ccdb_plasmid,
-                                        no_sgRNA_plasmid,
-                                        uha_dha_sgRNA_df,
-                                        plasmid_primer_desgin_type, 
-                                        enzyme_df,
-                                        enzyme_name,
-                                        sgRNA_primer_json,
-                                        ccdb_primer_json,
-                                        sgRNA_region_seq_json,
-                                        ccdb_region_seq_json,
-                                        ccdb_label,  
-                                        promoter_terminator_label,
-                                        n_20_label,
-                                        promoter_label,
-                                        output,
-                                        failture_uha_dha_primer_df
-                                        )
+    #         two_plasmid_output_path = execute_two_plasmid_system(
+    #                                     genome_path,
+    #                                     method,
+    #                                     info_df,
+    #                                     uha_dha_info_primer_df,
+    #                                     uha_dha_df,
+    #                                     info_input_df,
+    #                                     no_ccdb_plasmid,
+    #                                     no_sgRNA_plasmid,
+    #                                     uha_dha_sgRNA_df,
+    #                                     plasmid_primer_desgin_type, 
+    #                                     enzyme_df,
+    #                                     enzyme_name,
+    #                                     sgRNA_primer_json,
+    #                                     ccdb_primer_json,
+    #                                     sgRNA_region_seq_json,
+    #                                     ccdb_region_seq_json,
+    #                                     ccdb_label,  
+    #                                     promoter_terminator_label,
+    #                                     n_20_label,
+    #                                     promoter_label,
+    #                                     output,
+    #                                     failture_uha_dha_primer_df
+    #                                     )
                
-            return one_plasmid_output_path, two_plasmid_output_path
+    #         return one_plasmid_output_path, two_plasmid_output_path
 
 
 if __name__ == '__main__':
