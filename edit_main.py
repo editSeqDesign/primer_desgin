@@ -987,11 +987,14 @@ def execute_one_plasmid_system_synthesis(   genome_path,
     temp_df = blasta_reslut_df.drop_duplicates(subset=['qseqid'])
     temp_df = temp_df[['qseqid', 'off target']]
     temp_df = temp_df[ (temp_df['off target'] != 'low') ]
-    temp_df = temp_df['qseqid'].str.split(';',expand = True )
-    temp_df.rename(columns={0:'Name'},inplace=True)
-    temp_df = temp_df.drop(columns=1).drop_duplicates(subset=['Name'])
-    intersected_df =pd.merge(uha_dha_sgRNA_df, temp_df)
-    uha_dha_sgRNA_df = pd.concat([uha_dha_sgRNA_df, intersected_df]).drop_duplicates(keep=False)
+    if len(temp_df) == 0:
+        pass
+    else:    
+        temp_df = temp_df['qseqid'].str.split(';',expand = True )
+        temp_df.rename(columns={0:'Name'},inplace=True)
+        temp_df = temp_df.drop(columns=1).drop_duplicates(subset=['Name'])
+        intersected_df =pd.merge(uha_dha_sgRNA_df, temp_df)
+        uha_dha_sgRNA_df = pd.concat([uha_dha_sgRNA_df, intersected_df]).drop_duplicates(keep=False)
     
     if len(uha_dha_sgRNA_df) == 0:
         raise ValueError('UHA and DHA are all off target!')  
@@ -1104,11 +1107,17 @@ def execute_two_plasmid_system_synthesis(
     temp_df = blasta_reslut_df.drop_duplicates(subset=['qseqid'])
     temp_df = temp_df[['qseqid', 'off target']]
     temp_df = temp_df[ (temp_df['off target'] != 'low') ]
-    temp_df = temp_df['qseqid'].str.split(';',expand = True )
-    temp_df.rename(columns={0:'Name'},inplace=True)
-    temp_df = temp_df.drop(columns=1).drop_duplicates(subset=['Name'])
-    intersected_df =pd.merge(uha_dha_sgRNA_df, temp_df)
-    uha_dha_sgRNA_df = pd.concat([uha_dha_sgRNA_df, intersected_df]).drop_duplicates(keep=False)
+    if len(temp_df) == 0:
+        pass
+    else:    
+        temp_df = temp_df['qseqid'].str.split(';',expand = True )
+        temp_df.rename(columns={0:'Name'},inplace=True)
+        temp_df = temp_df.drop(columns=1).drop_duplicates(subset=['Name'])
+        intersected_df =pd.merge(uha_dha_sgRNA_df, temp_df)
+        uha_dha_sgRNA_df = pd.concat([uha_dha_sgRNA_df, intersected_df]).drop_duplicates(keep=False)
+    
+    if len(uha_dha_sgRNA_df) == 0:
+        raise ValueError('UHA and DHA are all off target!')  
 
     no_ccdb_uha_dha_sgRNA_df,promoter_seq, sgRNA_plasmid_backbone, promoter_seq, terminator_seq, sgRNA_promoter_terminator = p_d_seq.create_new_plasmid(no_ccdb_plasmid, uha_dha_sgRNA_df.copy())
     no_sgRNA_uha_dha_ccdb_df, ccdB_plasmid_backbone, ccdB_promoter_terminator_up_seq = p_d_seq.create_new_plasmid(no_sgRNA_plasmid, uha_dha_sgRNA_df.copy())
@@ -2331,6 +2340,16 @@ def main(data):
         #取出上下游同源臂
         if config.UHA_DHA_CONFIG['max_left_arm_seq_length'] == config.UHA_DHA_CONFIG['min_left_arm_seq_length']:
 
+            sgRNA_df.rename(columns={'seq_uha_max_whole': 'UHA', 'seq_dha_max_whole': 'DHA'}, inplace=True)
+            sgRNA_df['UHA_size'] = config.UHA_DHA_CONFIG['max_left_arm_seq_length']
+            sgRNA_df['DHA_size'] = config.UHA_DHA_CONFIG['max_right_arm_seq_length']
+
+            uha_dha_sgRNA_df = sgRNA_df
+
+            #生成uha——dha
+            uha_dha_df =  sgRNA_df[[ 'Name', 'Region', 'UHA', 'UHA_size', 'DHA', 'DHA_size', 'seq_altered','type', 'ref', 'strand']]
+            uha_dha_df.seq_altered.fillna('',inplace=True)
+        else:
             sgRNA_df.rename(columns={'seq_uha_max_whole': 'UHA', 'seq_dha_max_whole': 'DHA'}, inplace=True)
             sgRNA_df['UHA_size'] = config.UHA_DHA_CONFIG['max_left_arm_seq_length']
             sgRNA_df['DHA_size'] = config.UHA_DHA_CONFIG['max_right_arm_seq_length']
