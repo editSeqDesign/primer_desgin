@@ -13,6 +13,7 @@ from Bio import SeqIO
 from Bio.Seq import Seq   
 from Bio.SeqRecord import SeqRecord
 import math
+from sgRNA_utils.sgRNA_primer_config import config 
 
 
 #默认推荐最优sgRNA
@@ -46,12 +47,6 @@ def extract_sgRNA_from_chopchop(sgRNA_result_path, selected_sgRNA_result):
 
 
     return df
-
-
-
-
-
-
 
 def design_primer(primer_template,id_name,template_name,stype):
 
@@ -360,7 +355,15 @@ def get_plasmid_backbone_by_labels(gb_path, ccdb_label='ccdB', promoter_terminat
     return  plasmid_backbone
 
 
-def create_new_plasmid(gb_path, sgRNA_df,ccdb_label='ccdB', promoter_terminator_label='gRNA', n_20_label='N20', promoter_label='promoter'):
+def create_new_plasmid(gb_path, sgRNA_df):
+    # ccdb_label='ccdB', promoter_terminator_label='gRNA', n_20_label='N20', promoter_label='promoter'
+    
+    ccdb_label = config.PLASMID_LABEL['ccdb_label']
+    promoter_terminator_label = config.PLASMID_LABEL['promoter_terminator_label']
+    n_20_label = config.PLASMID_LABEL['n_20_label']
+    promoter_label = config.PLASMID_LABEL['promoter_label']
+
+
     gb = SeqIO.read(gb_path, "genbank")
     gb_seq = str(gb.seq)
     #get coordinate
@@ -773,10 +776,13 @@ def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_termin
     return sgRNA_primer_df       
 
 #构建重组载体的测序引物
-def create_sequencing_primer(sgRNA_df,sequencing_primer,sequencing_template='plasmid',sequencing_region='plasmid_sequencing_region',seq_type=''):
+def create_sequencing_primer(gb_path,sgRNA_df,sequencing_primer,sequencing_template='plasmid',sequencing_region='plasmid_sequencing_region',seq_type=''):
     
     sgRNA_plasmid_df = pd.DataFrame()
     failture_sgRNA_plasmid_df = pd.DataFrame()
+    off_target_df = pd.DataFrame()
+
+
     for i,v in sgRNA_df.iterrows():
         sgRNA_plasmid_seq=v[sequencing_template]
         # sgRNA_plasmid_seq_len = len(sgRNA_plasmid_seq)
@@ -800,7 +806,7 @@ def create_sequencing_primer(sgRNA_df,sequencing_primer,sequencing_template='pla
         dict_plasmid_seq['mute_after_target_gene_seq']=target_gene_seq     #用户指定测序序列的区域序列
    
         #测序质粒的id
-        sucesse,failture = sequencing_primer.design_sequencing_primers(v['Region'], dict_plasmid_seq, seq_type=seq_type )
+        sucesse,failture = sequencing_primer.design_sequencing_primers(sgRNA_plasmid_seq, gb_path,v['Region'], dict_plasmid_seq, seq_type=seq_type )
 
         if sucesse != {}:
             result = {'Region':v['Region']}
@@ -809,18 +815,30 @@ def create_sequencing_primer(sgRNA_df,sequencing_primer,sequencing_template='pla
 
         if failture != {}:
           
-            id = list(failture.keys())[0]
-            failture_result={'ID':id}
-            value = list(failture.values())[0]
-            failture_result.update(value)
+            for k,v in failture.items():
 
-            # failture_result.update(failture)
-            failture_sgRNA_plasmid_df = failture_sgRNA_plasmid_df.append(pd.DataFrame([failture_result]))
+                id = k
+
+                if id.split(':')[-1] =='off_target':
+                    #处理脱靶引物
+                    temp = {'ID':id}
+                    value = v
+                    temp.update(value)
+                    off_target_df = off_target_df.append(pd.DataFrame([temp]))
+                else:
+                    failture_result={'ID':id}
+                    value = v
+                    failture_result.update(value)
+
+                    # failture_result.update(failture)
+                    failture_sgRNA_plasmid_df = failture_sgRNA_plasmid_df.append(pd.DataFrame([failture_result]))
+
         
     if len(sgRNA_plasmid_df) > 0: 
         sgRNA_plasmid_df = su.make_id_in_first_columns(sgRNA_plasmid_df,id='Region',columns=sgRNA_plasmid_df.columns.tolist())
 
-    return sgRNA_plasmid_df, failture_sgRNA_plasmid_df
+
+    return sgRNA_plasmid_df, failture_sgRNA_plasmid_df, off_target_df
 
 #合并两个测序结果
 def merge_sequencing_result(plasmid_sequencing_primer_df1,plasmid_sequencing_primer_df2):

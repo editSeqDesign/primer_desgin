@@ -228,13 +228,13 @@ def primer_design(seqId,
             seq_args['SEQUENCE_FORCE_RIGHT_START'] = seqlength-1       
             size_range = [seqlength,seqlength] 
 
-        primer_num = 1   
+        primer_num = 1  
 
     elif mute_type == 'sequencing':  #测序引物
         seq_args['SEQUENCE_ID'] = seqId
         seq_args['SEQUENCE_TEMPLATE'] = seqTemplate  
         size_range = [25,seqlength]
-        primer_num = 1
+        primer_num = 5
 
     #设定全局参数   
     global_args['PRIMER_PRODUCT_SIZE_RANGE']=size_range   
@@ -243,7 +243,19 @@ def primer_design(seqId,
     #调用工具
     primer3_result = primer3.bindings.designPrimers(seq_args, global_args)
 
+    # if primer3_result.get('PRIMER_LEFT_EXPLAIN') != None or primer3_result.get('PRIMER_RIGHT_EXPLAIN') != None:
 
+    #     errorMessage = f'{primer_type}: '
+    #     if primer3_result.get('PRIMER_LEFT_0_SEQUENCE') == None:
+    #         PRIMER_LEFT_EXPLAIN = primer3_result.get('PRIMER_LEFT_EXPLAIN')
+    #         errorMessage = errorMessage + f'PRIMER_LEFT_EXPLAIN:{PRIMER_LEFT_EXPLAIN}; '
+
+    #     if primer3_result.get('PRIMER_RIGHT_0_SEQUENCE') == None:  
+    #         PRIMER_RIGHT_EXPLAIN = primer3_result.get('PRIMER_RIGHT_EXPLAIN')
+    #         errorMessage = errorMessage + f'PRIMER_RIGHT_EXPLAIN:{PRIMER_RIGHT_EXPLAIN}'
+    #     if errorMessage !=  f'{primer_type}: ': 
+    #         print(errorMessage)
+    #         raise ValueError(errorMessage)  
 
     return primer3_result  
 
@@ -656,22 +668,109 @@ def convert_twoColumns_to_oneColumns(df,id,name1,name2,name):
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
-def convert_df_to_fastaFile(df,id,name,input_fasta):
-      
+def convert_df_to_fastaFile(genome_path,df,id,name,input_fasta,lib_fasta):
+
+    genome = SeqIO.read(genome_path, "fasta")
+    genome_seq=str(genome.seq)  
+    
     my_records = []
     fasta_length_dict = {}
+
+    lib_records = []
+    lib_length_dict = {}
+
+    #根据gene的序列找到前后各20k
+
     for i,row in df.iterrows():
+
         seqid = row[id]
         seq = row[name]
-        rec = SeqRecord(Seq(seq),id=seqid)
+        
+        target_lib_seq =search_sequence_in_genome_seq(genome_sequence=genome_seq, search_sequence=seq, start_distance=20000, end_distance=20000)
+        if target_lib_seq != None:
+            rec = SeqRecord(Seq(target_lib_seq),id=seqid)
+            lib_length_dict[seqid] = len(target_lib_seq)
+            lib_records.append(rec)
+
+        input_rec = SeqRecord(Seq(seq),id=seqid)
         fasta_length_dict[seqid] = len(seq)
-        my_records.append(rec)
+        my_records.append(input_rec)
+           
+
     SeqIO.write(my_records, input_fasta, "fasta")
+    SeqIO.write(lib_records, lib_fasta, "fasta")
 
-    return fasta_length_dict
+    return fasta_length_dict, lib_length_dict
 
 
 
+
+def search_sequence_in_genome_fasta(fasta_file, search_sequence):
+    sequence_length = len(search_sequence)
+    start_index = None
+    end_index = None
+
+    with open(fasta_file, 'r') as file:
+        for line in file:
+            if line.startswith('>'):
+                if start_index is not None and end_index is not None:
+                    return genome_sequence[start_index:end_index]
+
+                genome_sequence = ''
+                continue
+
+            genome_sequence += line.strip()
+
+            if start_index is None and search_sequence in genome_sequence:
+                index = genome_sequence.index(search_sequence)
+                start_index = max(0, index - 20000)
+                end_index = min(len(genome_sequence), index + sequence_length + 20000)
+
+    if start_index is not None and end_index is not None:
+        return genome_sequence[start_index:end_index]
+
+    return "未找到匹配的序列"
+
+
+
+def fasta_to_dataframe(fasta_file):
+    sequences = []
+    headers = []
+    
+    # 使用Biopython的SeqIO模块读取FASTA文件
+    for record in SeqIO.parse(fasta_file, "fasta"):
+        headers.append(record.id)
+        sequences.append(str(record.seq))
+    
+    # 创建DataFrame
+    df = pd.DataFrame({"Header": headers, "Sequence": sequences})
+    return df
+
+
+
+def search_sequence_in_genome_seq(genome_sequence, search_sequence, start_distance=20000, end_distance=20000):
+
+    search_sequence_length = len(search_sequence)
+    start_index = None
+    end_index = None
+
+    result, num = find_coordinate_by_pattern(search_sequence, genome_sequence)
+
+    index = -1
+    if num == 1:
+        index = result['0'][0]
+    
+    if index != -1:
+        start_index = max(0, index - start_distance)
+        end_index = min(len(genome_sequence), index + search_sequence_length + end_distance)
+        return genome_sequence[start_index:end_index]
+    else:
+        return None
+
+
+
+  
+ 
 #Map the target sequence to the reference genome by Blast
 def blast_ha(ref_genome, blast_input_file_path, blast_output_file_path):  
 
@@ -686,6 +785,8 @@ def blast_ha(ref_genome, blast_input_file_path, blast_output_file_path):
             evalue='300'
     else:
             evalue=str(int((seq_length*0.5521-7.5856)*0.8))
+
+    #建库比对多次
     os.system("makeblastdb -in "+ref_genome+" -dbtype nucl -parse_seqids -out "+ref_lib)
     os.system("blastn -query "+blast_input_file_path+" -db "+ref_lib+" -outfmt 6 -out "+blast_output_file_path+" -evalue 1e-"+evalue+" -max_target_seqs 5 -num_threads 4")
     os.system("rm %s.n*" % ref_lib)
@@ -694,16 +795,42 @@ def blast_ha(ref_genome, blast_input_file_path, blast_output_file_path):
 #Evaluate the feasibility of design with the mapping of the homologous arm to the reference genome
 def blast_output_evaluate(workdir, blast_input, blast_output):   
     evaluate_output_file_path=workdir+'/Evaluation_result.txt'
+    evaluate_result_df = pd.DataFrame()
 
-    with open(evaluate_output_file_path,'w') as evaluate_output:
-        evaluate_output.write("ID\tWarning\n")
+    with open(evaluate_output_file_path,'a') as evaluate_output:
         dict_evaluate_output={}
+
+        evaluate_input_df = pd.DataFrame()
+        middle_df = pd.DataFrame()
+        high_df = pd.DataFrame()
+        low_df = pd.DataFrame()
+
 
         with open(blast_output,'r') as evaluate_input:
             dict_result_id = {}
+            evaluate_result = {}
             for line_result in evaluate_input:
-                result_id=line_result.split('\t')[0]
+                qseqid, sseqid, pident, length, mismatch, gapopen, qstart, qend, sstart, ssend, evalue, bitscore = line_result.split('\t')
+                evaluate_result.update({
+                    'qseqid':qseqid,
+                    'sseqid':sseqid,
+                    'pident':float(pident),
+                    'length':int(length),
+                    'mismatch':int(mismatch),
+                    'gapopen':gapopen,
+                    'qstart':qstart,
+                    'qend':qend,
+                    'sstart':sstart,
+                    'ssend':ssend,
+                    'evalue':evalue,
+                    'bitscore':bitscore
+                })
+                result_id=qseqid
+                
                 dict_result_id[result_id] = dict_result_id.get(result_id,0) + 1
+                evaluate_input_df = evaluate_input_df.append(pd.DataFrame([evaluate_result]))
+
+            
             list_result_id_unmap=[]
             with open(blast_input,'r') as blast_input:
                 for lines in blast_input:
@@ -712,196 +839,132 @@ def blast_output_evaluate(workdir, blast_input, blast_output):
                         blast_input_id=lines[1:-1]
                         blast_input_id = blast_input_id.split(' ')[0]
                         if blast_input_id in dict_result_id:
-                            if dict_result_id[blast_input_id]>1:
-                                evaluate_output.write(blast_input_id+'\t'+'The target sequence can map to multiple positions in the reference genome. The genome editing may be mislocated.'+'\n')
-                            else:
-                                continue
+                            if dict_result_id[blast_input_id] > 1:                               
+                                temp = evaluate_input_df[evaluate_input_df['qseqid']==blast_input_id]
+                               
+                                # aaa = aaa.append(temp) 
+                                temp = temp[['qseqid','sseqid','pident','length','mismatch','sstart','ssend']]
+
+                                if config.UHA_DHA_CONFIG['max_right_arm_seq_length']  == config.UHA_DHA_CONFIG['min_right_arm_seq_length']:
+                                    uha_dha_length =  config.UHA_DHA_CONFIG['max_right_arm_seq_length']
+
+                                temp['coverage'] = temp['length'] / uha_dha_length
+                                high_off_target_df = temp[ ( temp['pident'] > 90 ) & ( temp['coverage'] > 0.9) ]
+                                high_off_target_df['off target'] = 'high'
+
+                                surplus_df = temp[~ ( (temp['pident'] > 90) & (temp['coverage'] > 0.9) ) ] 
+
+                                middle_off_target_df =  surplus_df[ ( (surplus_df['pident'] > 90) & (surplus_df['coverage'] > 0.7) ) ]
+                                middle_off_target_df['off target'] = 'medium'
+
+                                temp_surplus_df = surplus_df[ ~ ( (surplus_df['pident'] > 90) & (surplus_df['coverage'] > 0.7) )  ]
+                                low_off_target_df = temp_surplus_df[ ( (temp_surplus_df['pident'] > 90) & (temp_surplus_df['length'] >100) )  ]
+                                low_off_target_df['off target'] = 'low'
+
+                                
+
+                                #检查序列
+                                if len(high_off_target_df) >= 2:
+                                    evaluate_output.write(blast_input_id+'\t'+'The target sequence can map to multiple positions in the reference genome. The genome editing may be mislocated. High risk of miss target. '+'\n')
+                                    high_df = high_df.append( high_off_target_df )
+                                    
+
+                                if len(middle_off_target_df) >= 2 and len(high_off_target_df) <2 :
+                                    evaluate_output.write(blast_input_id+'\t'+'The target sequence can map to multiple positions in the reference genome. The genome editing may be mislocated. Medium risk of miss target. '+'\n')
+                                    middle_df = middle_df.append( middle_off_target_df )
+
+                                if len(low_off_target_df) >=2 :
+                                    evaluate_output.write(blast_input_id+'\t'+'The target sequence can map to multiple positions in the reference genome. The genome editing may be mislocated. Low risk of miss target. '+'\n')
+                                    low_df = low_df.append( low_off_target_df )
+
                         else:
                             if blast_input_id in list_result_id_unmap:
                                 continue
                             else:
                                 evaluate_output.write(blast_input_id+'\t'+'The target sequence can not map to the reference genome. Please check them.'+'\n')
                                 list_result_id_unmap.append(blast_input_id)
-        for key3 in dict_evaluate_output:
-            evaluate_output.write(key3+'\t'+dict_evaluate_output[key3]+'\n')
-    evaluate_output_dir=evaluate_output_file_path.replace('.txt','.xlsx')
-    pd.read_table(evaluate_output_file_path, index_col=0).to_excel(evaluate_output_dir)
 
-
-def fa2df(alignedfastap,ids2cols=False):
-    dtmp=pd.read_csv(alignedfastap,names=["c"],keep_default_na=False)
-    dtmp=dtmp.iloc[::2].reset_index(drop=True).join(dtmp.iloc[1::2].reset_index(drop=True),rsuffix='r')
-    dtmp.columns=['id','sequence']
-    dtmp=dtmp.set_index('id')
-    dtmp.index=[i[1:] for i in dtmp.index]
-    dtmp.index.name='id'
-    if ids2cols:
-        for i in dtmp.index:
-            seqid,contig,strand,start,end=i.split('|')
-            dtmp.loc[i,'seqid']=seqid
-            dtmp.loc[i,'contig']=contig
-            dtmp.loc[i,'strand']=strand
-            dtmp.loc[i,'start']=start
-            dtmp.loc[i,'end']=end
-    return dtmp
-
-
-
-import random
-
-def generate_random_SNP(genome, num_snps):
-    """
-    生成随机的单核苷酸变异（SNP）
-    参数：
-    genome: 大肠杆菌基因组序列（字符串）
-    num_snps: 要生成的SNP数量
-    返回值：
-    变异后的基因组序列（字符串）
-    """
-    genome_list = list(genome)
-    genome_len = len(genome)
-
-    mute_list=[]
+                                
+    #     for key3 in dict_evaluate_output:
+    #         evaluate_output.write(key3+'\t'+dict_evaluate_output[key3]+'\n')
+    # evaluate_output_dir=evaluate_output_file_path.replace('.txt','.xlsx')  
     
-    for _ in range(num_snps):
-
-        position = random.randint(0, genome_len-1)  # 随机选择变异位置
-        old_base = genome[position:position+1]
-        new_base = random.choice(['A', 'T', 'C', 'G'])  # 随机选择新的碱基
-        genome_list[position] = new_base  # 替换基因组中的碱基
-        gene_mute = { 
-                    'Manipulation type': 'substitution',
-                    'position':position,
-                    'Reference sequence':old_base,
-                    'Inserted sequence':new_base
-                     }
-        mute_list.append( gene_mute )
-
-    mutated_genome = ''.join(genome_list)
-
-    return mutated_genome, mute_list
-
-
-def generate_random_indel(genome, num_indels):
-    """
-    生成随机的插入/缺失变异
-    参数：
-    genome: 大肠杆菌基因组序列（字符串）
-    num_indels: 要生成的插入/缺失数量
-    返回值：
-    变异后的基因组序列（字符串）
-    """
-    genome_list = list(genome)
-    genome_len = len(genome)
-
-    mute_list=[]
+    # evaluate_result_df[[]]   
     
-    for _ in range(num_indels):
-        position = random.randint(0, genome_len-1)  # 随机选择变异位置
-        mutation_type = random.choice(['insertion', 'deletion'])  # 随机选择插入或缺失
-        old_base = genome[position:position+1]
-
-        if mutation_type == 'insertion':
-            new_base = random.choice(['A', 'T', 'C', 'G'])  # 随机选择插入的新碱基
-            genome_list.insert(position, new_base)  # 在指定位置插入新碱基
-        else:
-            new_base = '-'
-            genome_list.pop(position)  # 在指定位置删除碱基
-
-        gene_mute = { 
-                    'Manipulation type': mutation_type,
-                    'position':position,
-                    'Reference sequence':old_base,
-                    'Inserted sequence':new_base
-                     }
-        mute_list.append( gene_mute )
-
-    mutated_genome = ''.join(genome_list)
-
-    return mutated_genome, mute_list
-
-import random
-
-def generate_mutated_genome(genome, mutation_rate):
-    mutated_genome = list(genome)
-
-    mute_list=[]
-
-    for _ in range(int(mutation_rate * len(mutated_genome))):
-        mutation_type = random.choice(['deletion', 'insertion', 'substitution'])
-        mutation_index = random.randint(0, len(mutated_genome) - 1)
-
-        if mutation_type == 'deletion':
-            deletion_length = random.randint(1, 10)  # 调整删除片段的长度范围
-            new_base = '-'
-            old_base = genome[mutation_index:mutation_index + deletion_length]
-
-            del mutated_genome[mutation_index:mutation_index + deletion_length]
-
-        elif mutation_type == 'insertion':
-            insertion_length = random.randint(1, 10)  # 调整插入片段的长度范围
-            insertion = generate_random_sequence(insertion_length)
-            new_base = insertion
-            old_base = genome[mutation_index:mutation_index]
-            mutated_genome[mutation_index:mutation_index] = insertion
-
-        elif mutation_type == 'substitution':
-            replacement_length = random.randint(1, 10)  # 调整替换片段的长度范围
-            replacement = generate_random_sequence(replacement_length)
-            new_base = replacement
-            old_base = genome[mutation_index: mutation_index + replacement_length]
-            mutated_genome[mutation_index:mutation_index + replacement_length] = replacement
-
-
-        
-        position = mutation_index, mutation_index + deletion_length
-
-
-        gene_mute = { 
-                    'Manipulation type': mutation_type,
-                    'position':position,
-                    'Reference sequence':old_base,
-                    'Inserted sequence':new_base
-                     }
-        mute_list.append(gene_mute)
-
-    return ''.join(mutated_genome), gene_mute
-
-
-def generate_random_sequence(length):
-    bases = ['A', 'T', 'C', 'G']
-    sequence = [random.choice(bases) for _ in range(length)]
-    return ''.join(sequence)
+    evaluate_result_df = evaluate_result_df.rename(columns={
+                                    'qseqid':'query or source (gene) sequence id',
+                                    'sseqid':'subject or target (reference genome) sequence id',
+                                    'pident':'percentage of identical positions',
+                                    'length':'alignment length (sequence overlap)',
+                                    'mismatch':'number of mismatches',
+                                    'sstart':'start of alignment in subject',
+                                    'ssend':'end of alignment in subject'
+                                })
+    # evaluate_result_df.to_excel( os.path.join(evaluate_output_file_path,evaluate_output_dir) ,index=False)
+    # pd.read_table(evaluate_output_file_path, index_col=0).to_excel(evaluate_output_dir)
 
 
 
-def df2info(df,col_searches=None):
-    if len(df.columns)>5:
-        print('**COLS**: ',df.columns.tolist())
-    print('**HEAD**: ',df.loc[:,df.columns[:5]].head())
-    print('**SHAPE**: ',df.shape)
-    if not col_searches is None:
-        cols_searched=[c2 for c1 in col_searches for c2 in df if c1 in c2]
-        print('**SEARCHEDCOLS**:\n',cols_searched)
-        print('**HEAD**: ',df.loc[:,cols_searched].head())
+
+    return middle_df, high_df, low_df
+
+
+from Bio import SeqIO
+def gb_2_fna(gb_file,fna_file):
+
+    # 读取 GenBank 文件
+    gb_records = SeqIO.parse(gb_file, "genbank")
+
+    # 将 DNA 序列写入 FASTA 文件
+    
+    with open(fna_file, "w") as output_handle:
+        SeqIO.write(gb_records, output_handle, "fasta")
 
 
 
-def set_index(data,col_index):
+
+
+
+def search_sequence_in_genome_fasta(fasta_file, search_sequence):
+    sequence_length = len(search_sequence)
+    start_index = None
+    end_index = None
+
+    with open(fasta_file, 'r') as file:
+        for line in file:
+            if line.startswith('>'):
+                if start_index is not None and end_index is not None:
+                    return genome_sequence[start_index:end_index]
+
+                genome_sequence = ''
+                continue
+
+            genome_sequence += line.strip()
+
+            if start_index is None and search_sequence in genome_sequence:
+                index = genome_sequence.index(search_sequence)
+                start_index = max(0, index - 20000)
+                end_index = min(len(genome_sequence), index + sequence_length + 20000)
+
+    if start_index is not None and end_index is not None:
+        return genome_sequence[start_index:end_index]
+
+    return "未找到匹配的序列"
+
+
+
+def str2num(x):
     """
-    Sets the index if the index is not present
+    This extracts numbers from strings. eg. 114 from M114R.
 
-    :param data: pandas table 
-    :param col_index: column name which will be assigned as a index
+    :param x: string
     """
-    if col_index in data:
-        data=data.reset_index().set_index(col_index)
-        if 'index' in data:
-            del data['index']
-        return data
-    elif data.index.name==col_index:
-        return data
-    else:
-        # logging.error("something's wrong with the df")
-        df2info(data)
+    return int(''.join(ele for ele in x if ele.isdigit()))
+
+
+
+
+
+
+
 

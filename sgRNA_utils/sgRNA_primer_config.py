@@ -5,7 +5,7 @@ class config:
     GLOBAL_ARGS = {
                 'PRIMER_PICK_ANYWAY':1,
                 'PRIMER_PRODUCT_SIZE_RANGE': 0,
-                'PRIMER_NUM_RETURN':2
+                'PRIMER_NUM_RETURN':5
         }     
    
     S_GLOBAL_ARGS = {
@@ -77,15 +77,15 @@ class config:
 
     #测序引物设计的全局参数
     Q_ARGS = {
-                'PRIMER_OPT_SIZE': 20,
-                'PRIMER_MIN_SIZE': 18,  
-                'PRIMER_MAX_SIZE': 25,
-                'PRIMER_OPT_TM': 60.0,
-                'PRIMER_MIN_TM': 55.0,  
-                'PRIMER_MAX_TM': 75.0,    
-                'PRIMER_MIN_GC': 20.0,
-                'PRIMER_OPT_GC':55,
-                'PRIMER_MAX_GC': 80.0,
+            'PRIMER_OPT_SIZE': 20,
+            'PRIMER_MIN_SIZE': 18,  
+            'PRIMER_MAX_SIZE': 25,
+            'PRIMER_OPT_TM': 60.0,
+            'PRIMER_MIN_TM': 55.0,  
+            'PRIMER_MAX_TM': 75.0,    
+            'PRIMER_MIN_GC': 20.0,
+            'PRIMER_OPT_GC':55,
+            'PRIMER_MAX_GC': 80.0        
     }
 
     PLASMID_Q_ARGS = {
@@ -109,7 +109,6 @@ class config:
         'PRIMER_MIN_SIZE': 18,  
         'PRIMER_MAX_SIZE': 25,
         'PRIMER_OPT_SIZE': 20
-
     }
 
     UHA_DHA_CONFIG = {
@@ -120,35 +119,15 @@ class config:
     }
 
 
+    workdir = './'
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    PLASMID_LABEL = {
+        'ccdb_label':'',
+        'promoter_terminator_label':'',
+        'n_20_label':'',
+        'promoter_label':''
+    }
 
 
 
