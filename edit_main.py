@@ -229,7 +229,7 @@ def one_plasmid_system_sequencing_design_primer(gb_path,type_kind,uha_dha_sgRNA_
             plasmid_sequencing_primer_df = plasmid_sequencing_primer_df2
 
 
-        if len(off_target_q_primer_df1) >0 and len(plasmid_sequencing_primer_df2)>0:
+        if len(off_target_q_primer_df1) >0 and len(off_target_q_primer_df2)>0: 
             # plasmid_sequencing_primer_df = p_d_seq.merge_sequencing_result(gb_path,plasmid_sequencing_primer_df1, plasmid_sequencing_primer_df2)
             off_target_q_primer_df = off_target_q_primer_df1.append(off_target_q_primer_df2)
             pass
@@ -237,6 +237,8 @@ def one_plasmid_system_sequencing_design_primer(gb_path,type_kind,uha_dha_sgRNA_
             off_target_q_primer_df  = off_target_q_primer_df1
         elif len(off_target_q_primer_df2) > 0 and len(off_target_q_primer_df1) == 0:
             off_target_q_primer_df  = off_target_q_primer_df2
+        elif len(off_target_q_primer_df2) == 0 and len(off_target_q_primer_df1) == 0:
+            off_target_q_primer_df = pd.DataFrame()
         
         failture_plasmid_sequencing_primer_df = failture_plasmid_sequencing_primer_df1.append(failture_plasmid_sequencing_primer_df2) 
 
@@ -2864,7 +2866,7 @@ if __name__ == '__main__':
         "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
         "ref_genome":"/home/yanghe/program/data_preprocessing/input/GCA_000011325.1_ASM1132v1_genomic.fna",
 
-        "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/only_primer/pMB1-Red-sgRNA-sacB-2297.gb",   
+        "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",   
         "no_ccdb_plasmid":"",
         "no_sgRNA_plasmid":"",
 
@@ -2880,7 +2882,7 @@ if __name__ == '__main__':
         },
 
         "plasmid_label":{
-            "ccdb_label":"HR",  
+            "ccdb_label":"ccdB",  
             "promoter_terminator_label":"gRNA",
             "n_20_label":"N20",
             "promoter_label":"promoter"
