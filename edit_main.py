@@ -785,16 +785,22 @@ def execute_one_plasmid_system_pcr(
                                 ):
     
 
-
     #1. 过滤掉，高、中等的off target
-    temp_df = blasta_reslut_df.drop_duplicates(subset=['qseqid'])
-    temp_df = temp_df[['qseqid', 'off target']]
-    temp_df = temp_df[ (temp_df['off target'] != 'low') ]
-    temp_df = temp_df['qseqid'].str.split(';',expand = True )
-    temp_df.rename(columns={0:'Name'},inplace=True)
-    temp_df = temp_df.drop(columns=1).drop_duplicates(subset=['Name'])
-    intersected_df =pd.merge(uha_dha_sgRNA_df, temp_df)
-    uha_dha_sgRNA_df = pd.concat([uha_dha_sgRNA_df, intersected_df]).drop_duplicates(keep=False)
+    if len(blasta_reslut_df) >0 :
+        temp_df = blasta_reslut_df.drop_duplicates(subset=['qseqid'])
+        temp_df = temp_df[['qseqid', 'off target']]
+        temp_df = temp_df[ (temp_df['off target'] != 'low') ]
+        if len(temp_df) == 0:
+            pass
+        else:    
+            temp_df = temp_df['qseqid'].str.split(';',expand = True )
+            temp_df.rename(columns={0:'Name'},inplace=True)
+            temp_df = temp_df.drop(columns=1).drop_duplicates(subset=['Name'])
+            intersected_df =pd.merge(uha_dha_sgRNA_df, temp_df)
+            uha_dha_sgRNA_df = pd.concat([uha_dha_sgRNA_df, intersected_df]).drop_duplicates(keep=False)
+        
+        if len(uha_dha_sgRNA_df) == 0:
+            raise ValueError('UHA and DHA are all off target!')  
 
 
 
@@ -984,20 +990,21 @@ def execute_one_plasmid_system_synthesis(   genome_path,
     
 
     #1. 过滤掉，高、中等的off target
-    temp_df = blasta_reslut_df.drop_duplicates(subset=['qseqid'])
-    temp_df = temp_df[['qseqid', 'off target']]
-    temp_df = temp_df[ (temp_df['off target'] != 'low') ]
-    if len(temp_df) == 0:
-        pass
-    else:    
-        temp_df = temp_df['qseqid'].str.split(';',expand = True )
-        temp_df.rename(columns={0:'Name'},inplace=True)
-        temp_df = temp_df.drop(columns=1).drop_duplicates(subset=['Name'])
-        intersected_df =pd.merge(uha_dha_sgRNA_df, temp_df)
-        uha_dha_sgRNA_df = pd.concat([uha_dha_sgRNA_df, intersected_df]).drop_duplicates(keep=False)
-    
-    if len(uha_dha_sgRNA_df) == 0:
-        raise ValueError('UHA and DHA are all off target!')  
+    if len(blasta_reslut_df) >0 :
+        temp_df = blasta_reslut_df.drop_duplicates(subset=['qseqid'])
+        temp_df = temp_df[['qseqid', 'off target']]
+        temp_df = temp_df[ (temp_df['off target'] != 'low') ]
+        if len(temp_df) == 0:
+            pass
+        else:    
+            temp_df = temp_df['qseqid'].str.split(';',expand = True )
+            temp_df.rename(columns={0:'Name'},inplace=True)
+            temp_df = temp_df.drop(columns=1).drop_duplicates(subset=['Name'])
+            intersected_df =pd.merge(uha_dha_sgRNA_df, temp_df)
+            uha_dha_sgRNA_df = pd.concat([uha_dha_sgRNA_df, intersected_df]).drop_duplicates(keep=False)
+        
+        if len(uha_dha_sgRNA_df) == 0:
+            raise ValueError('UHA and DHA are all off target!')  
 
 
     #2. 读取gb文件
@@ -1104,20 +1111,21 @@ def execute_two_plasmid_system_synthesis(
     
 
     #1. 过滤掉，高、中等的off target
-    temp_df = blasta_reslut_df.drop_duplicates(subset=['qseqid'])
-    temp_df = temp_df[['qseqid', 'off target']]
-    temp_df = temp_df[ (temp_df['off target'] != 'low') ]
-    if len(temp_df) == 0:
-        pass
-    else:    
-        temp_df = temp_df['qseqid'].str.split(';',expand = True )
-        temp_df.rename(columns={0:'Name'},inplace=True)
-        temp_df = temp_df.drop(columns=1).drop_duplicates(subset=['Name'])
-        intersected_df =pd.merge(uha_dha_sgRNA_df, temp_df)
-        uha_dha_sgRNA_df = pd.concat([uha_dha_sgRNA_df, intersected_df]).drop_duplicates(keep=False)
-    
-    if len(uha_dha_sgRNA_df) == 0:
-        raise ValueError('UHA and DHA are all off target!')  
+    if len(blasta_reslut_df) >0 :
+        temp_df = blasta_reslut_df.drop_duplicates(subset=['qseqid'])
+        temp_df = temp_df[['qseqid', 'off target']]
+        temp_df = temp_df[ (temp_df['off target'] != 'low') ]
+        if len(temp_df) == 0:
+            pass
+        else:    
+            temp_df = temp_df['qseqid'].str.split(';',expand = True )
+            temp_df.rename(columns={0:'Name'},inplace=True)
+            temp_df = temp_df.drop(columns=1).drop_duplicates(subset=['Name'])
+            intersected_df =pd.merge(uha_dha_sgRNA_df, temp_df)
+            uha_dha_sgRNA_df = pd.concat([uha_dha_sgRNA_df, intersected_df]).drop_duplicates(keep=False)
+        
+        if len(uha_dha_sgRNA_df) == 0:
+            raise ValueError('UHA and DHA are all off target!')  
 
     no_ccdb_uha_dha_sgRNA_df,promoter_seq, sgRNA_plasmid_backbone, promoter_seq, terminator_seq, sgRNA_promoter_terminator = p_d_seq.create_new_plasmid(no_ccdb_plasmid, uha_dha_sgRNA_df.copy())
     no_sgRNA_uha_dha_ccdb_df, ccdB_plasmid_backbone, ccdB_promoter_terminator_up_seq = p_d_seq.create_new_plasmid(no_sgRNA_plasmid, uha_dha_sgRNA_df.copy())
@@ -2847,13 +2855,16 @@ if __name__ == '__main__':
         }      
     }
 
+
+
+
     data3 = {     
         "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
         "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
         "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
-        "ref_genome":"/home/yanghe/tmp/data_preprocessing/output/xxx.fna",
+        "ref_genome":"/home/yanghe/program/data_preprocessing/input/GCA_000011325.1_ASM1132v1_genomic.fna",
 
-        "one_plasmid_file_path":"./input/only_primer/大肠图谱-gRNA正向-.gb",   
+        "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/only_primer/pMB1-Red-sgRNA-sacB-2297.gb",   
         "no_ccdb_plasmid":"",
         "no_sgRNA_plasmid":"",
 
@@ -2980,6 +2991,6 @@ if __name__ == '__main__':
         'sgRNA_result':{}      
     }
 
-    a=main(data1)      
+    a=main(data3)      
 
     print(a)    
