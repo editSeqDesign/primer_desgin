@@ -234,9 +234,9 @@ def one_plasmid_system_sequencing_design_primer(gb_path,type_kind,uha_dha_sgRNA_
             off_target_q_primer_df = off_target_q_primer_df1.append(off_target_q_primer_df2)
             pass
         elif len(off_target_q_primer_df1) > 0 and len(off_target_q_primer_df2)==0: 
-            plasmid_sequencing_primer_df = off_target_q_primer_df1
+            off_target_q_primer_df  = off_target_q_primer_df1
         elif len(off_target_q_primer_df2) > 0 and len(off_target_q_primer_df1) == 0:
-            plasmid_sequencing_primer_df = off_target_q_primer_df2
+            off_target_q_primer_df  = off_target_q_primer_df2
         
         failture_plasmid_sequencing_primer_df = failture_plasmid_sequencing_primer_df1.append(failture_plasmid_sequencing_primer_df2) 
 
