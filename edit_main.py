@@ -2593,11 +2593,11 @@ if __name__ == '__main__':
         "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
         "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
         "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
-        "ref_genome":"/home/yanghe/tmp/data_preprocessing/output/xxx.fna",
+        "ref_genome":"/home/yanghe/program/data_preprocessing/input/GCA_000011325.1_ASM1132v1_genomic.fna",
 
-        "one_plasmid_file_path":"",  
-        "no_ccdb_plasmid":"./input/no-ccdb-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",  
-        "no_sgRNA_plasmid":"./input/no-sgRNA-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
+        "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",  
+        "no_ccdb_plasmid":"",  
+        "no_sgRNA_plasmid":"",
 
         "scene":"both_sgRNA_primer", 
 
