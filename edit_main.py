@@ -924,10 +924,8 @@ def execute_one_plasmid_system_pcr(
 
     unique_all_primer_df = order.merge_primer(uha_primer_df, dha_primer_df, n20up_primer_p_df, n20down_primer_p_df, seq_altered_p_df, plasmid_sequencing_primer_df, genome_sequencing_primer_df)
     unique_all_primer_df = unique_all_primer_df.rename(columns={'index':'ID','board_num':'index'})
-    unique_all_primer_df = unique_all_primer_df[unique_all_primer_df['base_num']!=0]  
     order_df = unique_all_primer_df[['index', 'hole', 'primer','base_num']]
     order.create_orders(order_df, orders_path = order_file)
-
 
 
     #9. 补充添加WT:
@@ -949,7 +947,7 @@ def execute_one_plasmid_system_pcr(
 
         unique_all_primer_df.to_excel(writer,sheet_name = 'one_plasmid_primer_order',index_label='No.')
 
-
+    
     #11. 输出失败引物excel文件
     if len(failture_uha_dha_primer_df) >0 :
         failture_uha_primer_df = failture_uha_dha_primer_df[failture_uha_dha_primer_df['type']=='uha']
@@ -1075,20 +1073,19 @@ def execute_one_plasmid_system_synthesis(   genome_path,
 
     #10. 输出引物合成订单
     unique_all_primer_df = order.merge_primer(genome_sequencing_primer_df)
-    unique_all_primer_df = unique_all_primer_df[unique_all_primer_df['base_num']!=0]
     unique_all_primer_df = unique_all_primer_df.rename(columns={'index':'ID','board_num':'index'})
     order_df = unique_all_primer_df[['index', 'hole', 'primer','base_num']]
     order.create_orders(order_df, orders_path = order_file)    
 
-    
-
+      
     #11. 输出成功引物excel文件
     plasmid_sequencing_primer_df, genome_sequencing_primer_df, off_target_q_primer_df, off_target_g_primer_df, unique_all_primer_df, plasmid_order_df = su.reset_index_df(plasmid_sequencing_primer_df,
                                                                                                                                                                            genome_sequencing_primer_df,
                                                                                                                                                                              off_target_q_primer_df,
                                                                                                                                                                                off_target_g_primer_df,
                                                                                                                                                                                  unique_all_primer_df,
-                                                                                                                                                                                   plasmid_order_df)                                                                                                                                                                               
+                                                                                                                                                                                   plasmid_order_df)   
+                                                                                                                                                                             
     
     with pd.ExcelWriter(xlsx_file) as writer:  
         plasmid_sequencing_primer_df.to_excel(writer,sheet_name = 'Test_primer_P1',index_label='No.')

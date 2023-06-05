@@ -431,12 +431,22 @@ def merge_primer(*li):
 
     all_primer_df = all_primer_df.drop_duplicates(keep='first', subset=[0])
     all_primer_df =  all_primer_df.dropna()
+    
       
-    all_primer_df.index = [f'M{math.ceil(i/96)}|{v}' for i,v in zip(range(1,len(all_primer_df.index)+1),all_primer_df.index)]
-
+    
+    all_primer_df = all_primer_df[all_primer_df[0]!=''] 
     #排序
     unique_all_primer_df = all_primer_df.reset_index().rename(columns={0:'primer'})
+    
+
     unique_all_primer_df_hole_name = order_primer_rename_by_ways(unique_all_primer_df)
+
+    
+    unique_all_primer_df['index'] = [f'M{math.ceil(i/96)}|{v}' for i,v in zip(range(1,len(all_primer_df.index)+1),all_primer_df.index)]
+
+    unique_all_primer_df['board_num'] = unique_all_primer_df['index'].apply(lambda x: x.split('|')[0].replace('M','Eco_101_gene_del_primer_'))
+
+
 
     unique_all_primer_df.insert(1,column='hole',value=unique_all_primer_df_hole_name)
     def work(x):
@@ -447,7 +457,8 @@ def merge_primer(*li):
     unique_all_primer_df['base_num'] = unique_all_primer_df.primer.apply(lambda x: work(x))
 
 
-    unique_all_primer_df['board_num'] = unique_all_primer_df['index'].apply(lambda x: x.split('|')[0].replace('M','Eco_101_gene_del_primer_'))
+    
+
 
     return unique_all_primer_df
 

@@ -145,7 +145,8 @@ class config:
 
     INPUT_FILE_PATH = ''   
     
-    PLASMID_FILE_NAME = ''    
+    PLASMID_FILE_NAME = 'xxx.gb' 
+
     INPUT_FILE_NAME = ''  
     NEW_OUTPUT_FILE_PATH=''
     OUTPUT_ORDERS_NAME = 'order.xlsx'  

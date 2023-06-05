@@ -962,9 +962,24 @@ def str2num(x):
     return int(''.join(ele for ele in x if ele.isdigit()))
 
 def reset_index_df(*li):
+
     for i in li:
-            i.index = range(1,len(i)+1)
+            if len(i)>0:
+                #重置索引
+                i.index = range(1,len(i)+1)
+                
+
+                #重置id
+                a = i.ID.str.split(';',expand=True)
+                a['ID'] = a[0].apply(lambda x:  x.split('|')[1] if len( x.split('|')  ) > 1 else x.split('|')[0] )
+
+                i.rename(columns={'ID':'Name'}, inplace=True)
+                i = i.insert(0,'ID',a['ID'])
+            
+            
     return li
+
+    #
 
 
 
