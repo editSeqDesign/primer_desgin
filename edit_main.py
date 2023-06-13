@@ -2585,417 +2585,432 @@ def main(data):
 if __name__ == '__main__':
 
 
+
+    call_method = 2
+    if  call_method == 1:
+        data1 = {     
+            "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
+            "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
+            "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
+            "ref_genome":"/home/yanghe/program/data_preprocessing/input/GCA_000011325.1_ASM1132v1_genomic.fna",
+
+            "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",  
+            "no_ccdb_plasmid":"",  
+            "no_sgRNA_plasmid":"",
+
+            "scene":"both_sgRNA_primer", 
+
+            "plasmid_metod":'1',   
+
+            "uha_dha_config": {
+                "max_right_arm_seq_length": 1000,  
+                "max_left_arm_seq_length": 1000,   
+                "min_left_arm_seq_length": 1000,   
+                "min_right_arm_seq_length": 1000     
+            },
+
+            "plasmid_label":{
+                "ccdb_label":"ccdB",  
+                "promoter_terminator_label":"gRNA",
+                "n_20_label":"N20",
+                "promoter_label":"promoter"
+            },
     
-    data1 = {     
-        "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
-        "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
-        "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
-        "ref_genome":"/home/yanghe/program/data_preprocessing/input/GCA_000011325.1_ASM1132v1_genomic.fna",
-
-        "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",  
-        "no_ccdb_plasmid":"",  
-        "no_sgRNA_plasmid":"",
-
-        "scene":"both_sgRNA_primer", 
-
-        "plasmid_metod":'1',   
-
-        "uha_dha_config": {
-            "max_right_arm_seq_length": 1000,  
-            "max_left_arm_seq_length": 1000,   
-            "min_left_arm_seq_length": 1000,   
-            "min_right_arm_seq_length": 1000     
-        },
-
-        "plasmid_label":{
-            "ccdb_label":"ccdB",  
-            "promoter_terminator_label":"gRNA",
-            "n_20_label":"N20",
-            "promoter_label":"promoter"
-        },
-  
-        "primer_json":{
-        
-        },
-        "region_label":"",       
-
-        "sgRNA_primer_json":{
-
-        },
-
-        "ccdb_primer_json":{
-               
-        },   
-    
-        "sgRNA_region_label":"",
-        
-        "ccdb_region_label":"",   
-        
-        "enzyme":{
-            "enzyme_name":"BsaI",
-            "gap_sequence":"AA",  
-            "protection_sequence":"CCA"   
-        },  
-          
-        "UHA_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,  
-            "PRIMER_MAX_TM": 75,    
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
-        },
-        "SEQ_ALTERED_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,
-            "PRIMER_MAX_TM": 75,  
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
-        },
-        "DHA_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,
-            "PRIMER_MAX_TM": 75,
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18 
-        },
-         "UP_SGRNA_ARGS": {
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,  
-            "PRIMER_MAX_TM": 75,    
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
-        },
-        "DOWN_SGRNA_ARGS": {
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,  
-            "PRIMER_MAX_TM": 75,    
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
-        },
-
-        "PLASMID_Q_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,  
-            "PRIMER_MAX_TM": 75,    
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
-        },
-        "GENOME_Q_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,     
-            "PRIMER_MAX_TM": 75,    
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
+            "primer_json":{
             
-        },
-        'sgRNA_result':{}      
-    }
+            },
+            "region_label":"",       
 
-    data2 = {     
-        "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
-        "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
-        "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
-        "ref_genome":"/home/yanghe/tmp/data_preprocessing/output/xxx.fna",
+            "sgRNA_primer_json":{
 
-        "one_plasmid_file_path":"./input/only_primer/大肠图谱-gRNA正向-.gb",   
-        "no_ccdb_plasmid":"",
-        "no_sgRNA_plasmid":"",
+            },
 
-        "scene":"both_sgRNA_primer", 
-
-        "uha_dha_config": {
-            "max_right_arm_seq_length": 145,  
-            "max_left_arm_seq_length": 145,   
-            "min_left_arm_seq_length": 145,   
-            "min_right_arm_seq_length": 145     
-        },
-
-        "plasmid_label":{
-            "ccdb_label":"ccdB",  
-            "promoter_terminator_label":"gRNA",
-            "n_20_label":"N20",
-            "promoter_label":"promoter"
-        },
-  
-        "primer_json":{
+            "ccdb_primer_json":{
+                
+            },   
         
-        },
-        "region_label":"",       
-
-        "sgRNA_primer_json":{
-
-        },
-
-        "ccdb_primer_json":{
-               
-        },   
-    
-        "sgRNA_region_label":"",
-        
-        "ccdb_region_label":"",   
-        
-        "enzyme":{
-            "enzyme_name":"BsaI",
-            "gap_sequence":"AA",  
-            "protection_sequence":"CCA"   
-        },  
-          
-        "UHA_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,  
-            "PRIMER_MAX_TM": 75,    
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
-        },
-        "SEQ_ALTERED_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,
-            "PRIMER_MAX_TM": 75,  
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
-        },
-        "DHA_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,
-            "PRIMER_MAX_TM": 75,
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18 
-        },
-         "UP_SGRNA_ARGS": {
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,  
-            "PRIMER_MAX_TM": 75,    
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
-        },
-        "DOWN_SGRNA_ARGS": {
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,  
-            "PRIMER_MAX_TM": 75,    
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
-        },
-
-        "PLASMID_Q_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,  
-            "PRIMER_MAX_TM": 75,    
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
-        },
-        "GENOME_Q_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,     
-            "PRIMER_MAX_TM": 75,    
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
+            "sgRNA_region_label":"",
             
-        },
-        'sgRNA_result':{
-            "Cgl0006_1176_G_A_sub":"1",
-            "Cgl2342_213_GCA_ins":"1",
-            "Cgl1436_1113_CAA_del":"1",
-            "Cgl1790_1647_TCC_sub":"1",
-            "Cgl1386_327_18to15_sub":"1",
-            "Cgl0591_-1_Ppgk_promoter_ins":"1",
-            "Cgl0141_cds_del":"1",
-            "153019_ecoil_ybeL_ins":"1",
-            "Cgl0851_ecoli_pgi_sub":"1"
-        }      
-    }
-
-
-
-
-    data3 = {     
-        "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
-        "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
-        "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
-        "ref_genome":"/home/yanghe/tmp/data_preprocessing/output/xxx.fna",
-
-        "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/only_primer/大肠图谱-gRNA正向-.gb",   
-        "no_ccdb_plasmid":"",
-        "no_sgRNA_plasmid":"",
-
-        "scene":"both_sgRNA_primer", 
-
-        "plasmid_metod":'1',   
-
-        "uha_dha_config": {
-            "max_right_arm_seq_length": 145,  
-            "max_left_arm_seq_length": 145,   
-            "min_left_arm_seq_length": 145,   
-            "min_right_arm_seq_length": 145     
-        },
-
-        "plasmid_label":{
-            "ccdb_label":"HR",  
-            "promoter_terminator_label":"gRNA",
-            "n_20_label":"N20",
-            "promoter_label":"promoter"
-        },
-  
-        "primer_json":{
-        
-        },
-        "region_label":"",       
-
-        "sgRNA_primer_json":{
-
-        },
-
-        "ccdb_primer_json":{
-               
-        },   
-    
-        "sgRNA_region_label":"",
-        
-        "ccdb_region_label":"",   
-        
-        "enzyme":{
-            "enzyme_name":"BsaI",
-            "gap_sequence":"AA",  
-            "protection_sequence":"CCA"   
-        },  
-          
-        "UHA_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,  
-            "PRIMER_MAX_TM": 75,    
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
-        },
-        "SEQ_ALTERED_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,
-            "PRIMER_MAX_TM": 75,  
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
-        },
-        "DHA_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,
-            "PRIMER_MAX_TM": 75,
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18 
-        },
-         "UP_SGRNA_ARGS": {
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,  
-            "PRIMER_MAX_TM": 75,    
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
-        },
-        "DOWN_SGRNA_ARGS": {
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,  
-            "PRIMER_MAX_TM": 75,    
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
-        },
-
-        "PLASMID_Q_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,  
-            "PRIMER_MAX_TM": 75,    
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
-        },
-        "GENOME_Q_ARGS":{
-            "PRIMER_OPT_TM": 65,
-            "PRIMER_MIN_TM": 55,     
-            "PRIMER_MAX_TM": 75,    
-            "PRIMER_MIN_GC": 20,
-            'PRIMER_OPT_GC':65,
-            "PRIMER_MAX_GC": 80,
-            'PRIMER_MIN_SIZE':15,
-            'PRIMER_MAX_SIZE':25,
-            'PRIMER_OPT_SIZE':18
+            "ccdb_region_label":"",   
             
-        },
-        'sgRNA_result':{}      
-    }
+            "enzyme":{
+                "enzyme_name":"BsaI",
+                "gap_sequence":"AA",  
+                "protection_sequence":"CCA"   
+            },  
+            
+            "UHA_ARGS":{
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,  
+                "PRIMER_MAX_TM": 75,    
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+            },
+            "SEQ_ALTERED_ARGS":{
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,
+                "PRIMER_MAX_TM": 75,  
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+            },
+            "DHA_ARGS":{
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,
+                "PRIMER_MAX_TM": 75,
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18 
+            },
+            "UP_SGRNA_ARGS": {
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,  
+                "PRIMER_MAX_TM": 75,    
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+            },
+            "DOWN_SGRNA_ARGS": {
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,  
+                "PRIMER_MAX_TM": 75,    
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+            },
 
-    a=main(data3)      
+            "PLASMID_Q_ARGS":{
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,  
+                "PRIMER_MAX_TM": 75,    
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+            },
+            "GENOME_Q_ARGS":{
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,     
+                "PRIMER_MAX_TM": 75,    
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+                
+            },
+            'sgRNA_result':{}      
+        }
+
+        data2 = {     
+            "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
+            "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
+            "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
+            "ref_genome":"/home/yanghe/tmp/data_preprocessing/output/xxx.fna",
+
+            "one_plasmid_file_path":"./input/only_primer/大肠图谱-gRNA正向-.gb",   
+            "no_ccdb_plasmid":"",
+            "no_sgRNA_plasmid":"",
+
+            "scene":"both_sgRNA_primer", 
+
+            "uha_dha_config": {
+                "max_right_arm_seq_length": 145,  
+                "max_left_arm_seq_length": 145,   
+                "min_left_arm_seq_length": 145,   
+                "min_right_arm_seq_length": 145     
+            },
+
+            "plasmid_label":{
+                "ccdb_label":"ccdB",  
+                "promoter_terminator_label":"gRNA",
+                "n_20_label":"N20",
+                "promoter_label":"promoter"
+            },
+    
+            "primer_json":{
+            
+            },
+            "region_label":"",       
+
+            "sgRNA_primer_json":{
+
+            },
+
+            "ccdb_primer_json":{
+                
+            },   
+        
+            "sgRNA_region_label":"",
+            
+            "ccdb_region_label":"",   
+            
+            "enzyme":{
+                "enzyme_name":"BsaI",
+                "gap_sequence":"AA",  
+                "protection_sequence":"CCA"   
+            },  
+            
+            "UHA_ARGS":{
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,  
+                "PRIMER_MAX_TM": 75,    
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+            },
+            "SEQ_ALTERED_ARGS":{
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,
+                "PRIMER_MAX_TM": 75,  
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+            },
+            "DHA_ARGS":{
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,
+                "PRIMER_MAX_TM": 75,
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18 
+            },
+            "UP_SGRNA_ARGS": {
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,  
+                "PRIMER_MAX_TM": 75,    
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+            },
+            "DOWN_SGRNA_ARGS": {
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,  
+                "PRIMER_MAX_TM": 75,    
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+            },
+
+            "PLASMID_Q_ARGS":{
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,  
+                "PRIMER_MAX_TM": 75,    
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+            },
+            "GENOME_Q_ARGS":{
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,     
+                "PRIMER_MAX_TM": 75,    
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+                
+            },
+            'sgRNA_result':{
+                "Cgl0006_1176_G_A_sub":"1",
+                "Cgl2342_213_GCA_ins":"1",
+                "Cgl1436_1113_CAA_del":"1",
+                "Cgl1790_1647_TCC_sub":"1",
+                "Cgl1386_327_18to15_sub":"1",
+                "Cgl0591_-1_Ppgk_promoter_ins":"1",
+                "Cgl0141_cds_del":"1",
+                "153019_ecoil_ybeL_ins":"1",
+                "Cgl0851_ecoli_pgi_sub":"1"
+            }      
+        }
+
+
+
+
+        data3 = {     
+            "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
+            "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
+            "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
+            "ref_genome":"/home/yanghe/tmp/data_preprocessing/output/xxx.fna",
+
+            "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/only_primer/大肠图谱-gRNA正向-.gb",   
+            "no_ccdb_plasmid":"",
+            "no_sgRNA_plasmid":"",
+
+            "scene":"both_sgRNA_primer", 
+
+            "plasmid_metod":'0',   
+
+            "uha_dha_config": {
+                "max_right_arm_seq_length": 145,  
+                "max_left_arm_seq_length": 145,   
+                "min_left_arm_seq_length": 145,   
+                "min_right_arm_seq_length": 145     
+            },
+
+            "plasmid_label":{
+                "ccdb_label":"HR",  
+                "promoter_terminator_label":"gRNA",
+                "n_20_label":"N20",
+                "promoter_label":"promoter"
+            },
+    
+            "primer_json":{
+            
+            },
+            "region_label":"",       
+
+            "sgRNA_primer_json":{
+
+            },
+
+            "ccdb_primer_json":{
+                
+            },   
+        
+            "sgRNA_region_label":"",
+            
+            "ccdb_region_label":"",   
+            
+            "enzyme":{
+                "enzyme_name":"BsaI",
+                "gap_sequence":"AA",  
+                "protection_sequence":"CCA"   
+            },  
+            
+            "UHA_ARGS":{
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,  
+                "PRIMER_MAX_TM": 75,    
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+            },
+            "SEQ_ALTERED_ARGS":{
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,
+                "PRIMER_MAX_TM": 75,  
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+            },
+            "DHA_ARGS":{
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,
+                "PRIMER_MAX_TM": 75,
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18 
+            },
+            "UP_SGRNA_ARGS": {
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,  
+                "PRIMER_MAX_TM": 75,    
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+            },
+            "DOWN_SGRNA_ARGS": {
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,  
+                "PRIMER_MAX_TM": 75,    
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+            },
+
+            "PLASMID_Q_ARGS":{
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,  
+                "PRIMER_MAX_TM": 75,    
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+            },
+            "GENOME_Q_ARGS":{
+                "PRIMER_OPT_TM": 65,
+                "PRIMER_MIN_TM": 55,     
+                "PRIMER_MAX_TM": 75,    
+                "PRIMER_MIN_GC": 20,
+                'PRIMER_OPT_GC':65,
+                "PRIMER_MAX_GC": 80,
+                'PRIMER_MIN_SIZE':15,
+                'PRIMER_MAX_SIZE':25,
+                'PRIMER_OPT_SIZE':18
+                
+            },
+            'sgRNA_result':{}      
+        }
+
+        data = data3
+
+    elif call_method == 2:
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--input', '-i', help='input config file', required=True)   
+        arguments = parser.parse_args()
+        input_file_path = arguments.input
+
+        with open(input_file_path,'r',encoding='utf8') as fp:
+            data = json.load(fp)
+
+
+    a=main(data)      
 
     print(a)    

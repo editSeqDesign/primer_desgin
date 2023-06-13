@@ -245,6 +245,7 @@ def judge_primer_is_or_not(plasmid_seq, path, seq_id, dict_res, primer_suc, prim
                 
                 
                 if j == len(primer_seq) - 15 and u < 5:
+                    print(dict_res)
                     primer_suc[primer_name] = dict_res[f'PRIMER_{type}_{u}_SEQUENCE']
                     primer_suc[f'{primer_name}_TM'] =dict_res[f'PRIMER_{type}_{u}_TM']
                     break  
