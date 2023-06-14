@@ -10,7 +10,7 @@
 
     "scene":"both_sgRNA_primer", 
 
-    "plasmid_metod":"0",   
+    "plasmid_metod":"1",   
 
     "uha_dha_config": {
         "max_right_arm_seq_length": 145     ,  
@@ -20,7 +20,7 @@
     },
 
     "plasmid_label":{
-        "ccdb_label":"HR",  
+        "ccdb_label":"HR",   
         "promoter_terminator_label":"gRNA",
         "n_20_label":"N20",
         "promoter_label":"promoter"

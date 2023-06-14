@@ -1326,14 +1326,21 @@ def execute_two_plasmid_system_pcr(
 
 
     #1. 过滤掉，高、中等的off target
-    temp_df = blasta_reslut_df.drop_duplicates(subset=['qseqid'])
-    temp_df = temp_df[['qseqid', 'off target']]
-    temp_df = temp_df[ (temp_df['off target'] != 'low') ]
-    temp_df = temp_df['qseqid'].str.split(';',expand = True )
-    temp_df.rename(columns={0:'Name'},inplace=True)
-    temp_df = temp_df.drop(columns=1).drop_duplicates(subset=['Name'])
-    intersected_df =pd.merge(uha_dha_sgRNA_df, temp_df)
-    uha_dha_sgRNA_df = pd.concat([uha_dha_sgRNA_df, intersected_df]).drop_duplicates(keep=False)
+    if len(blasta_reslut_df) >0 :
+        temp_df = blasta_reslut_df.drop_duplicates(subset=['qseqid'])
+        temp_df = temp_df[['qseqid', 'off target']]
+        temp_df = temp_df[ (temp_df['off target'] != 'low') ]
+        if len(temp_df) == 0:
+            pass
+        else:    
+            temp_df = temp_df['qseqid'].str.split(';',expand = True )
+            temp_df.rename(columns={0:'Name'},inplace=True)
+            temp_df = temp_df.drop(columns=1).drop_duplicates(subset=['Name'])
+            intersected_df =pd.merge(uha_dha_sgRNA_df, temp_df)
+            uha_dha_sgRNA_df = pd.concat([uha_dha_sgRNA_df, intersected_df]).drop_duplicates(keep=False)
+        
+        if len(uha_dha_sgRNA_df) == 0:
+            raise ValueError('UHA and DHA are all off target!')
 
 
     # 取质粒标签
@@ -2385,7 +2392,7 @@ def main(data):
     elif  one_plasmid_file_path =='' and no_ccdb_plasmid != '' and no_sgRNA_plasmid != '':
         plasmid_system_type = 2
     elif  one_plasmid_file_path !='' and no_ccdb_plasmid !='' and no_sgRNA_plasmid !='':
-        plasmid_system_type = 0
+        plasmid_system_type = 2
     else:
         raise ValueError("你选择的双质粒系统，质粒没有上传完整!",one_plasmid_file_path,no_ccdb_plasmid,no_sgRNA_plasmid)
         # return '你选择的双质粒系统，质粒没有上传完整!'
@@ -2474,7 +2481,7 @@ def main(data):
                                             uha_dha_df,
                                             info_input_df,
                                             no_ccdb_plasmid,
-                                            no_sgRNA_plasmid,
+                                            no_sgRNA_plasmid,  
                                             uha_dha_sgRNA_df,
                                             plasmid_primer_desgin_type, 
                                             enzyme_df,
@@ -2586,7 +2593,7 @@ if __name__ == '__main__':
 
 
 
-    call_method = 2
+    call_method = 1  
     if  call_method == 1:
         data1 = {     
             "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
@@ -2864,16 +2871,15 @@ if __name__ == '__main__':
 
 
 
-
         data3 = {     
             "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
             "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
             "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
             "ref_genome":"/home/yanghe/tmp/data_preprocessing/output/xxx.fna",
 
-            "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/only_primer/大肠图谱-gRNA正向-.gb",   
-            "no_ccdb_plasmid":"",
-            "no_sgRNA_plasmid":"",
+            "one_plasmid_file_path":"",   
+            "no_ccdb_plasmid":"/home/yanghe/program/edit_sequence_design/input/no-ccdb-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
+            "no_sgRNA_plasmid":"/home/yanghe/program/edit_sequence_design/input/no-sgRNA-pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",
 
             "scene":"both_sgRNA_primer", 
 
@@ -2887,7 +2893,7 @@ if __name__ == '__main__':
             },
 
             "plasmid_label":{
-                "ccdb_label":"HR",  
+                "ccdb_label":"ccdB",  
                 "promoter_terminator_label":"gRNA",
                 "n_20_label":"N20",
                 "promoter_label":"promoter"
