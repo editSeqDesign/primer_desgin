@@ -1926,6 +1926,8 @@ def check_plasmid(gb_path, ccdb_label='', promoter_terminator_label='', n_20_lab
     # #gRNA
     gRNA_coordinate = su.get_feature_coordinate(promoter_terminator_label,gb_path)
 
+    print( '质粒标签','ccdb_coordinate:',ccdb_coordinate,  'n20_coordinate',n20_coordinate,  'gRNA_coordinate',gRNA_coordinate )
+
     if ccdb_coordinate != (-1,-1) and n20_coordinate !=(-1,-1):
         check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label=ccdb_label)
         check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label=promoter_terminator_label)
@@ -1939,6 +1941,7 @@ def check_plasmid(gb_path, ccdb_label='', promoter_terminator_label='', n_20_lab
         check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label=ccdb_label)
         return 'no_sgRNA_plasmid'
     else:
+        raise ValueError(f'There is a problem with the plasmid label you uploaded')
         if ccdb_label != '':
             raise ValueError(f'The plasmid you uploaded does not contain the necessary tags: {ccdb_label} ')
         elif gRNA_coordinate !='':
@@ -2180,7 +2183,7 @@ def main(data):
         errorMessage = 'There are duplicates in the three plasmid label you entered'
         raise ValueError(errorMessage)
   
-    one_plasmid_file_path=''
+    one_plasmid_file_path='' 
     no_ccdb_plasmid=''
     no_sgRNA_plasmid=''
     
@@ -2740,7 +2743,7 @@ if __name__ == '__main__':
             "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
             "ref_genome":"/home/yanghe/tmp/data_preprocessing/output/xxx.fna",
 
-            "one_plasmid_file_path":"./input/only_primer/大肠图谱-gRNA正向-.gb",   
+            "one_plasmid_file_path":"./input/pMB1-sgRNA-wacJ.gb",   
             "no_ccdb_plasmid":"",
             "no_sgRNA_plasmid":"", 
             'sgRNA_result':{},  
@@ -2756,10 +2759,10 @@ if __name__ == '__main__':
             },
 
             "plasmid_label":{
-                "ccdb_label":"HR",  
-                "promoter_terminator_label":"gRNA",
+                "ccdb_label":"HR arm",  
+                "promoter_terminator_label":"gRNA ORF",
                 "n_20_label":"N20",
-                "promoter_label":"promoter"
+                "promoter_label":"promoter" 
             },
     
             "primer_json":{
