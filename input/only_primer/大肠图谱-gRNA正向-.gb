@@ -16,10 +16,10 @@ COMMENT     SECID/File created by SciEd Central, Scientific & Educational
             http://www.invitrogen.com/
             ORIGDB|GenBank
             LSOWNER|
-            VNTNAME|034-apr|
+            VNTNAME|034-apr|       
             Vector_NTI_Display_Data_(Do_Not_Edit!)
             (SXF
-            (CGexDoc """"""""""""""""034-apr"""""""""""""""" 0 2681
+            (CGexDoc """"""""""""""""034-apr"""""""""""""""" 0 2681   
             (CDBMol 0 0 1 1 1 0 0 521151310 0 """""""""""""""""""""""""""""""" 
             """""""""""""""""""""""""""""""" 0 0 0 0 (CObList) (CObList)
             (CObList) (CObList) -1 """""""""""""""""""""""""""""""")
@@ -447,7 +447,7 @@ COMMENT     SECID/File created by SciEd Central, Scientific & Educational
             #116=(CGroupWidget (CWidget 14 (16 0) 1 2 0 0 Nil 1313558101 100) 
             (CObjectList) (CObjectList))
             #117=(CGroupWidget (CWidget 11 (0 0) 1 2 0 0 Nil 475 100) 
-            (CObjectList) (CObjectList))
+            (CObjectList) (CObjectList))   
             #118=(CGroupWidget (CWidget 12 (0 0) 1 2 0 0 Nil 1869422711 100) 
             (CObjectList) (CObjectList))) (CObjectList)))
             (CSeqView 10 10 (CObjectList) (CObList) 1 (CObList)) (CObList) 0 
@@ -582,7 +582,7 @@ FEATURES             Location/Qualifiers
                      EKVNDVAVKLS"
      primer_bind     complement(4749..4768)
                      /label=36WCX4-R
-     CDS             5875..6291
+     CDS             5875..6291                                   
                      /codon_start=1
                      /product="gam protein"
                      /label=gam
@@ -685,7 +685,7 @@ ORIGIN
      4501 tgcgccgagc ttcctgctga acatcaaagg caagaaaaca tctgttgtca aagacagcat
      4561 ccttgaacaa ggacaattaa cagttaacaa ataaaaacgc aaaagaaaat gccgatgggt
      4621 accgagcgaa gcatcgattt attatgacaa cttgacggct acatcattca ctttttcttc
-     4681 acaaccggca cggaactcgc tcgggctggc cccggtgcat tttttaaata cccgcgagaa
+     4681 acaaccggca cggaactcgc tcgggctggc cccggtgcat tttttaaata cccgcgagaa   
      4741 atagagttga tcgtcaaaac caacattgcg accgacggtg gcgataggca tccgggtggt
      4801 gctcaaaagc agcttcgcct ggctgatacg ttggtcctcg cgccagctta agacgctaat
      4861 ccctaactgc tggcggaaaa gatgtgacag acgcgacggc gacaagcaaa catgctgtgc

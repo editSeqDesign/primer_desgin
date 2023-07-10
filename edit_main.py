@@ -1924,22 +1924,28 @@ def check_plasmid(gb_path, ccdb_label='', promoter_terminator_label='', n_20_lab
     n20_coordinate = su.get_feature_coordinate(n_20_label,gb_path,selected_feature_type='misc_feature')
 
     # #gRNA
-    # gRNA_coordinate = su.get_feature_coordinate(promoter_terminator_label,gb_path)
+    gRNA_coordinate = su.get_feature_coordinate(promoter_terminator_label,gb_path)
 
     if ccdb_coordinate != (-1,-1) and n20_coordinate !=(-1,-1):
         check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label=ccdb_label)
         check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label=promoter_terminator_label)
         check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label=n_20_label)
         return 'one_plasmid_file_path'
-    elif ccdb_coordinate==(-1,-1) and n20_coordinate !=(-1,-1):
+    elif ccdb_coordinate==(-1,-1) and n20_coordinate !=(-1,-1) and ccdb_label == '':
         check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label=promoter_terminator_label)
         check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label=n_20_label)
         return 'no_ccdb_plasmid'
-    elif ccdb_coordinate != (-1,-1) and n20_coordinate ==(-1,-1):
+    elif ccdb_coordinate != (-1,-1) and n20_coordinate ==(-1,-1) and n20_coordinate=='':
         check_plasmid_label(gb_path, selected_feature_type='misc_feature', target_gene_label=ccdb_label)
         return 'no_sgRNA_plasmid'
     else:
-        raise ValueError('The plasmid you uploaded does not contain the necessary tags')
+        if ccdb_label != '':
+            raise ValueError(f'The plasmid you uploaded does not contain the necessary tags: {ccdb_label} ')
+        elif gRNA_coordinate !='':
+            raise ValueError(f'The plasmid you uploaded does not contain the necessary tags: {promoter_terminator_label} ') 
+        elif n_20_label != '':
+            raise ValueError(f'The plasmid you uploaded does not contain the necessary tags: {n_20_label} ') 
+        
 
 def check_enzyme(enzyme,enzyme_df):
     name = enzyme['enzyme_name']
@@ -2386,7 +2392,7 @@ def main(data):
         
 
   # 11.判断质粒的执行类型  
-    print('判断质粒的执行类型:',one_plasmid_file_path,no_ccdb_plasmid,no_sgRNA_plasmid)  
+    print('判断质粒的执行类型:', one_plasmid_file_path, no_ccdb_plasmid, no_sgRNA_plasmid)  
     if  one_plasmid_file_path != '' and no_ccdb_plasmid == '' and no_sgRNA_plasmid == '':
         plasmid_system_type = 1
     elif  one_plasmid_file_path =='' and no_ccdb_plasmid != '' and no_sgRNA_plasmid != '':
@@ -2394,7 +2400,7 @@ def main(data):
     elif  one_plasmid_file_path !='' and no_ccdb_plasmid !='' and no_sgRNA_plasmid !='':
         plasmid_system_type = 2
     else:
-        raise ValueError("你选择的双质粒系统，质粒没有上传完整!",one_plasmid_file_path,no_ccdb_plasmid,no_sgRNA_plasmid)
+        raise ValueError("你选择的双质粒系统，质粒没有上传完整!",one_plasmid_file_path, no_ccdb_plasmid, no_sgRNA_plasmid)
         # return '你选择的双质粒系统，质粒没有上传完整!'
 
     print('--1.执行单质粒系统,--2.执行双质粒系统,---0.执行单、双质粒系统都执行------现在正在执行的情况：',plasmid_system_type)   
@@ -2736,9 +2742,11 @@ if __name__ == '__main__':
 
             "one_plasmid_file_path":"./input/only_primer/大肠图谱-gRNA正向-.gb",   
             "no_ccdb_plasmid":"",
-            "no_sgRNA_plasmid":"",
+            "no_sgRNA_plasmid":"", 
+            'sgRNA_result':{},  
 
             "scene":"both_sgRNA_primer", 
+            "plasmid_metod":'0', 
 
             "uha_dha_config": {
                 "max_right_arm_seq_length": 145,  
@@ -2748,14 +2756,14 @@ if __name__ == '__main__':
             },
 
             "plasmid_label":{
-                "ccdb_label":"ccdB",  
+                "ccdb_label":"HR",  
                 "promoter_terminator_label":"gRNA",
                 "n_20_label":"N20",
                 "promoter_label":"promoter"
             },
     
             "primer_json":{
-            
+               
             },
             "region_label":"",       
 
@@ -2855,22 +2863,20 @@ if __name__ == '__main__':
                 'PRIMER_MAX_SIZE':25,
                 'PRIMER_OPT_SIZE':18
                 
-            },
-            'sgRNA_result':{
-                "Cgl0006_1176_G_A_sub":"1",
-                "Cgl2342_213_GCA_ins":"1",
-                "Cgl1436_1113_CAA_del":"1",
-                "Cgl1790_1647_TCC_sub":"1",
-                "Cgl1386_327_18to15_sub":"1",
-                "Cgl0591_-1_Ppgk_promoter_ins":"1",
-                "Cgl0141_cds_del":"1",
-                "153019_ecoil_ybeL_ins":"1",
-                "Cgl0851_ecoli_pgi_sub":"1"
-            }      
+            }
+            # 'sgRNA_result':{
+            #     "Cgl0006_1176_G_A_sub":"1",
+            #     "Cgl2342_213_GCA_ins":"1",
+            #     "Cgl1436_1113_CAA_del":"1",
+            #     "Cgl1790_1647_TCC_sub":"1",
+            #     "Cgl1386_327_18to15_sub":"1",
+            #     "Cgl0591_-1_Ppgk_promoter_ins":"1",
+            #     "Cgl0141_cds_del":"1",
+            #     "153019_ecoil_ybeL_ins":"1",
+            #     "Cgl0851_ecoli_pgi_sub":"1"
+            # }      
         }
-
-
-
+    
         data3 = {     
             "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
             "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
@@ -3017,6 +3023,6 @@ if __name__ == '__main__':
             data = json.load(fp)
 
 
-    a=main(data)      
+    a=main(data2)      
 
     print(a)    
