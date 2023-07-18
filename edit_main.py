@@ -20,8 +20,8 @@ from os.path import exists,splitext,dirname,splitext,basename,realpath,abspath
 # from loguru import logger
 
 #uha_dha_primer
-def extract_uha_dha_primer(info_input_df, sgRNA):
-   
+def extract_uha_dha_primer(info_input_df, sgRNA):  
+
     primer_template_for_u_d_ha_df = p_d_seq.create_primer_template(info_input_df,sgRNA)  
     uha_dha_primer_df,failture_uha_dha_primer_df = p_d_seq.design_primer(primer_template_for_u_d_ha_df,'Name_Region','primer_template','u_d')
     uha_dha_primer_df = uha_dha_primer_df.rename(columns={'Region':'id'})
@@ -203,7 +203,6 @@ def one_plasmid_system_sequencing_design_primer(gb_path,type_kind,uha_dha_sgRNA_
 
     if type_kind == 3:
         #载体测序
-       
         sequencing_primer_df['plasmid_sequencing_region'] = sequencing_primer_df['UHA']+sequencing_primer_df['seq_altered']+sequencing_primer_df['DHA']+sequencing_primer_df['promoter_N20_terminator_up'] + sequencing_primer_df['promoter_N20_terminator']
         sequencing_primer_df['Region'] = sequencing_primer_df['Name']+';'+sequencing_primer_df['Region']
         sequencing_primer_template = sequencing_primer_df[['Name','Region','plasmid_sequencing_region','plasmid']]
@@ -683,6 +682,7 @@ def genome_sequencing_design_primer(genome_path,info_input_df, uha_dha_df):
     UHA_DHA_df['sequencing_region'] = UHA_DHA_df.apply(lambda x: work2(x['UHA'], x['seq_altered'], x['DHA']), axis=1)
     ###
     UHA_DHA_df['Region'] =  UHA_DHA_df['Name']+';'+UHA_DHA_df['Region']
+
     genome_sequencing_primer_df,failture_genome_sequencing_primer_df,off_target_g_primer_df = p_d_seq.create_sequencing_primer(genome_path,UHA_DHA_df,sr,'sequencing_template','sequencing_region',seq_type='genome_seq')
     #测序模板
     genome_sequencing_template = UHA_DHA_df[['Region','sequencing_template','UHA','seq_altered','DHA']]
@@ -2014,7 +2014,7 @@ def run_blast(workdir, blast_input_file_path, blast_genome_library_path):
 
 
 
-def blastEvaluate_uha_dha_in_genome(genome, uha_dha_df, workdir, id, name1, name2, name):
+def blastEvaluate_uha_dha_in_genome(genome, uha_dha_df, workdir, id, region, name1, name2, name):
 
     # run blast   
     workdir = workdir + '/blast/'
@@ -2029,7 +2029,7 @@ def blastEvaluate_uha_dha_in_genome(genome, uha_dha_df, workdir, id, name1, name
     blast_output_file_path= workdir+'/blast_output.txt'  
     
     #convert df  #只针对单个染色体的
-    df = su.convert_twoColumns_to_oneColumns(uha_dha_df, id=id, name1=name1, name2=name2, name=name)
+    df = su.convert_twoColumns_to_oneColumns(uha_dha_df, id=id, region=region, name1=name1, name2=name2, name=name)
     
     #create fasta
     fasta_length_dict, lib_length_dict = su.convert_df_to_fastaFile(genome, df, id, name, blast_input_file_path, blast_genome_library_path)
@@ -2232,7 +2232,7 @@ def main(data):
     config.GENOME_Q_ARGS = data['GENOME_Q_ARGS']   
 
 
-     # 5.read 编辑序列信息,给chopchop输入加uha、dha信息
+    # 5.read 编辑序列信息,给chopchop输入加uha、dha信息
     info = su.del_Unnamed(pd.read_csv(chopchop_input))
 
     info_input_df = read_chopchopInput_add_uha_dha(genome_path, info, uha_dha_params)
@@ -2391,7 +2391,7 @@ def main(data):
             
 
     # 10.对同源臂在基因组上进行序列比对  
-    blast_result_df = blastEvaluate_uha_dha_in_genome(genome_path, uha_dha_df, workdir=output, id='Name',name1='UHA',name2='DHA',name='seq')
+    blast_result_df = blastEvaluate_uha_dha_in_genome(genome_path, uha_dha_df, workdir=output, id='Name', region='Region', name1='UHA',name2='DHA',name='seq')
         
 
   # 11.判断质粒的执行类型  
@@ -2405,14 +2405,12 @@ def main(data):
     else:
         raise ValueError("你选择的双质粒系统，质粒没有上传完整!",one_plasmid_file_path, no_ccdb_plasmid, no_sgRNA_plasmid)
         # return '你选择的双质粒系统，质粒没有上传完整!'
-
     print('--1.执行单质粒系统,--2.执行双质粒系统,---0.执行单、双质粒系统都执行------现在正在执行的情况：',plasmid_system_type)   
 
 
     if plasmid_system_type == 1:
             
-
-            if plasmid_metod == '0':
+            if plasmid_metod == '0': 
       
                 #质粒引物的设计类型：1---用户指定范围，2----无需用户指定范围，3----用户指定额外引物
                 if region_seq_json == {} and  primer_json == {}:
@@ -2460,10 +2458,7 @@ def main(data):
                                                                                     uha_dha_sgRNA_df,
                                                                                     output,
                                                                                     blast_result_df
-                                                                            )
-
-
-            
+                                                                            )            
             return one_plasmid_output_path
      
     elif plasmid_system_type == 2:
@@ -2506,7 +2501,6 @@ def main(data):
                 return two_plasmid_output_path
         
         elif  plasmid_metod == '1':
-                
                 two_plasmid_output_path = execute_two_plasmid_system_synthesis(
                                            genome_path,
                                             info_input_df,
@@ -2517,7 +2511,6 @@ def main(data):
                                             output,
                                             blast_result_df
                                             )
-                
                 return two_plasmid_output_path
 
 
@@ -2743,13 +2736,13 @@ if __name__ == '__main__':
             "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
             "ref_genome":"/home/yanghe/tmp/data_preprocessing/output/xxx.fna",
 
-            "one_plasmid_file_path":"./input/pMB1-sgRNA-wacJ.gb",   
+            "one_plasmid_file_path":"./input/pMB1-sgRNA-wacJ1.gb",   
             "no_ccdb_plasmid":"",
             "no_sgRNA_plasmid":"", 
             'sgRNA_result':{},  
 
             "scene":"both_sgRNA_primer", 
-            "plasmid_metod":'0', 
+            "plasmid_metod":'1', 
 
             "uha_dha_config": {
                 "max_right_arm_seq_length": 145,  
@@ -2761,7 +2754,7 @@ if __name__ == '__main__':
             "plasmid_label":{
                 "ccdb_label":"HR arm",  
                 "promoter_terminator_label":"gRNA ORF",
-                "n_20_label":"N20",
+                "n_20_label":"wacJ",
                 "promoter_label":"promoter" 
             },
     
@@ -3013,7 +3006,128 @@ if __name__ == '__main__':
             'sgRNA_result':{}      
         }
 
-        data = data3
+        data4 = {     
+                    "chopchop_input": "/home/yanghe/tmp/data_preprocessing/output/info_input.csv",   
+                    "sgRNA_result_path": "/home/yanghe/tmp/chopchop/output/sgRNA.csv",
+                    "edit_sequence_design_workdir":"/home/yanghe/tmp/edit_sequence_design/output/",
+                    "ref_genome":   "/home/yanghe/program/data_preprocessing/input/Salmonella_typhimurium.fna",
+                    "one_plasmid_file_path":"/home/yanghe/program/edit_sequence_design/input/pXMJ19-Cas9A-gRNA-crtYEb-Ts - ori.gb",  
+                    "no_ccdb_plasmid":"",  
+                    "no_sgRNA_plasmid":"",
+
+                    "plasmid_metod":'1', 
+
+                    "scene":"both_sgRNA_primer",
+
+                    'sgRNA_result':{}, 
+
+                    "uha_dha_config": {
+                        "max_right_arm_seq_length": 145,  
+                        "max_left_arm_seq_length": 145,     
+                        "min_left_arm_seq_length": 145,   
+                        "min_right_arm_seq_length": 145     
+                    },
+                    "plasmid_label":{
+                        "ccdb_label":"ccdB",  
+                        "promoter_terminator_label":"gRNA",
+                        "n_20_label":"N20",
+                        "promoter_label":"promoter"
+                    },
+                    
+                    "primer_json":{},
+                    "region_label":"", 
+            
+                    "sgRNA_primer_json":{},
+                    "ccdb_primer_json":{},   
+                    "sgRNA_region_label":"",
+                    "ccdb_region_label":"",  
+
+                    
+                    "enzyme":{
+                        "enzyme_name":"BbsI",
+                        "gap_sequence":"AA",    
+                        "protection_sequence":"CCA"   
+                    },      
+                    
+                    "UHA_ARGS":{
+                        "PRIMER_OPT_TM": 65,
+                        "PRIMER_MIN_TM": 55,  
+                        "PRIMER_MAX_TM": 75,    
+                        "PRIMER_MIN_GC": 20,
+                        'PRIMER_OPT_GC':65,
+                        "PRIMER_MAX_GC": 80,
+                        'PRIMER_MIN_SIZE':15,
+                        'PRIMER_MAX_SIZE':25,
+                        'PRIMER_OPT_SIZE':18, 
+                    },
+                    "SEQ_ALTERED_ARGS":{
+                        "PRIMER_OPT_TM": 65,
+                        "PRIMER_MIN_TM": 55,  
+                        "PRIMER_MAX_TM": 75,    
+                        "PRIMER_MIN_GC": 20,
+                        'PRIMER_OPT_GC':65,
+                        "PRIMER_MAX_GC": 80,
+                        'PRIMER_MIN_SIZE':15,
+                        'PRIMER_MAX_SIZE':25,
+                        'PRIMER_OPT_SIZE':18, 
+                    },
+                    "DHA_ARGS":{
+                        "PRIMER_OPT_TM": 65,
+                        "PRIMER_MIN_TM": 55,
+                        "PRIMER_MAX_TM": 75,
+                        "PRIMER_MIN_GC": 20,
+                        'PRIMER_OPT_GC':65,
+                        "PRIMER_MAX_GC": 80,
+                        'PRIMER_MIN_SIZE':15,
+                        'PRIMER_MAX_SIZE':25,
+                        'PRIMER_OPT_SIZE':18, 
+                    },
+
+                    "PLASMID_Q_ARGS":{
+                        "PRIMER_OPT_TM": 65,
+                        "PRIMER_MIN_TM": 55,  
+                        "PRIMER_MAX_TM": 75,    
+                        "PRIMER_MIN_GC": 20,
+                        'PRIMER_OPT_GC':65,
+                        "PRIMER_MAX_GC": 80,
+                        'PRIMER_MIN_SIZE':15,
+                        'PRIMER_MAX_SIZE':25,
+                        'PRIMER_OPT_SIZE':18, 
+                    },    
+                    "GENOME_Q_ARGS":{
+                        "PRIMER_OPT_TM": 65,
+                        "PRIMER_MIN_TM": 55,     
+                        "PRIMER_MAX_TM": 75,    
+                        "PRIMER_MIN_GC": 20,
+                        'PRIMER_OPT_GC':65,
+                        "PRIMER_MAX_GC": 80,
+                        'PRIMER_MIN_SIZE':15,
+                        'PRIMER_MAX_SIZE':25,
+                        'PRIMER_OPT_SIZE':18, 
+                    },  
+                    "UP_SGRNA_ARGS": {
+                        "PRIMER_OPT_TM": 65,
+                        "PRIMER_MIN_TM": 55,  
+                        "PRIMER_MAX_TM": 75,    
+                        "PRIMER_MIN_GC": 20,
+                        'PRIMER_OPT_GC':65,
+                        "PRIMER_MAX_GC": 80,
+                        'PRIMER_MIN_SIZE':15,
+                        'PRIMER_MAX_SIZE':25,
+                        'PRIMER_OPT_SIZE':18, 
+                    },
+                    "DOWN_SGRNA_ARGS": {
+                        "PRIMER_OPT_TM": 65,
+                        "PRIMER_MIN_TM": 55,  
+                        "PRIMER_MAX_TM": 75,    
+                        "PRIMER_MIN_GC": 20,
+                        'PRIMER_OPT_GC':65,
+                        "PRIMER_MAX_GC": 80,
+                        'PRIMER_MIN_SIZE':15,
+                        'PRIMER_MAX_SIZE':25,
+                        'PRIMER_OPT_SIZE':18, 
+                    },
+                }
 
     elif call_method == 2:
         import argparse
@@ -3024,8 +3138,7 @@ if __name__ == '__main__':
 
         with open(input_file_path,'r',encoding='utf8') as fp:
             data = json.load(fp)
-
-
+   
     a=main(data2)      
 
     print(a)    

@@ -409,7 +409,7 @@ def create_new_plasmid(gb_path, sgRNA_df):
         def work(target_seq, uha, dha, seq_altered):
                 
                 if real_promoter.upper() != promoter_terminator[:start].upper():
-                    target_seq = su.revComp(target_seq)
+                    target_seq = su.revComp(target_seq)  
 
                 new_promoter_terminator = promoter_terminator[:start] + target_seq + terminator_seq
                 promoter_up_promoter = promoter_terminator_up_seq +  promoter_seq  
@@ -506,7 +506,7 @@ def add_joint_sgRNA_primer(sgRNA_primer_df,enzyme_df,enzyme_name,promoter_termin
     cut_seq_len = sgRNA_enzyme_df.loc[0,'cut_seq_len']
     gap_len = sgRNA_enzyme_df.loc[0,'gap_len']
     gap_seq = 'AGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACTAGACT'
-    gap_seq = sgRNA_enzyme_df.loc[0,'gap_seq']
+    gap_seq = sgRNA_enzyme_df.loc[0,'gap_seq']   
 
 
     def work(*x):       

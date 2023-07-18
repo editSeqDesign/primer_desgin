@@ -334,6 +334,7 @@ def merge_primer(*li):
     #基因组测序
     if len(genome_sequencing_primer_df)>0:
         genome_sequencing_primer_df_columns = [i for i in genome_sequencing_primer_df.columns if (i.split('_')[-1]).isdigit() ]
+        # genome_sequencing_primer_df_columns = [i for i in genome_sequencing_primer_df.columns ]
         genome_sequencing_primer_df_columns.append('ID')
         g_s_primer = rename_primer_ID(genome_sequencing_primer_df, in_col=genome_sequencing_primer_df_columns, df_name='g', stype=2)
 

@@ -55,6 +55,8 @@ def design_seq_primer(plasmid_seq,path,seq_id, seq_temp, seq_target, mute_positi
     site_target_temp=seq_temp.find(seq_target)
     temp_p1=seq_temp[site_target_temp-120:site_target_temp-80]
 
+
+
     #第一条引物
     dict_res_p1 = util.primer_design(seqId=seq_id, 
                                         seqTemplate=temp_p1,
@@ -189,6 +191,9 @@ def design_seq_primer(plasmid_seq,path,seq_id, seq_temp, seq_target, mute_positi
 #判断引物是与否
 def judge_primer_is_or_not(plasmid_seq, path, seq_id, dict_res, primer_suc, primer_fail, primer_name, type='LEFT'):
 
+    #检索引物的个数：
+    
+   
 
     if 'b4422' in seq_id:
         print('jhdfsgcjhdgf')
@@ -197,29 +202,34 @@ def judge_primer_is_or_not(plasmid_seq, path, seq_id, dict_res, primer_suc, prim
     if path.split('.')[-1] != 'gb':
 
         plasmid_seq
-        
-        genome = SeqIO.read(path, "fasta")
-        seq=str(genome.seq)
+
+        record_dict = SeqIO.to_dict(SeqIO.parse(path, "fasta"))   
+        chrom = seq_id.split(';')[1].split(':')[0]
+        seq=str(record_dict[chrom].seq)
+
     else:
         seq = plasmid_seq
 
     if len(list(dict_res.keys())) < 10:
         primer_fail[f'{seq_id}:{primer_name}'] = dict_res 
     else:
+
+        #引物的数量
+        primer_num = dict_res.get('PRIMER_LEFT_NUM_RETURNED')
+
         #使用blast方法进行序列比对  
         # result_df = blast_primer_in_genome(dict_res, type, path) 
         off_target_dict = {}
-        u = 0   
+        u = 0
+        
         for i,k in dict_res.items():
             id = f'PRIMER_{type}_{u}_SEQUENCE'
             primer_seq=dict_res.get(f'PRIMER_{type}_{u}_SEQUENCE')
- 
 
             if primer_seq != None:  
                 j = 0
                 #对每一条引物进行脱靶分析，种子序列为15bp
-                for m in range(15,len(primer_seq)):
-
+                for m in range(15,len(primer_seq)+1):                     #控制滑动次数
                     if type == 'RIGHT':
                         temp_seq = util.revComp(primer_seq)
                         pattern = temp_seq[j:m]
@@ -230,10 +240,6 @@ def judge_primer_is_or_not(plasmid_seq, path, seq_id, dict_res, primer_suc, prim
 
                     #脱靶
                     if result[1] >1:
-                        # if u == 5:
-                        #     print(seq_id,'脱靶')
-                        #     primer_fail[f'{seq_id}:{primer_name}:off_target'] = off_target_dict
-                        # else:
                         u = u + 1
                         off_target_dict.update({f'{primer_name}_{u}':primer_seq})
                         break
@@ -244,23 +250,23 @@ def judge_primer_is_or_not(plasmid_seq, path, seq_id, dict_res, primer_suc, prim
                         break
                 
                 
-                if j == len(primer_seq) - 15 and u < 5:
-                    print(dict_res)
-                    primer_suc[primer_name] = dict_res[f'PRIMER_{type}_{u}_SEQUENCE']
-                    primer_suc[f'{primer_name}_TM'] =dict_res[f'PRIMER_{type}_{u}_TM']
+                if j == len(primer_seq) - 15 + 1  and u < primer_num:      #滑动次数满，且引物数没满，设计成功
+                    try:
+                        print(seq_id ,dict_res)
+                        primer_suc[primer_name] = dict_res[f'PRIMER_{type}_{u}_SEQUENCE']
+                        primer_suc[f'{primer_name}_TM'] =dict_res[f'PRIMER_{type}_{u}_TM']
+                    except:
+                        print(1223333) 
                     break  
-                elif  u == 5 and j < len(primer_seq) - 15:
+                elif  u == primer_num and j < len(primer_seq) - 15 + 1 :        #滑动次数未满，且引物数满，脱靶
+                    u = u - 1
                     primer_fail[f'{seq_id}:{primer_name}:off_target'] = off_target_dict
                     break
                     
             else:
-               primer_fail[f'{seq_id}:{primer_name}'] = dict_res 
-
-
+               primer_fail[f'{seq_id}:{primer_name}'] = dict_res         #一条引物都没设计出来，设计失败
 
     return u
-
-
 
 #有点问题
 def blast_primer_in_genome(dict_res, type, path, ):

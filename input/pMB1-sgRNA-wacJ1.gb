@@ -1,4 +1,4 @@
-LOCUS       Exported                7721 bp ds-DNA     circular SYN 10-JUL-2023
+LOCUS       Exported                7721 bp ds-DNA     circular SYN 11-JUL-2023
 DEFINITION  synthetic circular DNA.
 ACCESSION   .
 VERSION     .
@@ -8,7 +8,7 @@ SOURCE      synthetic DNA construct
 REFERENCE   1  (bases 1 to 7721)
   AUTHORS   .
   TITLE     Direct Submission
-  JOURNAL   Exported Jul 10, 2023 from SnapGene 4.2.4
+  JOURNAL   Exported Jul 11, 2023 from SnapGene 4.2.4
             http://www.snapgene.com
 COMMENT     SECID/File created by SciEd Central, Scientific & Educational 
             Software
@@ -448,6 +448,8 @@ FEATURES             Location/Qualifiers
                      /label=mob-1-R
      primer_bind     621..640
                      /label=mob-2-F
+     misc_feature    671..690
+                     /label=wacJ
      gene            671..690
                      /gene="mobA"
                      /locus_tag="C1467_24110"
@@ -507,6 +509,8 @@ FEATURES             Location/Qualifiers
                      LIKHW"
      primer_bind     complement(2090..2109)
                      /label=23cx7-F
+     misc_feature    2158..2177
+                     /label=N20
      misc_feature    2178..2180
                      /label=PAM
      primer_bind     complement(2684..2718)

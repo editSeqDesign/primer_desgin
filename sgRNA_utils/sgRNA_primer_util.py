@@ -654,13 +654,14 @@ def zip_ya(startdir, file_news,num=1):
 
 
 #
-def convert_twoColumns_to_oneColumns(df,id,name1,name2,name):
+def convert_twoColumns_to_oneColumns(df,id,region,name1,name2,name):
     
-    temp1 = df[[id,name1]].rename(columns={name1:name})
-    temp1[id] = temp1[id] + f';{name1}'
-    temp2 = df[[id,name2]].rename(columns={name2:name})
-    temp2[id] = temp2[id] + f';{name2}'
-    temp = temp1.append(temp2)
+    temp1 = df[[id,region,name1]].rename(columns={name1:name})
+    temp1[id] = temp1[id] +';'+ temp1[region]+ f';{name1}'
+    temp2 = df[[id,region,name2]].rename(columns={name2:name})
+    temp2[id] = temp2[id] +';'+ temp1[region] + f';{name2}'
+    temp = temp1.append(temp2)  
+    temp.drop(columns=['Region'], inplace=True)
     
     return temp   
 
@@ -670,9 +671,9 @@ from Bio.SeqRecord import SeqRecord
 
 def convert_df_to_fastaFile(genome_path,df,id,name,input_fasta,lib_fasta):
 
-    genome = SeqIO.read(genome_path, "fasta")
-    genome_seq=str(genome.seq)  
+    record_dict = SeqIO.to_dict(SeqIO.parse(genome_path, "fasta"))
     
+     
     my_records = []
     fasta_length_dict = {}
 
@@ -685,8 +686,9 @@ def convert_df_to_fastaFile(genome_path,df,id,name,input_fasta,lib_fasta):
 
         seqid = row[id]
         seq = row[name]
+        chrom = seqid.split(';')[1].split(':')[0]
         
-        target_lib_seq =search_sequence_in_genome_seq(genome_sequence=genome_seq, search_sequence=seq, start_distance=20000, end_distance=20000)
+        target_lib_seq =search_sequence_in_genome_seq(genome_sequence=str(record_dict[chrom].seq), search_sequence=seq, start_distance=20000, end_distance=20000)
         if target_lib_seq != None:
             rec = SeqRecord(Seq(target_lib_seq),id=seqid)
             lib_length_dict[seqid] = len(target_lib_seq)
