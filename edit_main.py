@@ -18,8 +18,6 @@ import json
 from sgRNA_utils.sgRNA_primer_config import config 
 from os.path import exists,splitext,dirname,splitext,basename,realpath,abspath
 import pandas as pd
-from pandarallel import pandarallel  
-pandarallel.initialize(progress_bar=False)        
 
 # 参数的校验
 def clean_noUsefulContent(path_1, noUsefulContent ='BASE COUNT'):
