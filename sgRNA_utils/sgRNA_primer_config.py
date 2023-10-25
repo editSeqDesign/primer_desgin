@@ -1,14 +1,17 @@
 import os
 
 class config: 
+
+    TMP = '' 
+
     #单双点设计引物的全局参数  
     GLOBAL_ARGS = {
                 'PRIMER_PICK_ANYWAY':1,
                 'PRIMER_PRODUCT_SIZE_RANGE': 0,
-                'PRIMER_NUM_RETURN':5
-        }     
+                'PRIMER_NUM_RETURN':10000000000000
+        }
    
-    S_GLOBAL_ARGS = {
+    S_GLOBAL_ARGS = {  
             'PRIMER_OPT_SIZE': 20,   
             'PRIMER_MIN_SIZE': 18,
             'PRIMER_MAX_SIZE': 25,
@@ -117,9 +120,16 @@ class config:
         "min_left_arm_seq_length": 1,   
         "min_right_arm_seq_length": 150   
     }
+    UHA_DHA_LENGTH = {
+        'uha':145,
+        'dha':145  
+    }
+
+    PRIMER_TEMPLATE_EXTEND = 2000
 
 
     workdir = './'
+    tmp_path = './'    
 
 
     PLASMID_LABEL = {
@@ -160,3 +170,6 @@ class config:
     DATA_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..")) + '/data'
 
     OUTPUT_FILE_PATH = DATA_ROOT + '/output/'
+
+
+

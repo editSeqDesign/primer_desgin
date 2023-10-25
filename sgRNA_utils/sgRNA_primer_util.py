@@ -1,8 +1,15 @@
 import re
 import pandas as pd
 import primer3
-from sgRNA_utils.sgRNA_primer_config import config   
+from sgRNA_utils.sgRNA_primer_config import config      
 from Bio import SeqIO
+from os.path import exists,splitext,dirname,splitext,basename,realpath,abspath 
+
+
+#检查DNA序列中非规范碱基的位置
+def find_non_agct_positions(sequence):
+    non_standard_bases = [m.start() for m in re.finditer('[^AGCTagct]', sequence)]
+    return non_standard_bases
 
 def del_Unnamed(df):
     """
@@ -31,6 +38,10 @@ def find_coordinate_by_pattern(pattern,seq):
     sub_seq_cor = {}
     i = 0
     for m in re.finditer(pattern, seq):
+        sub_seq_cor.update({f'{i}':(m.start(), m.end())})
+        i = i + 1
+
+    for m in re.finditer(pattern, revComp(seq)):
         sub_seq_cor.update({f'{i}':(m.start(), m.end())})
         i = i + 1
     return sub_seq_cor,i
@@ -73,15 +84,6 @@ def lambda2cols(df,lambdaf,in_coln,to_colns):         #apply函数的助手
     df_.columns = to_colns
     df = df.join(df_)        
     return df
-
-#取互补序列  
-# def dna_complement(seq):
-#     seq = seq.upper()
-#     seq = seq.replace('A', 'T')
-#     seq = seq.replace('T', 'A')
-#     seq = seq.replace('C', 'G')
-#     seq = seq.replace('G', 'C')
-#     return seq
 
 #将一个dataframe拆分列，变成堆加行
 def columns_2_row_from_one_df(sgRNA_df,in_col,to_col):
@@ -173,7 +175,12 @@ def primer_design(seqId,
                   mute_type='single',
                   primer_type = '',
                   global_args=config.GLOBAL_ARGS,
-                  ):
+                  ):  
+
+    #检查引物设计模板序列
+    non_agct_positions = find_non_agct_positions(seqTemplate)
+    if len( non_agct_positions ) != 0:
+        raise ValueError(f'Template is error, position is {non_agct_positions}')
 
     if mute_type == 'single':
         config.GLOBAL_ARGS.update(config.S_GLOBAL_ARGS)
@@ -202,8 +209,8 @@ def primer_design(seqId,
             global_args.update(config.PLASMID_Q_ARGS)
         elif primer_type == 'genome_seq':
             global_args.update(config.GENOME_Q_ARGS)
-
-    #序列参数  
+ 
+    #序列参数
     seqlength = len(seqTemplate)   
     seq_args = {
                 'SEQUENCE_ID': seqId,
@@ -211,6 +218,7 @@ def primer_design(seqId,
                 'SEQUENCE_FORCE_LEFT_START':0,
                 'SEQUENCE_FORCE_RIGHT_START': seqlength-1
         }  
+     
     #选择类型，设定序列参数
     if mute_type == 'single': #单点突变
         if stype == "left":   #target上游引物设计
@@ -226,37 +234,33 @@ def primer_design(seqId,
             seq_args['SEQUENCE_PRIMER_PAIR_OK_REGION_LIST'] = [[-1,-1,-1,-1]]  
             seq_args['SEQUENCE_FORCE_LEFT_START'] = 0  
             seq_args['SEQUENCE_FORCE_RIGHT_START'] = seqlength-1       
-            size_range = [seqlength,seqlength] 
+            size_range = [seqlength,seqlength]
 
-        primer_num = 1  
+        elif stype == "left_right_change":
+            seq_args['SEQUENCE_PRIMER_PAIR_OK_REGION_LIST'] = [[0,40,seqlength-40,40]]
+            seq_args['SEQUENCE_FORCE_LEFT_START'] = -1
+            seq_args['SEQUENCE_FORCE_RIGHT_START'] = -1
+            size_range = [seqlength-80,seqlength]  
+            # primer_num = 5 
 
+       
     elif mute_type == 'sequencing':  #测序引物
         seq_args['SEQUENCE_ID'] = seqId
         seq_args['SEQUENCE_TEMPLATE'] = seqTemplate  
         size_range = [25,seqlength]
-        primer_num = 5
+        # primer_num = 5
 
     #设定全局参数   
     global_args['PRIMER_PRODUCT_SIZE_RANGE']=size_range   
-    global_args['PRIMER_NUM_RETURN']= primer_num
-  
+    if primer_type == 'plasmid_seq':
+        global_args['PRIMER_NUM_RETURN'] = 10    
+    elif primer_type == 'genome_seq':
+        global_args['PRIMER_NUM_RETURN'] = 1000
+    # print(global_args['PRIMER_NUM_RETURN'])
     #调用工具
-    primer3_result = primer3.bindings.designPrimers(seq_args, global_args)
-
-    # if primer3_result.get('PRIMER_LEFT_EXPLAIN') != None or primer3_result.get('PRIMER_RIGHT_EXPLAIN') != None:
-
-    #     errorMessage = f'{primer_type}: '
-    #     if primer3_result.get('PRIMER_LEFT_0_SEQUENCE') == None:
-    #         PRIMER_LEFT_EXPLAIN = primer3_result.get('PRIMER_LEFT_EXPLAIN')
-    #         errorMessage = errorMessage + f'PRIMER_LEFT_EXPLAIN:{PRIMER_LEFT_EXPLAIN}; '
-
-    #     if primer3_result.get('PRIMER_RIGHT_0_SEQUENCE') == None:  
-    #         PRIMER_RIGHT_EXPLAIN = primer3_result.get('PRIMER_RIGHT_EXPLAIN')
-    #         errorMessage = errorMessage + f'PRIMER_RIGHT_EXPLAIN:{PRIMER_RIGHT_EXPLAIN}'
-    #     if errorMessage !=  f'{primer_type}: ': 
-    #         print(errorMessage)
-    #         raise ValueError(errorMessage)  
-
+    print(seq_args,global_args)
+    primer3_result = primer3.bindings.designPrimers(seq_args, global_args) 
+         
     return primer3_result  
 
 #输出引物设计成功的
@@ -344,7 +348,6 @@ def normal_primer_rename(uha_primer_df,dha_primer_df,sgRNA_primer_df,plasmid_seq
        
     return uha_primer_df,dha_primer_df,sgRNA_primer_df,plasmid_sequencing_primer_df,genome_sequencing_primer_df,plasmid_backbone_primer_df,seq_altered_primer_df
 
-
 #先填充a的内容，再合并两个df 
 def merge_fill_two_df(temp_sgRNA_df,a):
     #填充
@@ -388,7 +391,6 @@ def df_to_df(columns,df,index):
         primer_li.append(primer_dict)
     df = pd.DataFrame(primer_li)
     return df
-
 
 #重命名
 def rename_u_d_primer_df(uha_primer_df,dha_primer_df):
@@ -444,8 +446,6 @@ def rename_common_primer_df(*df_list):
         df_list_renamed.append(df)
     return df_list_renamed
 
-
-   
 def extract_seq_from_genome(genome,gene_id,start=0,end=0):
     # 读取基因组文件
     records = SeqIO.parse(genome,'fasta')
@@ -463,7 +463,6 @@ def extract_seq_from_genome(genome,gene_id,start=0,end=0):
                     return  sequence.upper()
                 else:
                     return sequence
-
 
 #只要不存在off-target，可义将一切序列转化成坐标
 def convert_seq_cor(gb_path,region_seq_json,strand='+',seq=''):
@@ -611,7 +610,6 @@ def create_plasmid_primer_featrue_df(sequencing_primer_template,
             df = pd.merge(seq_altered_p_df,df,how='outer')    
     return df
 
-
 #根据质粒特征label取序列
 def get_sequence_by_feature_label(filename, feature_label):
     for record in SeqIO.parse(filename, "genbank"):
@@ -620,7 +618,6 @@ def get_sequence_by_feature_label(filename, feature_label):
                 print(feature.location.extract(record).seq)
                 return feature.location.extract(record).seq
     return None
-
 
 import re
 def is_dna(sequence):
@@ -633,8 +630,6 @@ def is_dna(sequence):
     else:
         return False
     
-
-
 # #打包文件为zip
 import zipfile 
 import os
@@ -652,7 +647,6 @@ def zip_ya(startdir, file_news,num=1):
                 fpath=startdir.split('/')[-2]+'/'
                 z.write(os.path.join(dirpath, filename), fpath + filename,zipfile.ZIP_DEFLATED)
 
-
 #
 def convert_twoColumns_to_oneColumns(df,id,region,name1,name2,name):
     
@@ -665,9 +659,81 @@ def convert_twoColumns_to_oneColumns(df,id,region,name1,name2,name):
     
     return temp   
 
-
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+
+def df_to_fasta(df,fasta_filename):
+    with open(fasta_filename, 'w') as fasta_file:
+        for index, row in df.iterrows():
+            sequence_id = row['id']
+            sequence = row['sequence']
+            fasta_file.write(f'>{sequence_id}\n{sequence}\n')
+
+
+
+
+def bowtie_seq_genome(tmp_path, path, index_prefix, fasta_filename):
+
+    if not exists(tmp_path):
+        os.makedirs(tmp_path)
+
+    sam_path = os.path.join(tmp_path ,'output.sam')  
+
+    if not exists(index_prefix):
+        os.makedirs(index_prefix)
+        # index = os.path.join(index_prefix, 'genome_index')
+        cmd = f'bowtie-build {path} {index_prefix}'
+        os.system(cmd)
+    cmd = f'bowtie -p 2 -v 3 --sam-nohead -k 1000000000 {index_prefix} -f {fasta_filename} -S {sam_path}'
+    os.system(cmd)
+
+    #解析  
+    sam_df = parse_sam_file(sam_path)
+
+    #删除文件
+
+    return sam_df
+
+
+
+
+def parse_sam_file(sam_file_path = "alignment.sam"):
+
+    # 定义用于存储比对结果的列表
+    alignment_data = []  
+
+    with open(sam_file_path, "r") as sam_file:
+        for line in sam_file:
+            if not line.startswith("@"):  # 跳过SAM文件头部
+                fields = line.strip().split("\t")
+                read_name = fields[0]  
+                chain = fields[1]
+                reference_name = fields[2]
+                reference_start = int(fields[3])  
+                sequence = fields[9]
+                mismatch = fields[-2]
+                matching_number = fields[-1]
+
+                alignment_data.append([read_name, chain, reference_name, reference_start, sequence, mismatch, matching_number])
+
+    # 创建DataFrame
+    columns = ["ReadName","chain", "ReferenceName", "ReferenceStart", "Sequence","Mismatch", "MatchingNumber"]
+    alignment_df = pd.DataFrame(alignment_data, columns=columns)
+
+    return alignment_df
+
+
+def gb_2_fna(gb_file,fna_file):
+
+    # 读取 GenBank 文件
+    gb_records = SeqIO.parse(gb_file, "genbank")
+
+    # 将 DNA 序列写入 FASTA 文件
+    with open(fna_file, "w") as output_handle:
+        SeqIO.write(gb_records, output_handle, "fasta")
+
+
+
 
 def convert_df_to_fastaFile(genome_path,df,id,name,input_fasta,lib_fasta):
 
@@ -687,8 +753,8 @@ def convert_df_to_fastaFile(genome_path,df,id,name,input_fasta,lib_fasta):
         seqid = row[id]
         seq = row[name]
         chrom = seqid.split(';')[1].split(':')[0]
-        
-        target_lib_seq =search_sequence_in_genome_seq(genome_sequence=str(record_dict[chrom].seq), search_sequence=seq, start_distance=20000, end_distance=20000)
+        start,end = seqid.split(';')[1].split(':')[1].split('-')
+        gene_start, gene_end, target_lib_seq = search_sequence_in_genome_seq(chrom, genome_path, start, end,  start_distance=20000, end_distance=20000)
         if target_lib_seq != None:
             rec = SeqRecord(Seq(target_lib_seq),id=seqid)
             lib_length_dict[seqid] = len(target_lib_seq)
@@ -703,9 +769,6 @@ def convert_df_to_fastaFile(genome_path,df,id,name,input_fasta,lib_fasta):
     SeqIO.write(lib_records, lib_fasta, "fasta")
 
     return fasta_length_dict, lib_length_dict
-
-
-
 
 def search_sequence_in_genome_fasta(fasta_file, search_sequence):
     sequence_length = len(search_sequence)
@@ -733,8 +796,6 @@ def search_sequence_in_genome_fasta(fasta_file, search_sequence):
 
     return "未找到匹配的序列"
 
-
-
 def fasta_to_dataframe(fasta_file):
     sequences = []
     headers = []
@@ -748,31 +809,28 @@ def fasta_to_dataframe(fasta_file):
     df = pd.DataFrame({"Header": headers, "Sequence": sequences})
     return df
 
+def search_sequence_in_genome_seq(chrom, genome_path, start, end  , start_distance=20000, end_distance=20000):
 
+    record_dict = SeqIO.to_dict(SeqIO.parse(genome_path, "fasta"))
 
-def search_sequence_in_genome_seq(genome_sequence, search_sequence, start_distance=20000, end_distance=20000):
+    genome_sequence=str(record_dict[chrom].seq)
 
-    search_sequence_length = len(search_sequence)
-    start_index = None
-    end_index = None
+    # search_sequence_length = len(search_sequence)
+    start_index =  max(0, int(start) - start_distance)
+    end_index = min( len(genome_sequence), int(end) + end_distance )
 
-    result, num = find_coordinate_by_pattern(search_sequence, genome_sequence)
+    #基因在更改后基因组的位置 
+    if start_index > 0:
+        gene_start = start_distance + 1
+        gene_end = gene_start + (int(end) - int(start) ) - 1
+    elif start_index == 0:
+        gene_start = int(start) + 1
+        gene_end = gene_start + (int(end) - int(start)) - 1
+        
+    return gene_start , gene_end, genome_sequence[start_index: end_index]
 
-    index = -1
-    if num == 1:
-        index = result['0'][0]
-    
-    if index != -1:
-        start_index = max(0, index - start_distance)
-        end_index = min(len(genome_sequence), index + search_sequence_length + end_distance)
-        return genome_sequence[start_index:end_index]
-    else:
-        return None
+    # result, num = find_coordinate_by_pattern(search_sequence, genome_sequence)
 
-
-
-  
- 
 #Map the target sequence to the reference genome by Blast
 def blast_ha(ref_genome, blast_input_file_path, blast_output_file_path):  
 
@@ -793,21 +851,18 @@ def blast_ha(ref_genome, blast_input_file_path, blast_output_file_path):
     os.system("blastn -query "+blast_input_file_path+" -db "+ref_lib+" -outfmt 6 -out "+blast_output_file_path+" -evalue 1e-"+evalue+" -max_target_seqs 5 -num_threads 4")
     os.system("rm %s.n*" % ref_lib)
 
-
 #Evaluate the feasibility of design with the mapping of the homologous arm to the reference genome
-def blast_output_evaluate(workdir, blast_input, blast_output):   
+def blast_output_evaluate(genome_path , workdir, blast_input, blast_output):   
     evaluate_output_file_path=workdir+'/Evaluation_result.txt'
-    evaluate_result_df = pd.DataFrame()
+    evaluate_input_df = pd.DataFrame()
+    middle_df = pd.DataFrame()
+    high_df = pd.DataFrame()
+    low_df = pd.DataFrame()
+    aim_all_df = pd.DataFrame()
 
     with open(evaluate_output_file_path,'a') as evaluate_output:
         dict_evaluate_output={}
-
-        evaluate_input_df = pd.DataFrame()
-        middle_df = pd.DataFrame()
-        high_df = pd.DataFrame()
-        low_df = pd.DataFrame()
-
-
+    
         with open(blast_output,'r') as evaluate_input:
             dict_result_id = {}
             evaluate_result = {}
@@ -837,7 +892,6 @@ def blast_output_evaluate(workdir, blast_input, blast_output):
             with open(blast_input,'r') as blast_input:
                 for lines in blast_input:
                     if lines[0] =='>':
-                        
                         blast_input_id=lines[1:-1]
                         blast_input_id = blast_input_id.split(' ')[0]
                         if blast_input_id in dict_result_id:
@@ -845,37 +899,58 @@ def blast_output_evaluate(workdir, blast_input, blast_output):
                                 temp = evaluate_input_df[evaluate_input_df['qseqid']==blast_input_id]
                                
                                 # aaa = aaa.append(temp) 
-                                temp = temp[['qseqid','sseqid','pident','length','mismatch','sstart','ssend']]
+                                temp = temp[['qseqid','sseqid','pident','length','mismatch','sstart','ssend','qstart','qend']]
 
                                 if config.UHA_DHA_CONFIG['max_right_arm_seq_length']  == config.UHA_DHA_CONFIG['min_right_arm_seq_length']:
                                     uha_dha_length =  config.UHA_DHA_CONFIG['max_right_arm_seq_length']
 
                                 temp['coverage'] = temp['length'] / uha_dha_length
+
+                                id, position, hr =  blast_input_id.split(';')
+                                chrom, start_end = position.split(':')
+                                qstart, qend = start_end.split('-')
+
+                                # 明天研究
+                                gene_start, gene_end, target_lib_seq = search_sequence_in_genome_seq(chrom, genome_path, start = qstart, end = qend, start_distance=20000, end_distance=20000)
+                                print( gene_start, gene_end )
+
+                                if hr == 'UHA':
+                                    aim_df =  temp[ ( temp['qstart'] == str(gene_start - uha_dha_length)  ) & ( temp['qend'] == str(gene_start -1) ) ]
+                                elif hr == 'DHA':
+                                    aim_df =  temp[ ( temp['qstart'] == str(gene_end + 1)   ) & ( temp['qend'] == str(gene_end + uha_dha_length) ) ]
+
+                                aim_df['off target'] = 'target'
+                                temp = temp[ ~ ( ( temp['pident'] == 100 ) & ( temp['coverage'] == 1) ) ]
+                                
                                 high_off_target_df = temp[ ( temp['pident'] > 90 ) & ( temp['coverage'] > 0.9) ]
                                 high_off_target_df['off target'] = 'high'
-
+                                
                                 surplus_df = temp[~ ( (temp['pident'] > 90) & (temp['coverage'] > 0.9) ) ] 
 
                                 middle_off_target_df =  surplus_df[ ( (surplus_df['pident'] > 90) & (surplus_df['coverage'] > 0.7) ) ]
                                 middle_off_target_df['off target'] = 'medium'
 
                                 temp_surplus_df = surplus_df[ ~ ( (surplus_df['pident'] > 90) & (surplus_df['coverage'] > 0.7) )  ]
+
                                 low_off_target_df = temp_surplus_df[ ( (temp_surplus_df['pident'] > 90) & (temp_surplus_df['length'] >100) )  ]
                                 low_off_target_df['off target'] = 'low'
 
                                 
 
                                 #检查序列
-                                if len(high_off_target_df) >= 2:
+                                if len(high_off_target_df) >= 1 or len(middle_off_target_df) >= 1 or len(low_off_target_df) >= 1 :
+                                    aim_all_df = aim_all_df.append(aim_df)
+
+                                if len(high_off_target_df) >= 1:
                                     evaluate_output.write(blast_input_id+'\t'+'The target sequence can map to multiple positions in the reference genome. The genome editing may be mislocated. High risk of miss target. '+'\n')
                                     high_df = high_df.append( high_off_target_df )
                                     
 
-                                if len(middle_off_target_df) >= 2 and len(high_off_target_df) <2 :
+                                if len(middle_off_target_df) >= 1:
                                     evaluate_output.write(blast_input_id+'\t'+'The target sequence can map to multiple positions in the reference genome. The genome editing may be mislocated. Medium risk of miss target. '+'\n')
                                     middle_df = middle_df.append( middle_off_target_df )
 
-                                if len(low_off_target_df) >=2 :
+                                if len(low_off_target_df) >= 1:
                                     evaluate_output.write(blast_input_id+'\t'+'The target sequence can map to multiple positions in the reference genome. The genome editing may be mislocated. Low risk of miss target. '+'\n')
                                     low_df = low_df.append( low_off_target_df )
 
@@ -884,32 +959,11 @@ def blast_output_evaluate(workdir, blast_input, blast_output):
                                 continue
                             else:
                                 evaluate_output.write(blast_input_id+'\t'+'The target sequence can not map to the reference genome. Please check them.'+'\n')
-                                list_result_id_unmap.append(blast_input_id)
-
-                                
-    #     for key3 in dict_evaluate_output:
-    #         evaluate_output.write(key3+'\t'+dict_evaluate_output[key3]+'\n')
-    # evaluate_output_dir=evaluate_output_file_path.replace('.txt','.xlsx')  
+                                list_result_id_unmap.append(blast_input_id)  
     
-    # evaluate_result_df[[]]   
-    
-    evaluate_result_df = evaluate_result_df.rename(columns={
-                                    'qseqid':'query or source (gene) sequence id',
-                                    'sseqid':'subject or target (reference genome) sequence id',
-                                    'pident':'percentage of identical positions',
-                                    'length':'alignment length (sequence overlap)',
-                                    'mismatch':'number of mismatches',
-                                    'sstart':'start of alignment in subject',
-                                    'ssend':'end of alignment in subject'
-                                })
-    # evaluate_result_df.to_excel( os.path.join(evaluate_output_file_path,evaluate_output_dir) ,index=False)
-    # pd.read_table(evaluate_output_file_path, index_col=0).to_excel(evaluate_output_dir)
 
 
-
-
-    return middle_df, high_df, low_df
-
+    return middle_df, high_df, low_df, aim_all_df
 
 from Bio import SeqIO
 def gb_2_fna(gb_file,fna_file):
@@ -921,11 +975,6 @@ def gb_2_fna(gb_file,fna_file):
     
     with open(fna_file, "w") as output_handle:
         SeqIO.write(gb_records, output_handle, "fasta")
-
-
-
-
-
 
 def search_sequence_in_genome_fasta(fasta_file, search_sequence):
     sequence_length = len(search_sequence)
@@ -953,8 +1002,6 @@ def search_sequence_in_genome_fasta(fasta_file, search_sequence):
 
     return "未找到匹配的序列"
 
-
-
 def str2num(x):
     """
     This extracts numbers from strings. eg. 114 from M114R.
@@ -981,8 +1028,87 @@ def reset_index_df(*li):
             
     return li
 
-    #
+#
+def read_chromSeq_from_genome(path,chrom):
 
+    record_dict = SeqIO.to_dict(SeqIO.parse(path, "fasta"))   
+        # chrom = seq_id.split(';')[1].split(':')[0]
+    seq = str(record_dict[chrom].seq)
+   
+    return seq  
+
+    
+def off_target_analysis_from_genome(primer_seq='12', seq_id='12' , genome_path='234', primer_type='LEFT'):
+
+    primer_suc = {}
+
+    chrom = seq_id.split(';')[1].split(':')[0]
+    genome_seq = read_chromSeq_from_genome(genome_path, chrom)
+
+    result = find_coordinate_by_pattern(pattern=primer_seq, seq=genome_seq)
+
+    #若模板脱靶，直接结束
+    if result[1] > 1:
+        return primer_suc
+    else:
+    #若模板不脱靶，循环找出15bp不脱靶的序列
+        if primer_type == 'RIGHT':
+            primer_seq = revComp(primer_seq)
+
+        #对每一条引物进行脱靶分析，种子序列为15bp
+        j = 0
+        for m in range(15,len(primer_seq)+1):                     #控制滑动次数
+
+            pattern = primer_seq[j:m]
+            result = find_coordinate_by_pattern(pattern=pattern, seq=genome_seq)
+
+            if result[1] > 1:
+                if j == len(primer_seq) - 15 + 1 :
+                    break
+                else:
+                    j = j + 1
+                    continue
+            else:
+                coordinate = result[0]['0']
+
+                if primer_type == 'LEFT':
+                    primer_suc.update(
+                        {
+                            'PRIMER_LEFT_0_SEQUENCE':pattern ,
+                            'PRIMER_LEFT_0': (coordinate[0] , (coordinate[1] - coordinate[0] + 1) )
+                        }
+                    )
+                elif primer_type == 'RIGHT':
+                    primer_suc.update(
+                        {
+                            'PRIMER_RIGHT_0_SEQUENCE':pattern,  
+                            'PRIMER_RIGHT_0': ( len(primer_seq) -1 - coordinate[0] , (coordinate[1] - coordinate[0] + 1) )
+                        }
+                    )
+                break
+        
+        return primer_suc  
+  
+
+def parse_primer3_result(dict_res, primer_num):
+        primer_df = pd.DataFrame()
+        for u in range(primer_num) :
+            dict_primer = {}
+            left_primer = dict_res.get(f'PRIMER_LEFT_{u}_SEQUENCE')
+            left_primer_tm = dict_res.get(f'PRIMER_LEFT_{u}_TM')
+            right_primer = dict_res.get(f'PRIMER_RIGHT_{u}_SEQUENCE')
+            right_primer_tm = dict_res.get(f'PRIMER_RIGHT_{u}_TM')
+
+            dict_primer = {
+                'id':u,
+                'left_primer':left_primer,
+                'left_primer_tm':left_primer_tm,
+                'right_primer':right_primer,
+                'right_primer_tm':right_primer_tm
+            }
+            primer_df = primer_df.append([dict_primer])
+            u = u +1
+        return primer_df
 
 
 

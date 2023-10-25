@@ -12,11 +12,11 @@ import configparser
 from Bio import SeqIO
 from Bio.Seq import Seq   
 from Bio.SeqRecord import SeqRecord
-import math
+import math  
 from sgRNA_utils.sgRNA_primer_config import config 
 
 
-#默认推荐最优sgRNA
+#默认推荐最优sgRNA   
 def extract_sgRNA_from_chopchop(sgRNA_result_path, selected_sgRNA_result):
 
     sgRNA = su.del_Unnamed(pd.read_csv(sgRNA_result_path,index_col=False))
@@ -42,7 +42,6 @@ def extract_sgRNA_from_chopchop(sgRNA_result_path, selected_sgRNA_result):
         sgRNA = sgRNA.reset_index(drop=True)
         df = sgRNA
        
-
     df['Rev Target sequence'] = df['Target sequence'].apply(lambda x: su.revComp(x))  
 
 
@@ -406,9 +405,9 @@ def create_new_plasmid(gb_path, sgRNA_df):
         if real_promoter == None:
             raise ValueError('There is a problem with the label you provided')
 
-        def work(target_seq, uha, dha, seq_altered):
+        def work(strand, target_seq, uha, dha, seq_altered):
                 
-                if real_promoter.upper() != promoter_terminator[:start].upper():
+                if str( real_promoter.upper() ) != promoter_terminator[:start].upper():
                     target_seq = su.revComp(target_seq)  
 
                 new_promoter_terminator = promoter_terminator[:start] + target_seq + terminator_seq
@@ -421,7 +420,7 @@ def create_new_plasmid(gb_path, sgRNA_df):
 
                 return plasmid, promoter_up_promoter, terminator_terminator_down, new_promoter_terminator, promoter_terminator_up_seq, promoter_terminator_down_seq       
 
-        sgRNA_df = su.lambda2cols(df=sgRNA_df, lambdaf=work, in_coln=['Target sequence','UHA','DHA','seq_altered'], to_colns=['plasmid','n20_up_template','n20_down_template','promoter_N20_terminator','promoter_N20_terminator_up','promoter_N20_terminator_down'])
+        sgRNA_df = su.lambda2cols(df=sgRNA_df, lambdaf=work, in_coln=["Strand",'Target sequence','UHA','DHA','seq_altered'], to_colns=['plasmid','n20_up_template','n20_down_template','promoter_N20_terminator','promoter_N20_terminator_up','promoter_N20_terminator_down'])
         
         promoter_terminator_up_promoter_seq = promoter_terminator_up_seq + promoter_seq
         promoter_terminator_down_terminator_seq = terminator_seq + promoter_terminator_down_seq
@@ -433,7 +432,6 @@ def create_new_plasmid(gb_path, sgRNA_df):
             type_kind = 2
         elif len(promoter_terminator_down_seq) <= 600 :
             type_kind = 3
-
 
         return sgRNA_df, promoter_seq, promoter_terminator_up_promoter_seq, promoter_terminator_down_terminator_seq, type_kind
 
@@ -806,7 +804,24 @@ def create_sequencing_primer(gb_path,sgRNA_df,sequencing_primer,sequencing_templ
         dict_plasmid_seq['mute_after_target_gene_seq']=target_gene_seq     #用户指定测序序列的区域序列
    
         #测序质粒的id
-        sucesse,failture = sequencing_primer.design_sequencing_primers(sgRNA_plasmid_seq, gb_path,v['Region'], dict_plasmid_seq, seq_type=seq_type )
+        if seq_type == 'genome_seq':
+            gene_change_type = v['type']
+            ref = v['ref']
+            seq_altered = v['seq_altered']
+            sucesse,failture = sequencing_primer.design_sequencing_primers(sgRNA_plasmid_seq,
+                                                                            gb_path,
+                                                                            v['Region'],
+                                                                            dict_plasmid_seq, 
+                                                                            seq_type=seq_type, 
+                                                                            gene_change_type=gene_change_type, 
+                                                                            ref_seq=ref, 
+                                                                            seq_altered=seq_altered )
+        else:
+            sucesse,failture = sequencing_primer.design_sequencing_primers(sgRNA_plasmid_seq,
+                                                                            gb_path,
+                                                                            v['Region'],
+                                                                            dict_plasmid_seq, 
+                                                                            seq_type=seq_type)
 
         if sucesse != {}:
             result = {'Region':v['Region']}
@@ -822,13 +837,13 @@ def create_sequencing_primer(gb_path,sgRNA_df,sequencing_primer,sequencing_templ
                 if id.split(':')[-1] =='off_target':
                     #处理脱靶引物
                     temp = {'ID':id}
-                    value = v
-                    temp.update(value)
+                    value={'off_target':v}
+                    temp.update(value)   
                     off_target_df = off_target_df.append(pd.DataFrame([temp]))
                 else:
                     failture_result={'ID':id}
                     value = v
-                    failture_result.update(value)
+                    failture_result.update(value)  
 
                     # failture_result.update(failture)
                     failture_sgRNA_plasmid_df = failture_sgRNA_plasmid_df.append(pd.DataFrame([failture_result]))
